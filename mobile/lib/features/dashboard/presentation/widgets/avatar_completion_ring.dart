@@ -4,12 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Profile completion drawn as a ring around the header avatar, with the
-/// percentage in a pill on the ring's bottom edge. Green while the person is
-/// still filling things in; amber while a document waits on an administrator.
-///
-/// Sits on the deep green [DeepTabHeader] band, so the empty track is a faint
-/// white rather than a grey.
+/// Green while filling in, amber while a document awaits an administrator.
 class AvatarCompletionRing extends StatelessWidget {
   const AvatarCompletionRing({
     super.key,
@@ -23,10 +18,8 @@ class AvatarCompletionRing extends StatelessWidget {
   /// 0–100; clamped.
   final int percent;
 
-  /// The avatar itself, laid out inside the ring.
   final Widget child;
 
-  /// Paints the arc and pill amber instead of green.
   final bool underReview;
 
   final double size;

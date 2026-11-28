@@ -53,36 +53,29 @@ class RegisterOcrReviewStep extends StatefulWidget {
   final bool extractFailed;
   final String? extractErrorMessage;
 
-  /// Extracted fields that are missing or doubtful (see [IdExtractionReview]).
   final List<IdFieldFlag> extractionFlags;
   final VoidCallback? onRetry;
   final ValueChanged<RegisterOcrSample> onChanged;
 
-  /// The details are typed in rather than read off the ID — an alumni or
-  /// partner-barangay ID is not scanned — so the copy asks for them instead of
-  /// asking to correct a scan.
+  /// Alumni/partner-barangay IDs aren't scanned, so the copy asks for details
+  /// instead of corrections.
   final bool manualEntry;
 
-  /// A volunteer manual registration: the app could not recognize the ID, so
-  /// the details are typed in and a director checks them against it.
+  /// The details are typed in and a director checks them against the ID.
   final bool manualRegistration;
 
-  /// The registrant continued with an ID photo the check said is not clear,
-  /// so whatever was read off it may be wrong: every field — the ID number
-  /// included — stays open, and a notice asks them to correct it.
+  /// Every field (ID number included) stays open and a notice asks for
+  /// corrections.
   final bool unclearIdPhoto;
 
-  /// A beneficiary who signed up as a student: their UC school ID was read
-  /// like a student volunteer's, so the school information is collected.
+  /// Their school ID was read like a student's, so school info is collected.
   final bool studentBeneficiary;
 
-  /// The document a director reviews with the sign-up: an alumnus's Certificate
-  /// of Graduation, or a partner-barangay volunteer's supporting document. The
-  /// card is shown only when [onCertificateChanged] is set.
+  /// Shown only when [onCertificateChanged] is set.
   final PlatformFile? certificate;
   final ValueChanged<PlatformFile?>? onCertificateChanged;
 
-  /// Server-side conflicts on these inputs — shown inline and focused.
+  /// Server-side conflicts, shown inline and focused.
   final String? phoneError;
   final String? idNumberError;
 
@@ -102,14 +95,12 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     LengthLimitingTextInputFormatter(4),
   ];
 
-  /// Alumni ID numbers are at most 8 characters.
   static const _alumniIdMaxLength = 8;
   static final _alumniIdInputFormatters = [
     LengthLimitingTextInputFormatter(_alumniIdMaxLength),
   ];
 
-  /// In a manual registration a student ID is typed as 8 digits and a staff ID
-  /// as 6 — both are digits only when sent.
+  /// Manual entry: student IDs are 8 digits, staff IDs 6.
   static final _manualStudentIdInputFormatters = [
     FilteringTextInputFormatter.digitsOnly,
     LengthLimitingTextInputFormatter(8),
@@ -135,31 +126,27 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
 
   late String _gender;
 
-  /// Errors on a blank field wait until the user has typed in it; a value
-  /// that is filled in (typed or scanned) is checked straight away.
+  /// Blank-field errors wait for typing; filled values are checked at once.
   bool _ageTouched = false;
   bool _gradYearTouched = false;
   bool _firstnameTouched = false;
   bool _lastnameTouched = false;
 
-  /// Barangay + city picked from the directory and a typed street, pre-filled
-  /// from whatever the ID scan read ([PhAddress.lenient]). Sent as
-  /// [PhAddress.formatted] — empty while incomplete, which keeps Continue off.
+  /// Pre-filled from the scan via [PhAddress.lenient]; an empty
+  /// [PhAddress.formatted] keeps Continue off.
   PhAddress _address = PhAddress.empty;
 
-  /// Bumped whenever [_applyData] replaces [_address], so the address fields
-  /// rebuild with the new pre-fill instead of keeping what they started with.
+  /// Bumped when [_applyData] replaces [_address] so the fields rebuild with
+  /// it.
   int _addressRevision = 0;
   String? _selectedDepartment;
   String? _selectedCourse;
   String? _selectedYearLevel;
   String? _selectedPartnerBarangay;
 
-  /// Set once the scan reads an ID number; the field is then locked so the
-  /// number can only change by rescanning the ID.
+  /// Locked once scanned; only a rescan can change it.
   bool _idNumberVerified = false;
 
-  /// The "kindly correct the extracted information" pop-up is shown once.
   bool _unclearNoticeShown = false;
 
   bool get _isBeneficiary =>
@@ -167,17 +154,14 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   bool get _isStudent => widget.volunteerType == VolunteerType.student;
   bool get _isAlumni => widget.volunteerType == VolunteerType.alumni;
 
-  /// Partner-barangay volunteers have no school record or ID number; they pick
-  /// the partner barangay they volunteer with instead.
+  /// They pick their partner barangay instead of a school record.
   bool get _isPartnerBarangay =>
       widget.volunteerType == VolunteerType.partnerBarangay;
 
-  /// Neither beneficiaries nor partner-barangay volunteers fill in school info
-  /// — except a student beneficiary, whose school ID was read.
+  /// Except a student beneficiary, whose school ID was read.
   bool get _skipsSchoolInfo =>
       (_isBeneficiary && !widget.studentBeneficiary) || _isPartnerBarangay;
 
-  /// Details read off a photo the check flagged — not typed in from scratch.
   bool get _correctsUnclearScan => widget.unclearIdPhoto && !widget.manualEntry;
   bool get _usesCourseField => _isStudent || _isAlumni;
 
@@ -227,7 +211,6 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _focusConflict();
   }
 
-  /// Lands the cursor on whichever input the server rejected.
   void _focusConflict() {
     if (widget.phoneError != null) {
       focusConflictField(this, _phoneFocus);
@@ -261,7 +244,6 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     }
   }
 
-  /// Asks the registrant to check what was read off their unclear ID photo.
   Future<void> _showUnclearNotice() {
     return showDialog<void>(
       context: context,
@@ -321,9 +303,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
           ? idNumber.substring(0, _alumniIdMaxLength)
           : idNumber,
     );
-    // Only lock a number both scans agree on. A flagged one (the scans
-    // disagree, or only the on-device scan read it) may be misread digits, so
-    // the user must be able to correct it against the card.
+    // Lock only a number both scans agree on; a flagged one may be misread.
     _idNumberVerified =
         !widget.unclearIdPhoto &&
         enriched.idNumber.trim().isNotEmpty &&
@@ -844,9 +824,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
               ],
             ],
           ),
-        // Alumni close the form with their Certificate of Graduation, and
-        // partner-barangay volunteers with a supporting document — the proof,
-        // next to the uploaded ID, that the director reviews.
+        // The proof a director reviews next to the uploaded ID.
         if (widget.onCertificateChanged != null) ...[
           const SizedBox(height: 16),
           RegistrationDocumentCard(

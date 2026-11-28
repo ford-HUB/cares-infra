@@ -3,7 +3,7 @@ import { UserRequestsSiteController } from '../controllers/user-requests-site-co
 import { UserRequestsRepository } from '../repositories/user-requests-repository';
 import { UserRequestsSiteService } from '../services/user-requests-site-service';
 
-/** Director-side review; accepting an event-join marks the request, never the attendance table. */
+/** Accepting an event-join marks the request, never the attendance table. */
 @Module({
   controllers: [UserRequestsSiteController],
   providers: [UserRequestsSiteService, UserRequestsRepository],

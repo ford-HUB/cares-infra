@@ -1,9 +1,4 @@
-/**
- * The goods a director can tick on an event's "Accepted Donations" panel. Mirrors
- * `site/src/constants/event.ts` (`GOODS_TYPE_OPTIONS`) and the app's
- * `goods_types.dart`; the ids are what `Event.goods_types` and
- * `Donation.goods_type` store.
- */
+/** Must match `site/src/constants/event.ts` (`GOODS_TYPE_OPTIONS`) and the app's `goods_types.dart`. */
 export const GOODS_TYPES = [
   { id: 'food', label: 'Food' },
   { id: 'clothing', label: 'Clothing' },
@@ -21,11 +16,7 @@ export const GOODS_TYPE_IDS = GOODS_TYPES.map((type) => type.id) as [
   ...GoodsTypeId[],
 ];
 
-/**
- * Pesos credited per unit of each goods type when a goods donation is scored for
- * the donor board. The shipped defaults; Rankings → Customization overrides them
- * in `RankingSettings.goods_type_values`.
- */
+/** Defaults; overridden by `RankingSettings.goods_type_values`. */
 export const DEFAULT_GOODS_TYPE_VALUES: Record<GoodsTypeId, number> = {
   food: 150,
   clothing: 100,

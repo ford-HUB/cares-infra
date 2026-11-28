@@ -36,8 +36,7 @@ export function PortalLayout({ nav, title }: PortalLayoutProps) {
   usePageLoadReporter(nav)
   usePortalTheme()
   const mainRef = useRef<HTMLElement>(null)
-  // Each header search for a record remounts the screen it opens, so the module's
-  // search box takes the new text even when it is already the screen on show.
+  // Each header search remounts the target screen, so its search box takes the new text.
   const findNonce = readPortalFind(useLocation().state)?.nonce
 
   useEffect(() => {
@@ -46,10 +45,7 @@ export function PortalLayout({ nav, title }: PortalLayoutProps) {
     }
   }, [ensureProfile, user])
 
-  // Pinned to the viewport rather than sized with h-screen/h-full: the shell covers
-  // exactly what is on screen, whatever height the document ends up with.
-  // The provider sits here once so any locked (suspended) control in the sidebar or
-  // a page can show its hover card without each screen mounting its own.
+  // Pinned to the viewport, not h-screen/h-full. The tooltip provider lives here once for every locked control.
   return (
     <TooltipProvider delayDuration={150}>
       <div className="fixed inset-0 flex overflow-hidden bg-[var(--cares-bg)]">

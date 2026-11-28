@@ -1,19 +1,7 @@
-/**
- * Where a volunteer stands for one event. Attendance is geofence-based: the app
- * records coordinates while the event runs and the AI service decides, afterwards,
- * whether the volunteer was inside the event area for its duration.
- *
- * `pending` until validation has ruled — before the event, while it runs, and after
- * it for as long as an offline device has still not pushed its coordinates; then
- * `completed` or `absent`.
- */
+/** `pending` until the AI service rules after the event (including while offline devices haven't synced). */
 export type AttendanceStatus = 'pending' | 'completed' | 'absent'
 
-/**
- * Where the coordinates the AI service judged came from. Offline devices buffer their
- * readings and push them as a CSV once back online, so a row can sit on
- * `awaiting_sync` with nothing to validate yet.
- */
+/** Offline devices push buffered readings as CSV later, so rows can sit on `awaiting_sync`. */
 export type GeoValidationMethod = 'geofence' | 'offline_sync' | 'awaiting_sync' | 'manual'
 
 export interface EventAttendee {
@@ -21,9 +9,9 @@ export interface EventAttendee {
   eventId: number
   eventTitle: string
   eventDate: string
-  /** When the event is scheduled to end; manual attendance opens after it. */
+  /** Manual attendance opens after this. */
   eventEndDate: string
-  /** The college the event was run for; undefined for non-School events. */
+  /** Undefined for non-School events. */
   eventDepartment?: string
   firstName: string
   lastName: string
@@ -33,31 +21,24 @@ export interface EventAttendee {
   yearLevel?: string
   status: AttendanceStatus
   registeredAt: string
-  /** Time in: the first reading inside the event geofence. */
   checkedInAt?: string | null
-  /**
-   * Time out: when the volunteer left the geofence for good. Breaks they came back
-   * from are ignored; mid-event it stays null until they have been gone an hour.
-   */
+  /** Breaks they returned from are ignored; stays null mid-event until gone an hour. */
   checkedOutAt?: string | null
-  /** Latest reading inside the geofence, settled as a time out or not. */
   lastPingAt?: string | null
   validationMethod?: GeoValidationMethod | null
-  /** Credited service hours; only meaningful once the attendee is completed. */
+  /** Only meaningful once completed. */
   hoursRendered?: number
   remarks?: string
 }
 
-/** One entry of the event picker, derived from the loaded roster. */
 export interface AttendeeEventOption {
   eventId: number
   title: string
   eventDate: string
 }
 
-/** The outcome of a manual ruling, as the page applies it to the roster. */
 export interface ManualAttendanceResult {
   marked: EventAttendee[]
-  /** Selected rows the server found already completed and left untouched. */
+  /** Selected rows the server left untouched as already completed. */
   alreadyCompleted: number
 }

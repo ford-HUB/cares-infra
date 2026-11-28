@@ -1,6 +1,5 @@
 import 'package:image_picker/image_picker.dart';
 
-/// Single face photo captured during registration.
 class FaceCaptureSet {
   const FaceCaptureSet({this.photo});
 

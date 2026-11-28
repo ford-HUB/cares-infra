@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Third-party sign-in providers offered in the UI.
-///
-/// The buttons stay presentation-only: they report a tap and render a pending state.
-/// Talking to Google, Facebook, and the CARES backend is the caller's job — see
-/// `SocialAuthClient` and `DonorAuthService`.
+/// Buttons are presentation-only; `SocialAuthClient` and `DonorAuthService` do
+/// the work.
 enum SocialAuthProvider {
   google('Google'),
   facebook('Facebook');
@@ -16,7 +13,6 @@ enum SocialAuthProvider {
   final String label;
 }
 
-/// "or continue with" divider plus the Google / Facebook buttons.
 class SocialAuthButtons extends StatelessWidget {
   const SocialAuthButtons({
     super.key,
@@ -32,14 +28,12 @@ class SocialAuthButtons extends StatelessWidget {
   final String dividerLabel;
   final bool showDivider;
 
-  /// The provider whose sign-in is in flight — it shows a spinner in place of its glyph.
+  /// Shows a spinner in place of its glyph.
   final SocialAuthProvider? pendingProvider;
 
-  /// False while any sign-in or submit is running, so a second provider cannot be
-  /// started on top of the first.
+  /// False while anything is running, so a second provider can't start.
   final bool enabled;
 
-  /// Side-by-side icon buttons instead of full-width labelled rows.
   final bool compact;
 
   @override
@@ -85,7 +79,6 @@ class SocialAuthButtons extends StatelessWidget {
   }
 }
 
-/// A single provider button — pale green soft-fill tile with the brand glyph.
 class SocialAuthButton extends StatelessWidget {
   const SocialAuthButton({
     super.key,
@@ -188,16 +181,11 @@ class _DividerLabel extends StatelessWidget {
   }
 }
 
-/// Official brand marks, drawn from each provider's published vector artwork
-/// via `flutter_svg` so the logos match the real thing instead of being
-/// approximated by hand-painted arcs.
-///
-/// The markup is inlined rather than bundled as an asset: it keeps the logos
-/// versioned with the widget that uses them and avoids a network fetch.
+/// Official provider SVGs, inlined so they version with the widget and need no
+/// fetch.
 class _BrandMarks {
   const _BrandMarks._();
 
-  /// Google "G" — the four-colour mark.
   static const String google = '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
   <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -208,7 +196,6 @@ class _BrandMarks {
 </svg>
 ''';
 
-  /// Facebook "f" — white glyph on the brand-blue disc.
   static const String facebook = '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
   <path fill="#1877F2" d="M36 18C36 8.06 27.94 0 18 0S0 8.06 0 18c0 8.98 6.58 16.43 15.19 17.78V23.2h-4.57V18h4.57v-3.96c0-4.51 2.69-7 6.8-7 1.97 0 4.03.35 4.03.35v4.43h-2.27c-2.24 0-2.94 1.39-2.94 2.81V18h5l-.8 5.2h-4.2v12.58C29.42 34.43 36 26.98 36 18z"/>
@@ -217,7 +204,6 @@ class _BrandMarks {
 ''';
 }
 
-/// Four-colour Google "G", rendered from the official vector mark.
 class GoogleGlyph extends StatelessWidget {
   const GoogleGlyph({super.key, this.size = 22});
 
@@ -234,7 +220,6 @@ class GoogleGlyph extends StatelessWidget {
   }
 }
 
-/// Facebook "f" on the brand blue disc, rendered from the official vector mark.
 class FacebookGlyph extends StatelessWidget {
   const FacebookGlyph({super.key, this.size = 22});
 

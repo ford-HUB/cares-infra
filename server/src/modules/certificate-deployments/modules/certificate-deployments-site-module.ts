@@ -5,11 +5,7 @@ import { CertificateDeploymentsSiteController } from '../controllers/certificate
 import { CertificateDeploymentsRepository } from '../repositories/certificate-deployments-repository';
 import { CertificateDeploymentsSiteService } from '../services/certificate-deployments-site-service';
 
-/**
- * The two foreign repositories are listed here rather than imported through their own
- * modules: they are stateless readers over Prisma, and pulling in the events and
- * templates site modules would drag their controllers along with them.
- */
+/** Foreign repositories listed directly to avoid pulling in their modules' controllers. */
 @Module({
   controllers: [CertificateDeploymentsSiteController],
   providers: [

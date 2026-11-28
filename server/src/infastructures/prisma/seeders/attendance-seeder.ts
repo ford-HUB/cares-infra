@@ -43,10 +43,7 @@ const volunteer = (
   phone_number,
 });
 
-/**
- * Rosters keyed by position in the event list (newest first), so the seeder works
- * against whatever `seed:events` created without hard-coding event ids.
- */
+/** Keyed by event list position (newest first) to avoid hard-coded ids. */
 const ROSTERS: AttendanceSeed[][] = [
   [
     {
@@ -357,10 +354,7 @@ const findOrCreateByName = async <T>(
   create: () => Promise<T>,
 ): Promise<T> => (await find()) ?? (await create());
 
-/**
- * Fills the portal's attendees table with a roster for the seeded events. Volunteers are
- * created on demand and matched by their login email, so re-running only updates.
- */
+/** Idempotent: volunteers matched by email. */
 export const seedAttendance = async (prisma: PrismaClient): Promise<void> => {
   const events = await prisma.event.findMany({
     orderBy: { event_started: 'desc' },

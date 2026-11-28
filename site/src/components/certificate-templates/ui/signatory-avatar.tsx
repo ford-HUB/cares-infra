@@ -3,7 +3,7 @@ import { avatarTone, initialsOf } from '../../../constants/certificate-design'
 
 interface SignatoryAvatarProps {
   name: string
-  /** Absent in the mock data — initials stand in until accounts carry a photo. */
+  /** Absent in mock data; initials stand in. */
   avatarUrl?: string
   size?: 'sm' | 'md'
 }

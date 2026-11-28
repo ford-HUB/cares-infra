@@ -2,8 +2,7 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/domain/event_participation_role.dart';
 
-/// The event's slot numbers as the server holds them right after a join or a
-/// cancellation — what the details screen and the cards redraw from.
+/// Server slot counts right after a join or cancellation.
 class EventRegistrationResult {
   const EventRegistrationResult({
     required this.eventId,
@@ -35,7 +34,7 @@ class EventRegistrationResult {
   final int participants;
   final int slotsLeft;
 
-  /// The role on the caller's registration; null after a cancellation.
+  /// Null after a cancellation.
   final EventParticipationRole? participationRole;
 
   /// Pending for Organizer, Facilitator and Speaker until a Director or
@@ -43,17 +42,15 @@ class EventRegistrationResult {
   final EventRoleApproval? roleApproval;
 }
 
-/// `POST` / `DELETE /events/:id/register` — takes or gives back one slot on a
-/// server event. The server counts registrations from attendance rows, so the
-/// numbers that come back are the real ones, not a local guess.
+/// Counts come from attendance rows server-side, so they are authoritative.
 class EventRegistrationService {
   EventRegistrationService({ApiClient? apiClient})
     : _api = apiClient ?? ApiClient();
 
   final ApiClient _api;
 
-  /// Registers in [role]. Anything but Regular is filed for a Director's or
-  /// Coordinator's review — no proof is uploaded.
+  /// Non-Regular roles are filed for Director/Coordinator review; no proof
+  /// upload.
   Future<EventRegistrationResult> register(
     int eventId, {
     EventParticipationRole role = EventParticipationRole.regular,

@@ -5,9 +5,6 @@ import '../data/certificate_service.dart';
 import '../presentation/utils/certificate_pdf.dart';
 import '../presentation/widgets/certificate_sheet.dart';
 
-/// The issued certificate, drawn from the frozen sheet the server generated:
-/// the deployed template's headline and award text with the volunteer's
-/// details filled in, and the signature lines as they were issued.
 class CertificateReviewScreen extends StatefulWidget {
   const CertificateReviewScreen({super.key, required this.certificate});
 
@@ -29,7 +26,7 @@ class CertificateReviewScreen extends StatefulWidget {
 class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
   late CaresCertificate _certificate = widget.certificate;
 
-  /// Wraps the drawn sheet so the export captures exactly what is on screen.
+  /// So the export captures exactly what is on screen.
   final _sheetKey = GlobalKey();
   bool _exporting = false;
 
@@ -39,8 +36,8 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
     _claim();
   }
 
-  /// Opening the sheet is what the portal counts as "claimed"; the fresh copy
-  /// also carries anything the wallet list left out. Best effort.
+  /// Opening counts as claimed on the portal; the fresh copy also fills
+  /// anything the wallet omitted. Best effort.
   Future<void> _claim() async {
     try {
       final opened = await CertificateService().open(_certificate.id);
@@ -51,8 +48,6 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
     }
   }
 
-  /// Rasterises the sheet as shown, wraps it in a PDF of the sheet's own
-  /// proportions, and offers it through the share sheet.
   Future<void> _download() async {
     if (_exporting) return;
     setState(() => _exporting = true);
@@ -109,8 +104,8 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
-          // Pinch to zoom in on the wording; the sheet is drawn at the phone's
-          // width, which is small for a landscape certificate.
+          // Pinch to zoom: the sheet is drawn at phone width, small for a
+          // landscape certificate.
           InteractiveViewer(
             minScale: 1,
             maxScale: 4,

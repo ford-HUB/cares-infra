@@ -6,11 +6,7 @@ import { FacebookIdentityStrategy } from './strategies/facebook-identity-strateg
 import { GmailStrategy } from './strategies/gmail-strategy';
 import { GoogleIdentityStrategy } from './strategies/google-identity-strategy';
 
-/**
- * Every third-party strategy, in two kinds. `GmailStrategy` *links* a mailbox and grants
- * no access on its own; the identity strategies *authenticate* — a donor who passes one
- * gets a CARES session. Sessions stay off: CARES is stateless and issues its own JWT.
- */
+/** `GmailStrategy` only links a mailbox; identity strategies authenticate donors. Stateless (own JWT). */
 @Module({
   imports: [NestPassportModule.register({ session: false })],
   providers: [

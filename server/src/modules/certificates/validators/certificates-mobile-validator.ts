@@ -5,10 +5,7 @@ import {
   CertificateDesignSchema,
 } from '../../certificate-templates/validators/certificate-templates-site-validator';
 
-/**
- * One signature line as printed. `signature_url` is the app's route to the image the
- * line was issued with, or null when the coordinator had none uploaded on the day.
- */
+/** `signature_url` is null when the coordinator had none on issue day. */
 export const IssuedSignatorySchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -17,14 +14,7 @@ export const IssuedSignatorySchema = z.object({
   signature_url: z.string().nullable(),
 });
 
-/**
- * The sheet with every placeholder already filled. The asset routes on it are the
- * template's, rewritten onto the certificate's own asset route. `headline` and
- * `body` are re-declared as plain strings: the template rule insists the award text
- * still carries `{{recipient}}`, `{{event}}` and `{{date}}`, and on an issued sheet
- * those have been filled in. `title` is always present here: a design saved before
- * the award name had its own wording falls back to the template name.
- */
+/** Placeholders filled, so `headline`/`body` are plain strings. `title` falls back to the template name. */
 export const IssuedDesignResponseSchema = CertificateDesignSchema.omit({
   title: true,
   headline: true,
@@ -67,12 +57,11 @@ export const IssuedCertificateResponseSchema = z.object({
   event_date: z.iso.datetime(),
   hours_rendered: z.number(),
   organization: z.string(),
-  /** The headline and body with `{{recipient}}`, `{{event}}`, … swapped in. */
   headline: z.string(),
   body: z.string(),
   design: IssuedDesignResponseSchema,
   issued_at: z.iso.datetime(),
-  /** Null until the recipient opened it. */
+  /** Null until opened. */
   claimed_at: z.iso.datetime().nullable(),
 });
 

@@ -22,17 +22,6 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Notices Module', unit: 'Create Announcement', prefix: 'NOTICE' });
 
-/**
- * Shared by every spec in this folder — Create announcement on the portal's Notices
- * screen (System):
- *   POST /api/v1/announcements  (createAnnouncement: SaveAnnouncementSchema)
- *
- * `@RequirePermission` is not exercised: the global guards are out of scope for
- * these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const ANNOUNCEMENTS_PATH = '/api/v1/announcements';
 export const CALLER = { sub: 'caller-user-id' };
 
@@ -59,12 +48,7 @@ export const ANNOUNCEMENT_RESPONSE = {
   updated_at: '2026-11-01T08:00:00.000Z',
 };
 
-/**
- * Boots `AnnouncementsSiteController` with a mocked service for the enclosing
- * `describe`. The handler reads `user.sub`, so a stand-in for the global JWT guard
- * puts `CALLER` on the request. Read `app` inside tests — it is assigned in
- * `beforeAll`.
- */
+/** Stub guard sets `CALLER` (handler reads `user.sub`); `app` is assigned in `beforeAll`. */
 export const useAnnouncementsApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -96,10 +80,7 @@ export const useAnnouncementsApp = () => {
   return ctx;
 };
 
-/**
- * Fixtures through both layers. A FAIL must come back in the validation envelope
- * without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeAnnouncementTable = (ctx: ReturnType<typeof useAnnouncementsApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

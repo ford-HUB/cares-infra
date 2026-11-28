@@ -27,12 +27,7 @@ function seriousnessOf(mean: number): NeedSeriousness {
   return Math.min(NEED_SERIOUSNESS_MAX, Math.max(1, Math.round(mean))) as NeedSeriousness
 }
 
-/**
- * One group's profile: how many households it holds, what they have in common, and
- * the need that defines them. Each need bar is the share of the group that ticked it.
- * The card is the table's filter for the cluster — click to narrow, click again to
- * clear.
- */
+/** Need bars are the share of the group that ticked each; the card toggles the table's cluster filter. */
 export function ClusterCard({ cluster, total, active, onToggle }: ClusterCardProps) {
   const size = cluster.householdIds.length
   const share = total > 0 ? size / total : 0

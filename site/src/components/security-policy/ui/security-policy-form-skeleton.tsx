@@ -1,12 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Field counts per card, in the order `security-policy-form` renders them. */
+/** Field counts per card, in `security-policy-form` order. */
 const SECTION_FIELDS = [5, 4, 3, 3]
 
-/**
- * Mirrors the form's four cards so the swap to the loaded policy causes no jump. The
- * heights match `PolicySection`'s heading, description, and field spacing.
- */
+/** Heights match `PolicySection`'s heading, description and field spacing. */
 export function SecurityPolicyFormSkeleton() {
   return (
     <div className="space-y-5" aria-hidden>

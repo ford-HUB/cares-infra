@@ -14,13 +14,11 @@ interface LoginActivityToolbarProps {
   outcome: LoginOutcomeFilter
   source: LoginSourceFilter
   range: LoginActivityRange
-  /** Attempts scrolled in so far — the grid loads the trail a page at a time. */
   loaded: number
   total: number
-  /** Counts describe what is loaded, not the whole trail, so they grow while scrolling. */
+  /** Counts cover loaded rows only, so they grow while scrolling. */
   failed: number
   successful: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0 attempts". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onOutcomeChange: (value: LoginOutcomeFilter) => void

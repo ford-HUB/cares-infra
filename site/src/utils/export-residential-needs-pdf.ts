@@ -23,9 +23,9 @@ import { PdfReport } from './pdf/pdf-report'
 import { householdPriority } from './residential-needs'
 
 interface ResidentialNeedsPdfOptions {
-  /** The barangay picker in force; `NEEDS_FILTER_ALL` when unfiltered. */
+  /** `NEEDS_FILTER_ALL` when unfiltered. */
   barangay: string
-  /** The priority band in force; `NEEDS_FILTER_ALL` when unfiltered. */
+  /** `NEEDS_FILTER_ALL` when unfiltered. */
   priority: NeedPriority | typeof NEEDS_FILTER_ALL
 }
 
@@ -44,13 +44,7 @@ function priorityCounts(households: Household[]) {
   return counts
 }
 
-/**
- * The Residential Needs overview as a printable report: how urgent the survey is,
- * where the need concentrates, what households lack and why they cannot meet it,
- * then every household row — the figures behind the charts, not pictures of them.
- * `scoped` is what the barangay picker left; `visible` is that narrowed further by
- * the priority band, and is what the household list prints.
- */
+/** `scoped` is after the barangay picker; `visible` adds the priority band and is what the list prints. */
 export function exportResidentialNeedsPdf(
   scoped: Household[],
   visible: Household[],
@@ -71,7 +65,6 @@ export function exportResidentialNeedsPdf(
     { label: 'Generated', value: dayjs().format(PDF_GENERATED_AT_FORMAT) },
   ])
 
-  // ── Headline figures ────────────────────────────────────────────────────────
   const topNeed = NEED_CATEGORY_ORDER.reduce((top, need) => {
     const tally = (key: typeof need) => scoped.filter((h) => h.survey.needs.includes(key)).length
     return tally(need) > tally(top) ? need : top
@@ -100,7 +93,6 @@ export function exportResidentialNeedsPdf(
     },
   ])
 
-  // ── Priority split ─────────────────────────────────────────────────────────
   report.heading('Households by priority', 'From how serious each household rates its main need')
   report.table(
     ['Priority', 'Households', 'Share'],
@@ -112,7 +104,6 @@ export function exportResidentialNeedsPdf(
     { numericColumns: [1, 2], foot: ['Total', formatNumber(total), share(total, total)] },
   )
 
-  // ── Where the need concentrates ────────────────────────────────────────────
   const barangays = [...new Set(scoped.map((h) => h.barangay))].sort((a, b) =>
     a.localeCompare(b),
   )
@@ -141,7 +132,6 @@ export function exportResidentialNeedsPdf(
     },
   )
 
-  // ── The three multiple-choice questions ────────────────────────────────────
   report.heading('What households need help with', 'One household can select several')
   report.table(
     ['Need', 'Households', 'Share'],
@@ -172,7 +162,6 @@ export function exportResidentialNeedsPdf(
     { numericColumns: [1, 2], foot: ['Total', formatNumber(total), share(total, total)] },
   )
 
-  // ── Every household ────────────────────────────────────────────────────────
   const listNote =
     priority === NEEDS_FILTER_ALL
       ? `${formatNumber(visible.length)} households`

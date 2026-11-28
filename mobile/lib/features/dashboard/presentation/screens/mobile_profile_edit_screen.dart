@@ -18,19 +18,15 @@ import 'package:mobile/features/dashboard/data/profile_service.dart';
 import 'package:mobile/features/dashboard/presentation/screens/school_record_reverify_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Edit screen for every mobile role, opened from the avatar on the Profile
-/// tab. Shows the whole record from `GET /profile/me/mobile` — the editable
-/// columns as fields, the rest (role, school, verification) read-only — and
-/// saves with `PUT /profile/me/mobile`, attaching a new photo when one was
-/// picked. Email and password are deliberately absent: they change through
-/// the account flows, not here.
+/// Editable columns as fields, the rest read-only; saved with
+/// `PUT /profile/me/mobile`. Email and password change through the account
+/// flows.
 class MobileProfileEditScreen extends StatefulWidget {
   const MobileProfileEditScreen({super.key, required this.roleType});
 
-  /// `VOLUNTEER`, `DONOR` or `BENEFICIARY` — which role account to edit.
   final String roleType;
 
-  /// Resolves to the saved profile, or null when the person backed out.
+  /// Null when the person backed out.
   static Future<MobileProfile?> open(BuildContext context, String roleType) {
     return Navigator.of(context).push<MobileProfile>(
       MaterialPageRoute<MobileProfile>(
@@ -56,43 +52,37 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
   final _phone = TextEditingController();
   final _age = TextEditingController();
 
-  /// Donors and volunteers pick barangay + city and type a street, the same
-  /// fields as registration. Stays [PhAddress.empty] when the address on file
-  /// is older free text that doesn't resolve — see [_addressEdited].
+  /// Stays [PhAddress.empty] when the address on file is unresolvable older
+  /// text; see [_addressEdited].
   PhAddress _address = PhAddress.empty;
 
-  /// Until the address fields are touched the address on file is sent back
-  /// unchanged, so an older free-text address never blocks saving a name or
-  /// phone change. Once touched, it must be complete to save.
+  /// Untouched, the address on file is sent back unchanged so older free text
+  /// never blocks a save; once touched it must be complete.
   bool _addressEdited = false;
 
   String _gender = 'OTHER';
 
-  /// Beneficiaries only — null when they haven't told us yet.
+  /// Beneficiaries only; null when unset.
   int? _householdSize;
 
-  /// The record being edited; null until the first load finishes.
   MobileProfile? _profile;
 
-  /// Picked but not yet uploaded.
   XFile? _pendingAvatar;
 
   bool _loading = true;
   bool _saving = false;
   bool _picking = false;
 
-  /// A residency document is being read by the server.
   bool _uploadingResidency = false;
   String? _loadError;
 
-  /// Server rejection of the phone number (already on another account).
+  /// Already on another account.
   String? _phoneConflict;
 
   @override
   void initState() {
     super.initState();
-    // Fields re-validate as the person types so the Save button can gate on
-    // them without Form validators.
+    // Re-validate on typing so Save can gate without Form validators.
     for (final c in _editableControllers) {
       c.addListener(_onFieldChanged);
     }
@@ -107,8 +97,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     super.dispose();
   }
 
-  /// Every typed field — what the dirty check watches. The school record is
-  /// not here: it is locked and only changes through ID re-verification.
+  /// The school record is locked; only ID re-verification changes it.
   List<TextEditingController> get _editableControllers => [
     _firstName,
     _middleName,
@@ -182,9 +171,8 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     _householdSize = draft.householdSize;
   }
 
-  /// Sections are keyed to the role account being edited, not just the
-  /// server's `role_type`, so a beneficiary never sees the volunteer school
-  /// card even if the cached record is stale.
+  /// Keyed to the edited role account, not the server's `role_type`, so a stale
+  /// cache never shows the wrong cards.
   bool get _isVolunteer =>
       widget.roleType == RoleAccountStore.volunteer &&
       _profile?.roleType == RoleAccountStore.volunteer;
@@ -206,14 +194,10 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     });
   }
 
-  /// What `current_address` would be sent as: the picked address once the
-  /// fields were touched, otherwise exactly what is on file.
+  /// The picked address once touched, else exactly what is on file.
   String get _addressToSend => _addressEdited
       ? _address.formatted
       : MobileProfileUpdate.fromProfile(_profile!).address ?? '';
-
-  // ---------------------------------------------------------------------------
-  // Validation
 
   String? get _ageError {
     final raw = _age.text.trim();
@@ -228,9 +212,8 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
   String? get _phoneError =>
       _phoneConflict ?? philippinePhoneError(_phone.text);
 
-  /// The form as it would be sent, for the dirty check and for saving. The
-  /// beneficiary form never sends the address: it is locked and changes only
-  /// through a residency document.
+  /// Beneficiaries never send the address; it changes only via a residency
+  /// document.
   MobileProfileUpdate _draft() => MobileProfileUpdate(
     firstName: _firstName.text,
     middleName: _middleName.text,
@@ -242,8 +225,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     householdSize: _isBeneficiary ? _householdSize : null,
   );
 
-  /// True once anything editable differs from the record on file — a typed
-  /// field, the gender, or a newly picked photo.
+  /// A typed field, the gender or a newly picked photo.
   bool get _isDirty {
     final profile = _profile;
     if (profile == null) return false;
@@ -273,13 +255,10 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
                 : _addressToSend.trim().isNotEmpty));
   }
 
-  /// "Required" only once the person has started editing, so a freshly
-  /// opened form doesn't shout at fields the server left empty.
+  /// Only once editing started, so a fresh form doesn't flag server-empty
+  /// fields.
   String? _requiredError(TextEditingController c) =>
       _isDirty && c.text.trim().isEmpty ? 'Required' : null;
-
-  // ---------------------------------------------------------------------------
-  // Avatar
 
   Future<void> _chooseAvatar() async {
     final source = await showModalBottomSheet<ImageSource>(
@@ -365,8 +344,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // School record (volunteers) — locked; changed only by re-verifying the ID
+  // School record (volunteers): locked; changed only by re-verifying the ID.
 
   Future<void> _onSchoolRecordTapped() async {
     if (_saving) return;
@@ -380,8 +358,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     setState(() => _profile = refreshed);
   }
 
-  // ---------------------------------------------------------------------------
-  // Address (beneficiaries) — locked; changed only by a proof of residency
+  // Address (beneficiaries): locked; changed only by a proof of residency.
 
   Future<void> _onAddressTapped() async {
     if (_saving || _uploadingResidency) return;
@@ -503,9 +480,6 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Save
-
   Future<void> _save() async {
     if (!_canSave) return;
     FocusManager.instance.primaryFocus?.unfocus();
@@ -560,9 +534,6 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
   }
 
   void _dismissKeyboard() => FocusManager.instance.primaryFocus?.unfocus();
-
-  // ---------------------------------------------------------------------------
-  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -825,8 +796,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
   };
 }
 
-/// A residency file picked from the camera, gallery or file system, before
-/// upload. [mimeType] is only known for image_picker results.
+/// [mimeType] is only known for image_picker results.
 class _PickedDocument {
   const _PickedDocument({
     required this.path,

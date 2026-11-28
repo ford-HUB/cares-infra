@@ -13,7 +13,6 @@ import {
 import { useSystemServiceStore } from '../../store/system-service-store'
 import type { SystemServiceCounts } from '../../types/system-service'
 
-/** Rows the skeleton draws — the roster is a fixed set of workers, not a paged list. */
 const SKELETON_ROWS = 6
 
 export function SystemServicesPage() {
@@ -40,8 +39,7 @@ export function SystemServicesPage() {
     void fetchServices()
   }, [fetchServices])
 
-  // Silent polls keep the rows on screen — a board watched for an hour must not blink
-  // back to its skeleton every fifteen seconds.
+  // Silent polls keep the rows on screen.
   useEffect(() => {
     const timer = window.setInterval(
       () => void fetchServices({ silent: true }),
@@ -50,8 +48,7 @@ export function SystemServicesPage() {
     return () => window.clearInterval(timer)
   }, [fetchServices])
 
-  // Counted over the whole roster, not the filtered view — the banner is the overview
-  // the filter acts on, so its numbers must not move when a segment is selected.
+  // Over the whole roster so the banner doesn't move with a filter.
   const counts = useMemo<SystemServiceCounts>(
     () => ({
       total: services.length,
@@ -84,10 +81,7 @@ export function SystemServicesPage() {
         </p>
       </header>
 
-      {/*
-        A failed read would otherwise leave the board showing the last roster, which
-        reads as "everything is on duty" exactly when it may not be.
-      */}
+      {/* Otherwise the stale roster reads as "everything is on duty". */}
       {error ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

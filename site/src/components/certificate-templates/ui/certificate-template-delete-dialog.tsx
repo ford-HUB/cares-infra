@@ -16,11 +16,7 @@ interface CertificateTemplateDeleteDialogProps {
   onConfirm: () => void
 }
 
-/**
- * Deleting is only offered for a template nothing was printed from — anything that has
- * issued a certificate is archived instead, so the record behind it survives. The
- * confirmation names the template because the menu it came from is on a card.
- */
+/** Only offered when nothing was printed from the template; otherwise it's archived. */
 export function CertificateTemplateDeleteDialog({
   template,
   deleting,

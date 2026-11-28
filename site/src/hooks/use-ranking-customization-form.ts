@@ -31,12 +31,7 @@ export function useRankingCustomizationForm() {
 
   const tiers = useFieldArray({ control: form.control, name: 'tiers' })
 
-  /**
-   * Dirtiness is computed from the watched values against the last reset, rather
-   * than read off `formState.isDirty`: the ladder is edited through `replace` and
-   * `setValue` on unregistered paths (badge design, colours), and the flag did not
-   * reliably follow those, which left Save disabled after a change.
-   */
+  /** Computed from watched values: `formState.isDirty` misses `replace`/`setValue` on unregistered paths. */
   const values = useWatch({ control: form.control })
   const isDirty = !deepEqual(values, form.formState.defaultValues)
 
@@ -44,10 +39,7 @@ export function useRankingCustomizationForm() {
     void fetchRankings()
   }, [fetchRankings])
 
-  /**
-   * Reset rather than set, so the saved settings become the form's baseline — that is
-   * what makes `isDirty` mean "differs from what is stored".
-   */
+  /** Reset, not set, so the saved settings become the baseline. */
   useEffect(() => {
     if (!initialized) return
 
@@ -66,16 +58,11 @@ export function useRankingCustomizationForm() {
       toast.success('Ranking settings saved. Both boards were rescored.')
       form.reset(values)
     },
-    // Not every field renders its own error (a tier's cut-off, the ladder order), so
-    // a rejected submit says so rather than leaving the click with no effect.
+    // Not every field shows its own error.
     () => toast.error('Fix the highlighted fields before saving.'),
   )
 
-  /**
-   * The ladder's rungs are its cut-offs, and they have to stay ascending with the
-   * catch-all last. Every edit below rebuilds the whole array and hands it to
-   * `replace`, so the invariant is restored in one step rather than patched per row.
-   */
+  /** Rebuilds the array so cut-offs stay ascending with the catch-all last. */
   const replaceTiers = (next: RankingCustomizationFormValues['tiers']) => {
     const withCatchAll = next.map((tier, index) => ({
       ...tier,
@@ -94,8 +81,7 @@ export function useRankingCustomizationForm() {
       return
     }
 
-    // New tiers land just above the catch-all: the top of the ladder is the one
-    // place a cut-off cannot be guessed, so it is never taken over.
+    // Never take over the top cut-off; it can't be guessed.
     const catchAllIndex = current.length - 1
     const above = current[catchAllIndex - 1]
 
@@ -123,11 +109,7 @@ export function useRankingCustomizationForm() {
     replaceTiers(current.filter((_, position) => position !== index))
   }
 
-  /**
-   * Moving a tier swaps it with its neighbour but leaves the cut-offs where they
-   * are — the rungs stay put and the tier climbs one. Carrying the number along
-   * instead would break the ascending order the ladder is validated on.
-   */
+  /** Swaps tiers but keeps cut-offs in place to preserve ascending order. */
   const onMoveTier = (index: number, direction: -1 | 1) => {
     const current = form.getValues('tiers')
     const target = index + direction

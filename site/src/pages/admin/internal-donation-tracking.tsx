@@ -22,8 +22,6 @@ export function InternalDonationTrackingPage() {
   const fetchDonations = useInternalDonationStore((s) => s.fetchDonations)
   const advance = useInternalDonationStore((s) => s.advance)
 
-  // Moving a donation along is the "Record donations" right in Access Control;
-  // without it the modal is read-only, whatever the role.
   const canRecord = usePermission(PORTAL_PERMISSION.DONATIONS_RECORD)
   const recordSuspension = useSuspension(PORTAL_PERMISSION.DONATIONS_RECORD)
   const user = useAuthStore((s) => s.user)

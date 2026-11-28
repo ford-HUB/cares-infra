@@ -15,9 +15,7 @@ import 'package:mobile/features/dashboard/presentation/screens/profile_tab_scree
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
-/// Beneficiary shell — same structure, layout, and styling as the volunteer
-/// [HomeScreen], with the Request tab replacing Ranks and beneficiary content
-/// on the home and profile tabs.
+/// Mirrors the volunteer [HomeScreen], with a Request tab instead of Ranks.
 class BeneficiaryDashboardScreen extends StatefulWidget {
   const BeneficiaryDashboardScreen({
     super.key,
@@ -53,14 +51,12 @@ class _BeneficiaryDashboardScreenState
   // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
   int _refreshVersion = 0;
 
-  /// The server's read of the record, mirrored onto the beneficiary role
-  /// account by [ProfileService]. Null until the first fetch lands (or on the
-  /// signed-out prototype paths).
+  /// Mirrored by [ProfileService]; null until the first fetch.
   MobileProfile? get _serverProfile =>
       _roleAccounts.byType(RoleAccountStore.beneficiary)?.serverProfile;
 
-  /// Completion is the server's verdict — personal details plus household
-  /// size — never something computed on the device.
+  /// The server's verdict (personal details + household size), never computed
+  /// locally.
   bool get _profileComplete => _serverProfile?.completion.complete ?? false;
 
   @override
@@ -91,13 +87,12 @@ class _BeneficiaryDashboardScreenState
     } on ApiException {
       // The Profile tab surfaces the error with a retry.
     } catch (_) {
-      // Same as above.
+      // Also surfaced on the Profile tab.
     }
     if (mounted) setState(() {});
   }
 
-  /// Pull-to-refresh: refetch the profile and the feed, then remount every
-  /// tab.
+  /// Pull-to-refresh: refetch, then remount every tab.
   Future<void> _refreshAll() async {
     await Future.wait([_loadProfile(), NotificationSync.instance.refresh()]);
     if (!mounted) return;

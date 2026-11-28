@@ -19,15 +19,11 @@ interface SegmentedTotalChartProps {
   title: string
   description: string
   slices: OverviewSlice[]
-  /** The figure in the card's corner — the total, or the one rate that summarises it. */
+  /** Corner figure: the total, or the rate that summarises it. */
   aside?: ReactNode
   footer?: ReactNode
 }
 
-/**
- * One bar that *is* the total, cut into its states. Reading it takes no arithmetic:
- * the widths are the shares, and the legend under it carries the counts.
- */
 export function SegmentedTotalChart({
   title,
   description,

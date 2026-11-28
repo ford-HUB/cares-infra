@@ -14,7 +14,6 @@ interface MaintenanceWindowListProps {
   onToggleRunning: (window: MaintenanceWindow, running: boolean) => void
 }
 
-/** Column headings, shown once above the rows so each row need not repeat them. */
 const COLUMNS = [
   { key: 'window', label: 'Window', width: 'lg:w-[30%]' },
   { key: 'when', label: 'When', width: 'lg:w-[24%]' },
@@ -30,7 +29,7 @@ export function MaintenanceWindowList({
   onCancel,
   onToggleRunning,
 }: MaintenanceWindowListProps) {
-  // One timer for the board: every countdown to a start or an end advances from here.
+  // One timer for the board; every countdown reads from it.
   const now = useClockTick(
     1000,
     windows.some((one) => one.state === 'scheduled' || one.state === 'active'),

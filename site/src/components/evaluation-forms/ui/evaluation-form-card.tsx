@@ -15,11 +15,6 @@ interface EvaluationFormCardProps {
   onAction: (action: string, form: EvaluationForm) => void
 }
 
-/**
- * One questionnaire in the library. The card answers the director's question on this
- * screen — which events is this asking, and has anyone answered it — so reach and
- * responses sit on the face of it and the assign action leads.
- */
 export function EvaluationFormCard({
   form,
   selected,
@@ -60,7 +55,6 @@ export function EvaluationFormCard({
           <FormStatusBadge status={form.status} />
         </div>
 
-        {/* Reach is the point of this screen, so it gets the row of its own. */}
         <div className="flex items-center justify-between gap-2 border-t border-gray-100 pt-2.5">
           <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-gray-600">
             <CalendarPlus className="h-3.5 w-3.5 shrink-0 text-gray-400" />

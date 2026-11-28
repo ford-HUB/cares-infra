@@ -19,12 +19,11 @@ export const ACCOUNT_NUMBER_MAX = 40;
 export const INSTRUCTIONS_MAX = 160;
 export const DISPLAY_NAME_MAX = 60;
 
-/** Xendit keys are long; the floor only rules out a stray keystroke. */
+/** Only rules out a stray keystroke. */
 export const SECRET_KEY_MIN = 20;
 export const SECRET_KEY_MAX = 200;
 
-/** A Xendit channel code the catalog knows about — checked against the list rather
- * than typed as an enum, so adding a code to the catalog is the only edit needed. */
+/** Checked against the catalog rather than an enum, so the catalog is the only edit. */
 const channelCode = z
   .string()
   .trim()
@@ -37,12 +36,12 @@ const optionalText = (max: number) =>
     .string()
     .trim()
     .max(max)
-    // The form sends "" for an empty box; stored as null so "unset" is one value.
+    // "" from the form is stored as null.
     .transform((value) => (value.length ? value : null))
     .nullable()
     .optional();
 
-/** A key or token is one line, so unlike free text its line breaks are refused too. */
+/** Single-line: line breaks refused. */
 const credential = (min: number, minMessage?: string) =>
   z
     .string()
@@ -55,20 +54,13 @@ const credential = (min: number, minMessage?: string) =>
       { error: 'Cannot contain control characters' },
     );
 
-/**
- * Where the gateway key is sent, so plain http and every other scheme are refused.
- * "" means the default host; a local mock over http goes in `XENDIT_API_URL`.
- */
+/** HTTPS only (receives the key); "" = default host. Local http mocks use `XENDIT_API_URL`. */
 const gatewayUrl = z.union([
   z.literal(''),
   z.url({ protocol: /^https$/, error: 'Enter a full https:// URL' }),
 ]);
 
-/**
- * One channel as the director configures it. `min_amount` / `max_amount` are 0 when
- * the channel simply follows the module-wide donation limits — the same "0 means
- * unset" convention the security policy uses for its timeouts.
- */
+/** `min_amount` / `max_amount` of 0 means use module-wide limits. */
 export const PaymentMethodSettingSchema = z
   .object({
     method: z.enum(DonationPaymentMethod),
@@ -93,14 +85,7 @@ export const PaymentMethodSettingSchema = z
     },
   );
 
-/**
- * The whole module is saved at once, like the security policy: a partial update would
- * make "switched off" indistinguishable from "not sent".
- *
- * The two secrets are the exception. They are write-only — the server never hands them
- * back, so the form cannot round-trip them. Omitting a secret keeps what is stored;
- * sending `null` clears it; sending a string replaces it.
- */
+/** Whole-module save so "off" ≠ "not sent". Secrets are write-only: omit keeps, `null` clears, string replaces. */
 export const UpdatePaymentSettingsSchema = z
   .object({
     mode: z.enum(PaymentGatewayMode),
@@ -132,10 +117,7 @@ export const UpdatePaymentSettingsSchema = z
     { error: 'Each payment method may appear only once', path: ['methods'] },
   );
 
-/**
- * "Test connection" before saving: the key being tried is sent in the body so the
- * director can check a key that is not stored yet. With no key, the saved one is used.
- */
+/** Tests an unsaved key from the body; without one, the saved key. */
 export const TestPaymentGatewaySchema = withoutPrototypeKeys(
   z
     .object({
@@ -148,43 +130,35 @@ export const TestPaymentGatewaySchema = withoutPrototypeKeys(
 const PaymentMethodResponseSchema = z.object({
   method: z.enum(DonationPaymentMethod),
   enabled: z.boolean(),
-  /** The channel's built-in name, so the portal can show it as the placeholder. */
+  /** Used as the portal placeholder. */
   default_label: z.string(),
   display_name: z.string().nullable(),
   instructions: z.string().nullable(),
   account_name: z.string().nullable(),
   account_number: z.string().nullable(),
-  /** Which Xendit codes this channel may open; empty means the module defaults. */
+  /** Empty means the module defaults. */
   channel_codes: z.array(z.string()),
   available_channel_codes: z.array(z.string()),
   min_amount: z.number(),
   max_amount: z.number(),
   sort_order: z.number(),
-  /** Where this channel stands with the gateway — see `PaymentActivationService`. */
+  /** See `PaymentActivationService`. */
   verification: z.enum(PaymentMethodVerification),
   verified_at: z.iso.datetime().nullable(),
   verification_message: z.string().nullable(),
   verified_channel_codes: z.array(z.string()),
   callbacks_registered_at: z.iso.datetime().nullable(),
-  /**
-   * Ownership proof. The amount CARES sent is deliberately absent — the director
-   * reporting it is the proof, so it must not travel to the screen that asks.
-   */
+  /** The sent amount is deliberately absent: reporting it is the proof. */
   account_proof: z.enum(PaymentAccountProof),
   account_proof_message: z.string().nullable(),
   account_proof_sent_at: z.iso.datetime().nullable(),
   account_proof_attempts: z.number(),
   account_verified_at: z.iso.datetime().nullable(),
-  /**
-   * The amount CARES sent — present **only** when the gateway key is a Xendit
-   * development key, where no money reaches a real wallet and there is therefore
-   * nothing for the director to read. Null on a live key, where reporting the amount
-   * from the wallet is the entire proof.
-   */
+  /** Sandbox keys only (no real wallet to read); null on live keys. */
   account_proof_sandbox_amount: z.number().nullable(),
 });
 
-/** What the director reports arrived, in whole pesos. */
+/** Whole pesos. */
 export const ConfirmAccountProofSchema = withoutPrototypeKeys(
   z
     .object({
@@ -197,7 +171,6 @@ export const ConfirmAccountProofSchema = withoutPrototypeKeys(
     .strict(),
 );
 
-/** `:method` on the activation endpoint. */
 export const PaymentMethodParamSchema = z.enum(
   DonationPaymentMethod,
   'Unknown payment method',
@@ -206,26 +179,22 @@ export const PaymentMethodParamSchema = z.enum(
 export const PaymentSettingsResponseSchema = z.object({
   mode: z.enum(PaymentGatewayMode),
   enabled: z.boolean(),
-  /** Write-only secrets are reported as a flag plus a tail, never as the value. */
+  /** Write-only secrets: a flag plus a tail, never the value. */
   secret_key_set: z.boolean(),
   secret_key_last4: z.string().nullable(),
   webhook_token_set: z.boolean(),
-  /**
-   * True while no key has been saved and the API is still running on
-   * `XENDIT_SECRET_KEY` from the environment — the portal says so out loud, because
-   * the screen would otherwise read as "payments are not set up".
-   */
+  /** Running on the env `XENDIT_SECRET_KEY`; shown so the screen doesn't read as unconfigured. */
   using_env_credentials: z.boolean(),
   api_url: z.string().nullable(),
   statement_name: z.string().nullable(),
   support_email: z.string().nullable(),
   support_contact: z.string().nullable(),
-  /** Read-only: the URL to paste into Xendit's callback settings. */
+  /** Read-only; paste into Xendit's callback settings. */
   webhook_url: z.string(),
   verified_at: z.iso.datetime().nullable(),
   verification_error: z.string().nullable(),
   methods: z.array(PaymentMethodResponseSchema),
-  /** Donation floor and ceiling a per-method 0 falls back to. */
+  /** What a per-method 0 falls back to. */
   amount_floor: z.number(),
   amount_ceiling: z.number(),
   updated_by_user_id: z.string().nullable(),

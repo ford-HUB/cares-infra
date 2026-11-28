@@ -25,16 +25,12 @@ import {
   type PageTimingHistory,
 } from '../repositories/system-performance-repository';
 
-/** The endpoint table reads over the last five minutes — long enough to see a p95. */
+/** Long enough for a p95. */
 const ENDPOINT_WINDOW_MS = 5 * 60 * 1000;
 
-/** Rows the endpoint table is given; it sorts and scrolls the rest itself. */
+/** The table sorts and scrolls the rest itself. */
 const ENDPOINT_ROWS = 20;
 
-/**
- * The performance page's view of the host: the sampler's readings joined with the
- * request recorder's per-route figures and the page timings the portal reported.
- */
 @Injectable()
 export class SystemPerformanceSiteService {
   constructor(
@@ -66,7 +62,7 @@ export class SystemPerformanceSiteService {
     };
   }
 
-  /** The live tick — the newest reading only, with the breakdown it drives. */
+  /** Newest reading only. */
   getTick(): PerformanceTickDto {
     const latest = this.sampler.latest();
     return {
@@ -132,7 +128,7 @@ function toProcessDto(load: ProcessLoad): ProcessLoadDto {
   };
 }
 
-/** Medians per screen, slowest first — the label is the latest one reported. */
+/** Slowest first; latest reported label. */
 function toPageDtos(histories: PageTimingHistory[]): PageLoadTimingDto[] {
   return histories
     .filter((history) => history.records.length > 0)

@@ -7,9 +7,7 @@ import {
 } from '../../../constants/landing-bulletin'
 import { useReveal } from '../../../hooks/use-reveal'
 
-/** The title letter by letter: once it scrolls into view each letter fades up 8px, one
- *  after another. Words stay unbreakable so lines still wrap between them, and screen
- *  readers get the plain title from the heading's label. */
+/** Words stay unbreakable so lines still wrap; screen readers get the plain title from the label. */
 function RisingLetters({ text, visible }: { text: string; visible: boolean }) {
   let letterIndex = 0
 
@@ -36,22 +34,15 @@ function RisingLetters({ text, visible }: { text: string; visible: boolean }) {
 
 interface LandingSectionHeadingProps {
   title: string
-  /** Closing words in green italic after the title. Sets the heading in the bold book
-   *  serif in CARES green, with a darker description beneath. */
   accent?: string
   description?: string
   tone?: 'light' | 'dark'
-  /** Sits closer to what follows. */
   plain?: boolean
-  /** Heavy slab face in CARES green, matching the Home page's headings. */
   slab?: boolean
-  /** Reveals the title letter by letter on first scroll into view. */
   risingLetters?: boolean
-  /** Soft heavy serif in deep green over a lime brush stroke. */
   brush?: boolean
 }
 
-/** A dry lime brush stroke behind the lower half of a title, fading in as it is revealed. */
 function BrushStroke({ visible }: { visible: boolean }) {
   return (
     <svg
@@ -72,7 +63,6 @@ function BrushStroke({ visible }: { visible: boolean }) {
   )
 }
 
-/** Centred, bold section title with an optional description. */
 export function LandingSectionHeading({
   title,
   accent,

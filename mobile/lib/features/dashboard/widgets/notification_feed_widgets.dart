@@ -6,8 +6,7 @@ import 'package:mobile/shared/widgets/ground_card.dart';
 
 import 'package:mobile/features/dashboard/widgets/cancelled_notification_tile.dart';
 
-/// "Showing Volunteer updates" plus, when other sides of the account have
-/// unread news, one line per side with a button to switch over to it.
+/// Other sides with unread news get a line each, with a switch button.
 class NotificationSideBanner extends StatelessWidget {
   const NotificationSideBanner({
     super.key,
@@ -77,9 +76,8 @@ class NotificationSideBanner extends StatelessWidget {
   }
 }
 
-/// All, then the time windows (Today, This week), then one chip per kind of
-/// notification the open side actually has. A window and a kind can both be
-/// on at once; tapping a selected chip turns it off, and All clears both.
+/// A window and a kind can combine; tapping a selected chip clears it, and All
+/// clears both.
 class NotificationFilterChips extends StatelessWidget {
   const NotificationFilterChips({
     super.key,

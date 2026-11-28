@@ -6,7 +6,6 @@ interface PolicySectionProps {
   children: ReactNode
 }
 
-/** One card per group of rules, so the form reads as four decisions rather than sixteen. */
 export function PolicySection({ title, description, children }: PolicySectionProps) {
   return (
     <section className="rounded-xl border border-gray-300 bg-white p-6">

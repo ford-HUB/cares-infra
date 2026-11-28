@@ -170,9 +170,7 @@ async def extract(
 async def extract_residency_document(
     document: UploadFile = File(...),
 ) -> ApiResponse:
-    """Reads the residential address off a barangay certificate or similar
-    proof of residency. Accepts a photo (JPG/PNG/WebP) or a PDF; PDFs with an
-    embedded text layer are read directly, scanned ones are rasterised first."""
+    """Read the residential address off a barangay certificate (image or PDF)."""
     data = await read_document_upload(document)
 
     try:

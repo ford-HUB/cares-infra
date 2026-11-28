@@ -11,9 +11,7 @@ import {
   TERMS_OF_SERVICE_PATH,
 } from './routes'
 
-/** The canonical public origin. Search engines index this host only; the Vercel
- *  subdomain and preview deployments point their canonical here. Keep in step with
- *  index.html, public/robots.txt and public/sitemap.xml, which can't import it. */
+/** Canonical origin; keep in sync with index.html, public/robots.txt and public/sitemap.xml. */
 export const SITE_URL = 'https://cares-online.com'
 
 export const SITE_NAME = 'UCLM CARES'
@@ -24,13 +22,11 @@ export const SEO_DEFAULT_TITLE =
 export const SEO_DEFAULT_DESCRIPTION =
   'UCLM CARES is the University of Cebu Lapu-Lapu and Mandaue’s arm for community engagement — need-based, sustainable extension programs in literacy, disaster relief, health and the environment across Mandaue and Lapu-Lapu City.'
 
-/** Title shown on every staff portal screen. Never indexed. */
 export const SEO_PORTAL_TITLE = 'CARES Administrator'
 
 export type RouteSeo = {
   title: string
   description: string
-  /** Path the page's canonical URL points at. */
   canonicalPath: string
   index: boolean
 }
@@ -42,8 +38,7 @@ const HOME_SEO: RouteSeo = {
   index: true,
 }
 
-/** Exact public paths. The old section paths redirect into the one-page site, so they
- *  share its canonical; the auth modals and status page sit over it but aren't content. */
+/** Old section paths share the one-page canonical. */
 const PUBLIC_SEO: Record<string, RouteSeo> = {
   [HOME_PATH]: HOME_SEO,
   [ABOUT_PATH]: HOME_SEO,
@@ -75,7 +70,6 @@ const PUBLIC_SEO: Record<string, RouteSeo> = {
 
 const BULLETIN_PREFIX = `${PROGRAMS_PATH}/bulletin/`
 
-/** Meta for any path: exact public pages, bulletin scans, then the portal (noindex). */
 export function routeSeo(pathname: string): RouteSeo {
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
   const exact = PUBLIC_SEO[path]

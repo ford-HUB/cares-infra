@@ -10,16 +10,11 @@ interface CertificateBlockContentProps {
   id: CertificateElementId
   design: CertificateDesign
   title: string
-  /** True once the block has been given a height of its own by dragging a grip. */
+  /** Set once a grip has been dragged; otherwise the block is as tall as its text. */
   fixedHeight: boolean
 }
 
-/**
- * A block's contents inside the box it was sized to. With a height set, the copy is
- * centred in the box, clipped at its edges, and scaled down as far as it needs to go
- * to stay inside — so narrowing or shortening a block adjusts the text rather than
- * spilling it over the certificate.
- */
+/** With a fixed height, text is centred, clipped and scaled down to fit. */
 export function CertificateBlockContent({
   id,
   design,

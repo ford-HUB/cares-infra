@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Where a self-registered beneficiary's account stands with the director.
 enum RegistrationReviewState { pending, rejected }
 
-/// Reads the server's sign-in 403 for a beneficiary account that is still
-/// waiting on — or was refused — a director's approval. Null for any other error.
+/// Parses the sign-in 403 for a pending or refused beneficiary; null otherwise.
 RegistrationReviewState? registrationReviewStateOf(ApiException error) {
   if (error.statusCode != 403) return null;
   final errors = error.errors;
@@ -23,9 +21,7 @@ RegistrationReviewState? registrationReviewStateOf(ApiException error) {
   return null;
 }
 
-/// Shown instead of the dashboard once a beneficiary finishes signing up, and
-/// whenever they try to sign in before a director has approved the account.
-/// "Back to sign in" returns to the first route — the sign-in screen.
+/// After a beneficiary signs up, and on sign-in before approval.
 class RegistrationUnderReviewScreen extends StatelessWidget {
   const RegistrationUnderReviewScreen({
     super.key,
@@ -37,7 +33,7 @@ class RegistrationUnderReviewScreen extends StatelessWidget {
   final String email;
   final RegistrationReviewState state;
 
-  /// The server's own wording — carries the director's reason on a rejection.
+  /// Server wording; carries the director's reason on rejection.
   final String? message;
 
   bool get _rejected => state == RegistrationReviewState.rejected;

@@ -3,12 +3,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 
-/// Barangay → City/Municipality → Street, each with search-as-you-type
-/// suggestions from [PhAddressDirectory].
-///
-/// Barangay and city only count once picked from the list, and picking a
-/// barangay fills in its city, so the pair can never disagree. The street is
-/// free text, suggested from the chosen barangay's known roads.
+/// Barangay and city count only once picked; picking a barangay fills its city
+/// so they can't disagree.
 class AddressAutocompleteFields extends StatefulWidget {
   const AddressAutocompleteFields({
     super.key,
@@ -71,10 +67,6 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
     super.dispose();
   }
 
-  // ---------------------------------------------------------------------------
-  // Barangay
-  // ---------------------------------------------------------------------------
-
   void _onBarangayTyped(String text) {
     // Any edit after a pick un-picks it until a suggestion is chosen again.
     if (_value.barangay != null && text != _value.barangay!.name) {
@@ -97,10 +89,6 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
         ? 'Barangay is required.'
         : 'Pick your barangay from the suggestions.';
   }
-
-  // ---------------------------------------------------------------------------
-  // City / Municipality
-  // ---------------------------------------------------------------------------
 
   void _onCityTyped(String text) {
     if (_value.locality != null && text != _value.locality!.name) {
@@ -130,10 +118,6 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
         : 'Pick your city or municipality from the suggestions.';
   }
 
-  // ---------------------------------------------------------------------------
-  // Street
-  // ---------------------------------------------------------------------------
-
   void _onStreetTyped(String text) {
     _typedStreet = text;
     _updateStreet(text);
@@ -160,10 +144,6 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
 
   String? get _streetError =>
       _streetTouched ? PhAddress.streetError(_street.text) : null;
-
-  // ---------------------------------------------------------------------------
-  // Build
-  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +212,6 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
   }
 }
 
-/// [RegisterFormField] with a suggestions dropdown under it.
 class _AutocompleteField<T extends Object> extends StatelessWidget {
   const _AutocompleteField({
     required this.label,
@@ -255,7 +234,7 @@ class _AutocompleteField<T extends Object> extends StatelessWidget {
   final FocusNode focusNode;
   final String? errorText;
 
-  /// Name of the confirmed pick; null while nothing valid is picked.
+  /// Null while nothing valid is picked.
   final String? pickedTitle;
 
   bool get isPicked => pickedTitle != null;
@@ -265,7 +244,7 @@ class _AutocompleteField<T extends Object> extends StatelessWidget {
   final ValueChanged<String> onTyped;
   final ValueChanged<T> onSelected;
 
-  /// Shown when a typed query matches nothing; null hides the dropdown.
+  /// Null hides the dropdown.
   final String? emptyMessage;
 
   @override
@@ -362,7 +341,6 @@ class _AutocompleteField<T extends Object> extends StatelessWidget {
     );
   }
 
-  /// While typing, say so right away when nothing in the list can match.
   String? _noMatchError() {
     final message = emptyMessage;
     if (message == null || isPicked || !focusNode.hasFocus) return null;

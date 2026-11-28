@@ -13,26 +13,21 @@ export const DEPLOYMENT_STATUSES = [
   'completed',
 ] as const;
 
-/**
- * The statuses a director can set by hand. `scheduled` is not among them: it is what a
- * deployment starts as while its event is still running, and it leaves that state by
- * the event finishing, not by someone choosing it.
- */
+/** `scheduled` excluded: it ends when the event finishes, not by choice. */
 export const SETTABLE_DEPLOYMENT_STATUSES = [
   'distributing',
   'paused',
   'completed',
 ] as const;
 
-/** The largest value the `Int` column behind an event id can hold. */
+/** Max of the `Int` event id column. */
 const EVENT_ID_MAX = 2147483647;
 
 export const DeployCertificateSchema = withoutPrototypeKeys(
   z
     .object({
       certificate_template_id: z.uuid('Pick a certificate template'),
-      // Not `z.coerce`: that reads `true` as event 1 and `0x10` as event 16, which
-      // would deploy to a real event nobody picked.
+      // Not `z.coerce`: it reads `true` as 1 and `0x10` as 16.
       event_id: z
         .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
         .pipe(z.number().int().positive('Pick an event').max(EVENT_ID_MAX)),
@@ -50,7 +45,6 @@ export const CertificateDeploymentIdParamSchema = z.uuid(
   'A valid deployment id is required',
 );
 
-/** The frozen sheet: the template's design plus the lines that signed it. */
 const DeployedSignatorySchema = z.object({
   id: z.string(),
   coordinator_id: z.string(),

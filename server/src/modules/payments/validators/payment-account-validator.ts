@@ -1,27 +1,17 @@
 import { DonationPaymentMethod } from '../../../infastructures/prisma/common/client';
 import { paymentMethodDescriptor } from '../../../shared/constants/payment-methods';
 
-/**
- * Whether the receiving account the director recorded for a channel is a *plausible*
- * one for that channel. This is the half of "is their payment method correct" that can
- * be answered without a gateway: a GCash account is an 11-digit Philippine mobile
- * number and nothing else, a bank account needs a bank to belong to, and a card
- * channel has no account at all.
- *
- * What it deliberately cannot answer is whether the account is *theirs*. No Xendit API
- * proves ownership of a GCash number; the way that is normally settled is a ₱1 payout
- * to the account and the director confirming it arrived — see `ownershipProofPending`.
- */
+/** Plausibility only (GCash = PH mobile, bank needs a bank, cards none); ownership needs a payout, see `ownershipProofPending`. */
 export interface PaymentAccountCheck {
   ok: boolean;
-  /** The sentence shown on the method card when it is not ok. */
+  /** Shown on the method card when not ok. */
   reason?: string;
 }
 
-/** `09171234567` or `+639171234567`, after spaces and dashes are taken out. */
+/** After stripping spaces and dashes. */
 const PH_MOBILE = /^(09\d{9}|\+639\d{9})$/;
 
-/** PH bank account numbers run roughly 8–20 digits depending on the bank. */
+/** Roughly 8–20 digits depending on the bank. */
 const BANK_ACCOUNT = /^\d{8,20}$/;
 
 export function normalizeAccountNumber(value: string | null): string {
@@ -63,8 +53,7 @@ export function checkPaymentAccount(
             'A bank account number is 8 to 20 digits, with no letters or spaces.',
         };
       }
-      // Without a bank, the number names nothing — and the invoice would offer every
-      // bank CARES may not even hold an account with.
+      // Without a bank the number is meaningless, and the invoice would offer every bank.
       if (channelCodes.length === 0) {
         return {
           ok: false,
@@ -88,12 +77,7 @@ export function checkPaymentAccount(
   return { ok: true };
 }
 
-/**
- * The part of account validation that needs money to move: sending a token amount to
- * the recorded account and having the director confirm it arrived. It needs Xendit
- * Disbursements enabled on the account, which CARES does not have yet, so this states
- * the gap rather than pretending the account is proven.
- */
+/** Needs Xendit Disbursements, which CARES lacks, so this states the gap. */
 export function ownershipProofPending(method: DonationPaymentMethod): string {
   const descriptor = paymentMethodDescriptor(method);
   return `The ${descriptor.label} details look right, but CARES cannot yet prove the account belongs to it — that needs a test payout, which requires Xendit Disbursements.`;

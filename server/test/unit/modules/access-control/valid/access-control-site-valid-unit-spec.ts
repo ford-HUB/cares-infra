@@ -26,20 +26,11 @@ import {
   useAccessControlApp,
 } from '../access-control-site-support';
 
-/**
- * Access Control Module · Manage User & Role Rights — valid inputs (field
- * validation).
- *
- * Every case here is a legitimate value for a field of an Access Control endpoint,
- * and the system must accept it. The invalid cases live in ../invalid/.
- */
-
 const userIdFixtures = (action: string): LayerFixture<string>[] => [
   { name: `Admin ${action} a user by their id`, input: VALID_USER_ID, expected: 'PASS' },
   { name: `Admin ${action} a user whose id is in upper case`, input: VALID_USER_ID.toUpperCase(), expected: 'PASS' },
 ];
 
-/* ── List users ──────────────────────────────────────────────────────────── */
 {
   const queryFixtures: LayerFixture[] = [
     { name: 'Admin opens the user list with no filters', input: {}, expected: 'PASS' },
@@ -92,7 +83,6 @@ const userIdFixtures = (action: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── User detail ─────────────────────────────────────────────────────────── */
 {
   describe('access control site — User detail field validation', () => {
     const ctx = useAccessControlApp();
@@ -114,7 +104,6 @@ const userIdFixtures = (action: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── Update user rights ──────────────────────────────────────────────────── */
 {
   const bodyFixtures: LayerFixture[] = [
     { name: 'Admin saves a set of rights with a reason', input: VALID_RIGHTS, expected: 'PASS' },
@@ -148,7 +137,6 @@ const userIdFixtures = (action: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── Suspend actions ─────────────────────────────────────────────────────── */
 {
   const bodyFixtures: LayerFixture[] = [
     { name: 'Admin suspends one action with a reason', input: VALID_SUSPENSION, expected: 'PASS' },
@@ -201,7 +189,6 @@ const userIdFixtures = (action: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── Lift suspension ─────────────────────────────────────────────────────── */
 {
   describe('access control site — Lift suspension field validation', () => {
     const ctx = useAccessControlApp();
@@ -231,7 +218,6 @@ const userIdFixtures = (action: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── Update role baseline ────────────────────────────────────────────────── */
 {
   const bodyFixtures: LayerFixture[] = [
     { name: 'Admin saves a role baseline of several rights', input: VALID_BASELINE, expected: 'PASS' },

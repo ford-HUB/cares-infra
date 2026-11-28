@@ -1,15 +1,11 @@
 import { FlaskConical } from 'lucide-react'
 
 interface SandboxAmountHintProps {
-  /** Undefined on a live key, where reading the wallet is the whole point. */
+  /** Undefined on a live key. */
   amount?: number
 }
 
-/**
- * A sandbox payout reaches no real wallet, so there is nothing for the director to
- * read and the check would just be a guessing game. On a development key the amount is
- * shown outright, said plainly — on a live key the server never sends it.
- */
+/** Sandbox payouts reach no real wallet, so dev keys show the amount; live keys never send it. */
 export function SandboxAmountHint({ amount }: SandboxAmountHintProps) {
   if (amount === undefined) return null
 

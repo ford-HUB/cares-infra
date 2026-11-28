@@ -27,11 +27,7 @@ const config: ChartConfig = {
   p95: { label: 'Slow tail (p95)', color: RESPONSE_SERIES_COLOR.p95 },
 }
 
-/**
- * Loading time as staff experience it: the median is the ordinary wait, the p95 is the
- * one that gets reported as "the portal is stuck". Charting both on one scale shows the
- * gap between them — a widening gap means queueing, not a slower server.
- */
+/** Median and p95 on one scale: a widening gap means queueing, not a slower server. */
 export function ResponseTimeChart({ samples, range }: ResponseTimeChartProps) {
   const rows = samples.map((sample) => ({
     at: formatSampleTime(sample.at, range),
@@ -70,7 +66,7 @@ export function ResponseTimeChart({ samples, range }: ResponseTimeChartProps) {
             className="text-[11px]"
             tickFormatter={(value: number) => formatDuration(value)}
           />
-          {/* The budget, not a data series — grey so it never competes with the lines. */}
+          {/* The budget, not a data series; grey so it never competes with the lines. */}
           <ReferenceLine
             y={RESPONSE_STRAINED_MS}
             stroke="#9ca3af"

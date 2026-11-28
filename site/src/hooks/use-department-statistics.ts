@@ -3,11 +3,7 @@ import { useDepartmentStatisticsStore } from '../store/department-statistics-sto
 import { useProfileStore } from '../store/profile-store'
 import type { StatisticsRange } from '../types/department-statistics'
 
-/**
- * Wires the coordinator's department (from their profile) to the statistics store,
- * and owns the toolbar's operations. The department is the scope of every request —
- * a coordinator never picks it, their profile does.
- */
+/** Department comes from the coordinator's profile, never picked. */
 export function useDepartmentStatistics() {
   const profile = useProfileStore((s) => s.profile)
   const profileInitialized = useProfileStore((s) => s.initialized)
@@ -59,7 +55,6 @@ export function useDepartmentStatistics() {
 
   return {
     department,
-    /** True until both the profile and the first statistics request have settled. */
     pending: !profileInitialized || (department !== null && !initialized),
     statistics,
     range,

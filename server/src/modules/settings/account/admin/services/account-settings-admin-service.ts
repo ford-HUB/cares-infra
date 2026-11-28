@@ -42,8 +42,7 @@ export class AccountSettingsAdminService {
       throw new UnauthorizedException('Account not found');
     }
 
-    // The root account's sign-in address is fixed — changing it is the one edit that
-    // could leave the portal with no reachable administrator.
+    // The root account's email is fixed so an admin is always reachable.
     if (isProtectedAdminEmail(account.email, this.configService)) {
       throw new ForbiddenException(
         'The sign-in email of the root administrator account cannot be changed',
@@ -70,7 +69,7 @@ export class AccountSettingsAdminService {
       newEmail,
     );
 
-    // The portal profile row carries this email, so the cached copy is now wrong.
+    // The cached profile row carries the email.
     await this.profileCacheService.invalidateProfile(userId);
 
     return {
@@ -79,7 +78,7 @@ export class AccountSettingsAdminService {
         sub: userId,
         email: updated.email,
         role_type: account.user.role.type,
-        // Same device, same session — only the address on the token changed.
+        // Same session; only the token's address changed.
         sid: caller.sid,
       }),
     };
@@ -109,12 +108,10 @@ export class AccountSettingsAdminService {
 
   private async verifyCurrentPassword(
     plainPassword: string,
-    // Nullable because social-only accounts store no hash. Portal roles always have one,
-    // so reaching here with null means something upstream let the wrong account through.
+    // Null only for social-only accounts, which shouldn't reach here.
     hashedPassword: string | null,
   ): Promise<void> {
-    // 400, not 401: the caller is signed in, only the typed password is wrong. The
-    // site treats every 401 as an ended session and signs the user out.
+    // 400, not 401: the site treats every 401 as an ended session.
     if (!hashedPassword) {
       throw new BadRequestException('Current password is incorrect');
     }

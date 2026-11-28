@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/features/auth/domain/register_ocr_raw_parser.dart';
 
-// Mirrors microservices/ocr-service/scripts/test_student_id.py so the
-// on-device fallback reads the student ID the same way the OCR service does.
+// Mirrors ocr-service `scripts/test_student_id.py` so the on-device fallback
+// reads IDs the same way.
 void main() {
   const uclmBack =
       'IN CASE OF EMERGENCY, PLEASE NOTIFY\n'
@@ -58,8 +58,7 @@ void main() {
     }
   });
 
-  // The cardholder's name is only on the front; the back holds the emergency
-  // contact and the president's signature line.
+  // The name is only on the front; the back has the emergency contact.
   (String, String, String) nameOf(String front, [String back = '']) {
     final parsed = RegisterOcrRawParser.parse(front, back);
     return (parsed.firstname, parsed.middleName, parsed.lastname);
@@ -113,9 +112,8 @@ void main() {
     }
   });
 
-  // A UC Lapu-Lapu & Mandaue "COLLEGE FACULTY" ID: a 6-digit employee number
-  // after "ID NO." and "SURNAME, FIRST M." with no NAME label. Mirrors
-  // microservices/ocr-service/scripts/test_staff_id.py.
+  // UC faculty ID: a 6-digit number after "ID NO." and an unlabelled "SURNAME,
+  // FIRST M.". Mirrors ocr-service `scripts/test_staff_id.py`.
   group('staff / faculty ID', () {
     const facultyFront =
         'university of cebu\n'

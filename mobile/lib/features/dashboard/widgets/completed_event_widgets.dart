@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../domain/cares_event.dart';
 
-/// Summary panel shown on a completed event: event details plus the
-/// participation, feedback, and certificate statuses of the volunteer.
 class CompletedEventStatusCard extends StatelessWidget {
   const CompletedEventStatusCard({
     super.key,
@@ -18,8 +16,7 @@ class CompletedEventStatusCard extends StatelessWidget {
   final bool participated;
   final bool feedbackSubmitted;
 
-  /// True once the issuing scheduler has generated the sheet. Feedback alone
-  /// only unlocks it; the certificate itself arrives on the next sweep.
+  /// Feedback only unlocks it; the sheet arrives on the scheduler's next sweep.
   final bool certificateIssued;
 
   @override
@@ -192,8 +189,8 @@ class CompletedEventStatusRow extends StatelessWidget {
   }
 }
 
-/// Callout that explains the certificate state: locked until feedback is in,
-/// generating while the scheduler has not cut the sheet yet, then issued.
+/// Locked until feedback, generating until the scheduler cuts the sheet, then
+/// issued.
 class CertificateStatusBanner extends StatelessWidget {
   const CertificateStatusBanner({
     super.key,
@@ -273,8 +270,6 @@ class CertificateStatusBanner extends StatelessWidget {
   }
 }
 
-/// Compact list entry for a completed event: shows the feedback and
-/// certificate status and routes into the post-event flow.
 class CompletedEventCard extends StatelessWidget {
   const CompletedEventCard({
     super.key,
@@ -289,18 +284,15 @@ class CompletedEventCard extends StatelessWidget {
   final CaresEvent event;
   final bool feedbackSubmitted;
 
-  /// Beneficiaries neither give feedback nor earn certificates, so their
-  /// cards end at the header row.
+  /// Beneficiaries give no feedback and earn no certificates.
   final bool showFeedback;
 
-  /// The scheduler has generated the sheet; the strip offers to open it.
   final bool certificateIssued;
 
-  /// Null leaves the card read-only — nothing on it responds to a tap.
+  /// Null makes the card read-only.
   final VoidCallback? onTap;
 
-  /// Tapping the feedback strip itself — the "Submit Feedback" / "View
-  /// Certificate" call to action. Falls back to [onTap] when not given.
+  /// Falls back to [onTap].
   final VoidCallback? onFeedbackTap;
 
   @override
@@ -503,9 +495,8 @@ class CompletedEventCard extends StatelessWidget {
   }
 }
 
-/// Replaces the feedback call to action while the geofence validator has
-/// not ruled on the volunteer's attendance yet: feedback is pending, not
-/// open, so no button is offered until the status comes back.
+/// Shown while the geofence validator hasn't ruled: feedback is pending, not
+/// open.
 class _PendingNotice extends StatelessWidget {
   const _PendingNotice();
 
@@ -555,9 +546,7 @@ class _PendingNotice extends StatelessWidget {
   }
 }
 
-/// Replaces the feedback call to action when the geofence validator ruled
-/// the volunteer absent: says why feedback is closed instead of offering a
-/// button that the server would refuse.
+/// Ruled absent: explains why instead of a button the server would refuse.
 class _AbsentNotice extends StatelessWidget {
   const _AbsentNotice();
 

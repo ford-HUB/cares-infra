@@ -15,16 +15,9 @@ import 'package:mobile/features/dashboard/presentation/widgets/volunteer_home_he
 import 'package:mobile/features/dashboard/screens/donation_details_screen.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// Donor home — the volunteer home's layout with campaigns in place of
-/// events: a dark hero (welcome, rank, search) that runs on down behind the
-/// top of the "Popular Drives" deck, then the category chip row and the
-/// list it filters.
-///
-/// Both sections read `GET /events/donations` through
-/// [donationCampaignsProvider] — every open event a director enabled money
-/// or goods donations on. The deck ranks them by what has been raised; the
-/// list groups them by event category. The hero's rank comes from the donor
-/// board, not the volunteer one. Remount the widget (new key) to refetch.
+/// Both sections read [donationCampaignsProvider] (`GET /events/donations`):
+/// the deck ranks by amount raised, the list groups by category. The hero's
+/// rank is from the donor board. Remount (new key) to refetch.
 class DonorHomeTab extends ConsumerStatefulWidget {
   const DonorHomeTab({
     super.key,
@@ -35,11 +28,10 @@ class DonorHomeTab extends ConsumerStatefulWidget {
 
   final String displayName;
 
-  /// Opens the campaigns tab from search and "View all". The filter button
-  /// stays on this tab and drives the category list instead.
+  /// The filter button stays here and drives the category list instead.
   final VoidCallback? onSeeAllCampaigns;
 
-  /// How many campaigns the popular deck shows; the list shows every one.
+  /// The list shows every one.
   final int popularCount;
 
   @override
@@ -49,7 +41,6 @@ class DonorHomeTab extends ConsumerStatefulWidget {
 class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
   static const _gutter = VolunteerHomeHero.gutter;
 
-  /// How far the popular deck hangs down out of the dark ground.
   static const _deckOverlap = DonorCampaignDeck.cardHeight * 0.36;
 
   String _category = 'All';
@@ -69,9 +60,7 @@ class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
   void _open(DonationCampaign campaign) =>
       DonationDetailsScreen.open(context, campaign);
 
-  /// Filter button: pick a category from a sheet. Shares [_category] with
-  /// the chip row so both reflect the same choice. Does nothing until the
-  /// campaigns (and therefore the categories) have loaded.
+  /// Shares [_category] with the chip row; no-op until campaigns load.
   Future<void> _pickCategory() async {
     final all = ref.read(donationCampaignsProvider).value;
     if (all == null || all.isEmpty) return;
@@ -148,7 +137,6 @@ class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
     );
   }
 
-  /// Chips + list, or the one state card that explains why there is none.
   List<Widget> _categorySection(AsyncValue<List<DonationCampaign>> campaigns) {
     const inset = EdgeInsets.symmetric(horizontal: _gutter);
 
@@ -218,8 +206,7 @@ class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
   }
 }
 
-/// The deck, its skeleton, or a dark-ground placeholder so the hero's ink
-/// still has something to hang behind when there is nothing to show.
+/// The placeholder keeps something behind the hero's ink when empty.
 class _PopularSlot extends StatelessWidget {
   const _PopularSlot({
     required this.campaigns,

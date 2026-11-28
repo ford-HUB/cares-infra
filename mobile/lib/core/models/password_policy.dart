@@ -1,5 +1,3 @@
-/// A single password requirement: the sentence shown to the user and the test that
-/// decides whether it still needs saying.
 class PasswordRule {
   const PasswordRule({required this.label, required this.isMet});
 
@@ -7,8 +5,7 @@ class PasswordRule {
   final bool Function(String password) isMet;
 }
 
-/// The password rules the administrator set in the portal, mirrored on the client so
-/// the form states exactly what the server will enforce.
+/// Mirrors the portal-set rules so the form states what the server enforces.
 class PasswordPolicy {
   const PasswordPolicy({
     required this.minLength,
@@ -18,9 +15,8 @@ class PasswordPolicy {
     required this.requireSymbol,
   });
 
-  /// Used until `/v1/security-policy/password-rules` answers, and whenever it cannot
-  /// be reached — a donor filling in a form on a weak connection still gets rules to
-  /// aim at. Kept in step with `DEFAULT_SECURITY_POLICY` on the server.
+  /// Used until `/v1/security-policy/password-rules` answers or when
+  /// unreachable; matches server `DEFAULT_SECURITY_POLICY`.
   static const PasswordPolicy fallback = PasswordPolicy(
     minLength: 8,
     requireUppercase: true,
@@ -52,8 +48,7 @@ class PasswordPolicy {
     );
   }
 
-  /// Uppercase and lowercase are stated as one rule when both are required: they are
-  /// satisfied by the same habit, and two chips for it read as busywork.
+  /// Upper- and lowercase merge into one rule when both are required.
   List<PasswordRule> get rules {
     return [
       PasswordRule(
@@ -92,7 +87,6 @@ class PasswordPolicy {
     ];
   }
 
-  /// The rules the password does not yet satisfy — the only ones worth showing.
   List<PasswordRule> unmetRules(String password) {
     return rules.where((rule) => !rule.isMet(password)).toList();
   }

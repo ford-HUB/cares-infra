@@ -35,10 +35,6 @@ const config: ChartConfig = Object.fromEntries(
   ]),
 )
 
-/**
- * Where each month's report stands. One report per month is the norm, so the chart
- * reads as a strip of verdicts — a returned month is the amber gap in the green.
- */
 export function ReportStatusChart({ reports }: ReportStatusChartProps) {
   const rows = reports.map((row) => ({ label: row.label, ...row.outcomes }))
   const submitted = reports.reduce(

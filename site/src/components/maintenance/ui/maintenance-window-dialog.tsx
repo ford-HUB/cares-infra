@@ -34,7 +34,7 @@ import type { MaintenanceWindowDraft } from '../../../services/maintenance-servi
 import type { MaintenanceSurface, MaintenanceWindow } from '../../../types/maintenance'
 
 interface MaintenanceWindowDialogProps {
-  /** `null` keeps the dialog closed; a window without an id is a new booking. */
+  /** `null` keeps it closed; no id means a new booking. */
   window: MaintenanceWindow | null
   saving: boolean
   onClose: () => void
@@ -43,10 +43,6 @@ interface MaintenanceWindowDialogProps {
 
 const toLocalInput = (iso: string) => dayjs(iso).format('YYYY-MM-DDTHH:mm')
 
-/**
- * Booking downtime. The three things that decide whether a window lands well are all
- * here: when it runs, what it closes, and how far ahead users hear about it.
- */
 export function MaintenanceWindowDialog({
   window,
   saving,
@@ -70,7 +66,7 @@ export function MaintenanceWindowDialog({
   if (!window) return null
 
   const editing = window.id.length > 0
-  // A window that ends before it starts closes the system forever; catch it here.
+  // An end before the start would close the system forever.
   const invalidRange = !startAt || !endAt || dayjs(endAt).isBefore(dayjs(startAt))
   const invalid = title.trim().length === 0 || surfaces.length === 0 || invalidRange
 

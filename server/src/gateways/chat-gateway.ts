@@ -14,13 +14,13 @@ import type {
 } from '../modules/chat/dto/chat-site-dto';
 import { allowedOrigins } from '../shared/utils/environment-utils';
 
-/** Server → client event names; the portal listens for exactly these. */
+/** Must match the portal's listeners. */
 export const CHAT_MESSAGE_EVENT = 'chat:message';
 export const CHAT_READ_EVENT = 'chat:read';
 export const CHAT_PRESENCE_EVENT = 'chat:presence';
 export const CHAT_PRESENCE_LIST_EVENT = 'chat:presence-list';
 
-/** One room per user, so a person's open tabs all receive their messages. */
+/** Per-user room so every open tab receives messages. */
 function roomFor(userId: string): string {
   return `user:${userId}`;
 }
@@ -35,18 +35,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   private server!: Server;
 
-  /** userId → open socket count, so a second tab doesn't mark someone offline. */
+  /** userId → socket count, so closing one tab doesn't mark offline. */
   private readonly connections = new Map<string, number>();
 
-  /** `socket.data` is untyped, so the verified identity is kept here instead. */
+  /** `socket.data` is untyped. */
   private readonly socketUsers = new WeakMap<Socket, string>();
 
   constructor(private readonly jwtService: JwtService) {}
 
-  /**
-   * The HTTP guards never run for websockets, so the handshake token is verified
-   * here — an unauthenticated or non-portal socket is dropped immediately.
-   */
+  /** HTTP guards don't run for websockets: verify the handshake token here. */
   handleConnection(client: Socket): void {
     const raw =
       (client.handshake.auth?.token as string | undefined) ??
@@ -68,7 +65,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.socketUsers.set(client, payload.sub);
       void client.join(roomFor(payload.sub));
 
-      // Hand the newcomer the current roster, then tell everyone else about them.
       client.emit(CHAT_PRESENCE_LIST_EVENT, {
         user_ids: [...this.connections.keys()],
       });
@@ -103,10 +99,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server?.emit(CHAT_PRESENCE_EVENT, { user_id: userId, online });
   }
 
-  /**
-   * `contactId` is who the message is *with* from the recipient's point of view,
-   * which differs per side — so each participant gets their own emit.
-   */
+  /** `contactId` differs per side, so each participant gets its own emit. */
   emitMessage(
     userId: string,
     contactId: string,

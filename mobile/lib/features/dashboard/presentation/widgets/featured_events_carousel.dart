@@ -18,8 +18,7 @@ class FeaturedEventsCarousel extends StatefulWidget {
   /// empty-state card instead of collapsing the whole section.
   final bool showEmptyState;
 
-  /// Sent with every image request — server-hosted event images sit behind
-  /// the bearer token.
+  /// Server event images sit behind the bearer token.
   final Map<String, String>? imageHeaders;
   final ValueChanged<MockEvent>? onEventTap;
 
@@ -158,7 +157,6 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
   }
 }
 
-/// Placeholder shown in place of the carousel when no events are featured.
 class _EmptyEventsCard extends StatelessWidget {
   const _EmptyEventsCard();
 

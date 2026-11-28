@@ -7,15 +7,11 @@ import {
   registerQueueSchedulers,
 } from '../scheduler-registry';
 
-/** Job names on the events queue — one catalogued sweep. */
 export const EVENTS_JOBS = {
   advanceEventStatus: 'advance-event-status',
 } as const;
 
-/**
- * Event lifecycle on its own queue. Status is derived once when staff save an
- * event; this sweep is what carries it through Ongoing and Completed afterwards.
- */
+/** Advances status through Ongoing and Completed after the save sets it once. */
 @Injectable()
 export class EventsScheduler implements OnModuleInit {
   private readonly logger = new Logger(EventsScheduler.name);

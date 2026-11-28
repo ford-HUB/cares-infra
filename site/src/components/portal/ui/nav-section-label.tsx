@@ -1,7 +1,6 @@
 interface NavSectionLabelProps {
   label: string
   collapsed: boolean
-  /** First section in the list — skips the top spacing so it hugs the header. */
   first: boolean
 }
 

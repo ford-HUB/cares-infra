@@ -10,15 +10,11 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api');
 
-  // Railway terminates TLS at one proxy hop, so request.ip must come from X-Forwarded-For
-  // there (the portal IP allowlist and audit trail depend on it). Direct connections in
-  // development trust nothing, so a client cannot spoof its address.
+  // Railway: one proxy hop, so request.ip comes from X-Forwarded-For (IP allowlist, audit).
+  // Development trusts nothing to prevent spoofing.
   app.set('trust proxy', isProduction() ? 1 : false);
 
-  // Certificate designs are saved whole, with newly imported artwork inlined as data
-  // URLs, so one save can carry several megabytes of base64. Express's 100 KB default
-  // would reject those with a bare 413; the ceiling here is the customizer's own
-  // per-file limits added up, not an open door.
+  // Certificate designs inline artwork as base64; sized to the customizer's per-file limits.
   app.useBodyParser('json', { limit: '12mb' });
   app.useBodyParser('urlencoded', { limit: '12mb', extended: true });
 

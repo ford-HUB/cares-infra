@@ -27,7 +27,6 @@ function escapeCell(value: string) {
   return `"${value.replace(/"/g, '""')}"`
 }
 
-/** Downloads the given roster as a CSV file from the browser — no server round-trip. */
 export function exportAttendeesCsv(
   attendees: EventAttendee[],
   filename = 'event-attendees.csv',

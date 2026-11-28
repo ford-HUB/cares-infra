@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// White card on the mint page ground: hairline green border, soft lift and,
-/// optionally, the pale green wave tucked into its bottom-right corner (the
-/// notification / empty-state cards in the reference set).
 class GroundCard extends StatelessWidget {
   const GroundCard({
     super.key,
@@ -42,7 +39,6 @@ class GroundCard extends StatelessWidget {
   }
 }
 
-/// Two pale green swells rising into the bottom-right corner.
 class CardWavePainter extends CustomPainter {
   const CardWavePainter();
 
@@ -69,8 +65,6 @@ class CardWavePainter extends CustomPainter {
   bool shouldRepaint(CardWavePainter oldDelegate) => false;
 }
 
-/// Tinted icon tile, a thin vertical rule, then title + body — the heading
-/// row used by notification cards, the terms dialog and category cards.
 class IconTileHeading extends StatelessWidget {
   const IconTileHeading({
     super.key,

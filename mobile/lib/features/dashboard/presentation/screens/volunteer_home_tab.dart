@@ -18,20 +18,10 @@ import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// Volunteer home: a dark hero (welcome, location, search) that runs on
-/// down behind the top of the "Popular Events" deck, then the category chip
-/// row and the list it filters.
-///
-/// Both event sections read `GET /events/recommended` through
-/// [recommendedEventsProvider] — the open events tagged with this
-/// volunteer's interests. The deck ranks them by how full they are; the list
-/// groups them by event type. Remount the widget (new key) to refetch —
-/// pull-to-refresh and an interest change both do that.
-///
-/// Events the volunteer has already joined (per [EventRegistrationStore])
-/// stay in the Popular deck with a "JOINED" pill, so it never empties out;
-/// they drop out of the category list, which lives on the Activity tab
-/// instead.
+/// Both sections read [recommendedEventsProvider] (`GET /events/recommended`):
+/// the deck ranks by fill, the list groups by type. Remount (new key) to
+/// refetch. Joined events stay in the deck with a "JOINED" pill but leave the
+/// list.
 class VolunteerHomeTab extends ConsumerStatefulWidget {
   const VolunteerHomeTab({
     super.key,
@@ -43,15 +33,13 @@ class VolunteerHomeTab extends ConsumerStatefulWidget {
 
   final String displayName;
 
-  /// Opens the events tab from search and "View all". The filter button
-  /// stays on this tab and drives the category list instead.
+  /// The filter button stays here and drives the category list instead.
   final VoidCallback? onSeeAllEvents;
 
-  /// Fired after the volunteer picks interests from the in-tab prompt so the
-  /// shell can drop its own "no interests yet" flag.
+  /// Lets the shell drop its "no interests yet" flag.
   final VoidCallback? onInterestsChanged;
 
-  /// How many events the popular deck shows; the list shows every match.
+  /// The list shows every match.
   final int popularCount;
 
   @override
@@ -61,7 +49,6 @@ class VolunteerHomeTab extends ConsumerStatefulWidget {
 class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
   static const _gutter = VolunteerHomeHero.gutter;
 
-  /// How far the popular deck hangs down out of the dark ground.
   static const _deckOverlap = PopularEventDeck.cardHeight * 0.36;
 
   String _category = 'All';
@@ -88,14 +75,13 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
     super.dispose();
   }
 
-  /// Joining or cancelling from the details screen moves the event between
-  /// this tab and Activity; rebuild so the list reflects it on return.
+  /// Joins/cancels on the details screen move events between this tab and
+  /// Activity.
   void _onRegistrationsChanged() {
     if (mounted) setState(() {});
   }
 
-  /// Everything the server sent minus the events this volunteer already
-  /// joined. The store keys on the details screen's `event-<id>` form.
+  /// The store keys on the `event-<id>` form.
   List<RecommendedEvent> _unjoined(List<RecommendedEvent> events) =>
       events.where((e) => !_isJoined(e)).toList();
 
@@ -105,9 +91,7 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
   void _open(RecommendedEvent event) =>
       EventDetailsScreen.open(context, event.toCaresEvent());
 
-  /// Filter button: pick a category from a sheet. Shares [_category] with
-  /// the chip row so both reflect the same choice. Does nothing until the
-  /// events (and therefore the categories) have loaded.
+  /// Shares [_category] with the chip row; no-op until events load.
   Future<void> _pickCategory() async {
     final all = ref.read(recommendedEventsProvider).value?.events;
     if (all == null) return;
@@ -200,7 +184,6 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
     );
   }
 
-  /// Chips + list, or the one state card that explains why there is none.
   List<Widget> _categorySection(AsyncValue<RecommendedEventsPage> page) {
     const inset = EdgeInsets.symmetric(horizontal: _gutter);
 
@@ -276,8 +259,7 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
   }
 }
 
-/// The deck, its skeleton, or a dark-ground placeholder so the hero's ink
-/// still has something to hang behind when there is nothing to show.
+/// The placeholder keeps something behind the hero's ink when empty.
 class _PopularSlot extends StatelessWidget {
   const _PopularSlot({
     required this.page,
@@ -289,7 +271,7 @@ class _PopularSlot extends StatelessWidget {
   final AsyncValue<RecommendedEventsPage> page;
   final int count;
 
-  /// Joined events stay in the deck; this only flips their pill to JOINED.
+  /// Only flips the pill to JOINED.
   final bool Function(RecommendedEvent) isJoined;
   final ValueChanged<RecommendedEvent> onOpen;
 
@@ -341,7 +323,6 @@ class _PopularSlot extends StatelessWidget {
   }
 }
 
-/// Three row-card outlines while the list loads.
 class HomeCategoryListSkeleton extends StatelessWidget {
   const HomeCategoryListSkeleton({super.key});
 

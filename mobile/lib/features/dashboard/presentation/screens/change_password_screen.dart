@@ -13,12 +13,8 @@ import 'package:mobile/features/auth/registration/widgets/password_strength_indi
 import 'package:mobile/features/dashboard/presentation/widgets/account_security_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Change password: current password, new password (validated against the
-/// administrator's policy, same strength bar and rule chips as registration),
-/// and a confirmation.
-///
 /// `PUT /account/mobile/password`; the server signs every other device out.
-/// Resolves `true` on success, null when the person backs out.
+/// Resolves `true` on success, null on back.
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
@@ -47,9 +43,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   bool _obscureConfirm = true;
   bool _saving = false;
 
-  /// Server rejection of the current password — kept as an inline error
-  /// until the field changes, like the phone conflict on the profile edit
-  /// screen.
+  /// Inline until the field changes.
   String? _currentError;
 
   @override

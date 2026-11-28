@@ -19,14 +19,6 @@ import {
   useChatApp,
 } from '../chat-site-support';
 
-/**
- * Chat Module · Send Message / Mark Read — valid inputs (field validation).
- *
- * Every case here is a legitimate value for a field of the two chat POSTs, and
- * the system must accept it. The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── Send Message ────────────────────────────────────────────────────────── */
 {
   const contactIdFixtures: LayerFixture<string>[] = [
     { name: 'Staff messages a contact by their user id', input: VALID_CONTACT_ID, expected: 'PASS' },
@@ -140,7 +132,6 @@ import {
   });
 }
 
-/* ── Mark Read ───────────────────────────────────────────────────────────── */
 {
   const contactIdFixtures: LayerFixture<string>[] = [
     { name: 'Staff opens a conversation by the contact user id', input: VALID_CONTACT_ID, expected: 'PASS' },

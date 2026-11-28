@@ -27,8 +27,7 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
     super.initState();
     _store.addListener(_onStoreChanged);
     _feedbackStore.addListener(_onStoreChanged);
-    // Prototype scenario: the volunteer already joined and attended the
-    // events that have since been completed.
+    // Prototype seed: the volunteer joined and attended the completed events.
     _store.seedCompletedEventParticipation(email: _userEmail);
   }
 
@@ -73,7 +72,6 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
     return [...fromStore, ...kMockAttendedActivities];
   }
 
-  /// Events the volunteer participated in that have since ended.
   List<CaresEvent> get _completedEvents {
     return _store
         .participationsForEmail(_userEmail)

@@ -46,9 +46,8 @@ PasswordStrengthResult evaluatePasswordStrength(
     );
   }
 
-  // Green means "the form will accept this". A password can score well on variety
-  // and still miss a rule the administrator set, so it stays orange until every
-  // rule is met — otherwise the bar says Good while the submit button stays off.
+  // Orange until every policy rule is met, so the bar never says Good while
+  // submit is off.
   if (score < 0.6 || !policy.isSatisfiedBy(password)) {
     return PasswordStrengthResult(
       strength: PasswordStrength.fair,
@@ -73,7 +72,7 @@ PasswordStrengthResult evaluatePasswordStrength(
   );
 }
 
-/// Mirrors the server's own check, so the form refuses what the API would refuse.
+/// Mirrors the server check.
 String? validatePassword(
   String? value, {
   PasswordPolicy policy = PasswordPolicy.fallback,
@@ -85,7 +84,7 @@ String? validatePassword(
   final unmet = policy.unmetRules(value);
   if (unmet.isEmpty) return null;
 
-  // One message, listing only what is still missing — the same rules the chips show.
+  // Lists only the missing rules, as the chips do.
   return 'Password needs ${unmet.map((rule) => rule.label.toLowerCase()).join(', ')}';
 }
 

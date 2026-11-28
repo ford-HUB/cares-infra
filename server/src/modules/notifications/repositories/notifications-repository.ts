@@ -21,10 +21,7 @@ export interface CreateNotificationRowInput {
   audienceRole: RoleType | null;
 }
 
-/**
- * Live rows only — a dismissed notification is gone from every list and count.
- * With `audience`, only that side's rows and the account-wide ones (no role).
- */
+/** Excludes dismissed rows; with `audience`, that side plus account-wide rows. */
 function visibleTo(
   userId: string,
   audience?: RoleType,
@@ -110,10 +107,7 @@ export class NotificationsRepository {
     return result.count;
   }
 
-  /**
-   * Who a role-addressed notice reaches: every unrestricted account holding one of
-   * the roles. Restricted accounts cannot sign in, so a row for them is noise.
-   */
+  /** Unrestricted accounts only. */
   async findRecipientIdsByRoles(roles: RoleType[]): Promise<string[]> {
     if (roles.length === 0) return [];
 
@@ -128,10 +122,7 @@ export class NotificationsRepository {
     return accounts.map((account) => account.user_id);
   }
 
-  /**
-   * One insert for the whole fan-out. `skipDuplicates` is what makes the dedupe key
-   * work: a recipient who already has this key keeps their existing row untouched.
-   */
+  /** `skipDuplicates` enforces the dedupe key. */
   async createMany(
     rows: CreateNotificationRowInput[],
   ): Promise<NotificationRow[]> {
@@ -152,7 +143,7 @@ export class NotificationsRepository {
     });
   }
 
-  /** Housekeeping: rows nobody will read again. Returns how many went. */
+  /** Returns the count deleted. */
   async purgeSettledBefore(cutoff: Date): Promise<number> {
     const result = await this.prisma.notification.deleteMany({
       where: {

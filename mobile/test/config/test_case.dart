@@ -1,18 +1,8 @@
-// Test-case catalogue for the mobile unit suites — one row of the UNIT TESTING
-// table per case, the same shape the project document uses:
-//
-//   Module Name · Unit Name · Date Tested · Test Case ID ·
-//   Test Case Description · Expected Result · Actual Result · Result
-//
-// A case is a `test` whose name carries that metadata, declared inside a
-// `unit(...)` group. `tool/unit_case_report.dart` runs the suites, reads the
-// names back and prints the table, filling in Date Tested, Actual Result and
-// Result (Passed / Failed) from the run.
-//
-// An intentionally wrong input that is refused as stated (a missing name, a
-// taken ID number) is a Passed case — the refusal is the correct behaviour.
-//
-// Mirrors server/test/config/test-case.ts.
+// Unit-test case catalogue: each `test` name carries a UNIT TESTING table row
+// (Module, Unit, Test Case ID, Description, Expected Result);
+// `tool/unit_case_report.dart` runs the suites and fills in Date Tested, Actual
+// Result and Result. A wrong input refused as stated is a Passed case. Mirrors
+// server/test/config/test-case.ts.
 
 import 'dart:async';
 
@@ -46,7 +36,6 @@ class TestCases {
   int _sequence = 0;
   String? _unit;
 
-  /// Groups the cases of one unit (e.g. `Register (Account Info)`).
   void unit(String name, void Function() body) {
     group(name, () {
       final previous = _unit;
@@ -56,7 +45,6 @@ class TestCases {
     });
   }
 
-  /// One case: what the user does, what the system should do, and the check.
   void test(
     String description,
     FutureOr<void> Function() body, {

@@ -1,9 +1,6 @@
 import { cn } from '@/lib/utils'
 
-/** The light catching the glass: a sheen over the top half and a soft diagonal glint,
- *  optionally with faint water ripples across the card. Clipped to the card's own
- *  corners, so it works on a card that lets other content overhang its edges. `cream`
- *  tints the sheen and glint warm cream instead of white. */
+/** Clipped to the card's corners, so it works on cards with overhanging content. */
 export function GlassSheen({
   emphasis = false,
   ripples = false,

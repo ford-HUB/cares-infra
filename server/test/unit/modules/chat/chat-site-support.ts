@@ -32,25 +32,9 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 setCaseUnit({ module: 'Chat Module', unit: 'Send Message / Mark Read', prefix: 'CHAT' });
 
 /**
- * Shared by every spec in this folder — field validation for the portal Chat
- * module's two POSTs:
- *
- *   POST /api/v1/chat/conversations/:contactId/messages
- *        contactId (uuid param) · body (SendChatMessageSchema) · files (≤ 5, ≤ 10 MB, allowed types)
- *   POST /api/v1/chat/conversations/:contactId/read
- *        contactId (uuid param), no body
- *
- * The app runs the REAL `ChatSiteController` and `ChatSiteService`, so the rules
- * that live in the service — "text or an attachment", attachment count / size /
- * type / empty file, messaging yourself, unknown or non-portal contacts, no
- * conversation to mark read — are production code. Only `ChatRepository`
- * (Prisma), `S3Service` and `ChatGateway` (socket emits) are mocked.
- *
- * Messages go out as multipart form data with `files` attached, the way the
- * portal composer sends them. The contactId schema is a private const in the
- * controller, so contactId cases run through the API layer only.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix).
+ * Real controller + service, so service rules are production code; only ChatRepository,
+ * S3Service and ChatGateway are mocked. The contactId schema is private to the
+ * controller, so contactId cases are API-layer only.
  */
 export const CALLER = {
   sub: '0f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f',
@@ -89,7 +73,7 @@ export const MESSAGES = {
 
 export { CHAT_ATTACHMENT_MAX_BYTES, CHAT_MESSAGE_MAX_LENGTH };
 
-/** A portal user as `ChatRepository.findContact` returns them. */
+/** `ChatRepository.findContact` row. */
 export const storedContact = (role: RoleType = RoleType.COORDINATOR, userId = VALID_CONTACT_ID) => ({
   user_id: userId,
   firstname: 'Grace',
@@ -98,8 +82,6 @@ export const storedContact = (role: RoleType = RoleType.COORDINATOR, userId = VA
   role: { type: role },
   accounts: [{ email: 'grace@cares.ph' }],
 });
-
-/* ───────────────────────────── files ───────────────────────────── */
 
 export interface ChatFile {
   name: string;
@@ -141,13 +123,9 @@ export const DISALLOWED_FILES: ChatFile[] = [
   chatFile('page.html', 'text/html'),
 ];
 
-/* ───────────────────────────── app ───────────────────────────── */
-
 /**
- * Boots the chat controller on the real service for the enclosing `describe`.
- * A stand-in for the global JWT guard puts `CALLER` on the request. Before each
- * test every mock goes back to the happy default: the contact is a portal
- * coordinator, a conversation exists, uploads and writes succeed.
+ * Stub guard sets `CALLER`. Mocks reset to the happy path before each test: coordinator
+ * contact, a conversation exists, uploads and writes succeed.
  */
 export const useChatApp = () => {
   const ctx = {
@@ -214,8 +192,6 @@ export const useChatApp = () => {
 
 export type ChatCtx = ReturnType<typeof useChatApp>;
 
-/* ───────────────────────────── requests ───────────────────────────── */
-
 const keepAliveAgent = new Agent({ keepAlive: true });
 
 const toOutcome = (res: request.Response): LayerOutcome => ({
@@ -226,10 +202,7 @@ const toOutcome = (res: request.Response): LayerOutcome => ({
   body: res.body,
 });
 
-/**
- * Sends a message the way the portal composer does: multipart text fields plus
- * `files`. `fields` left empty sends no text field at all.
- */
+/** Multipart, as the portal composer sends it; empty `fields` sends no text field. */
 export const sendMessage = async (
   ctx: ChatCtx,
   fields: Record<string, string> = {},
@@ -248,29 +221,23 @@ export const sendMessage = async (
 export const markRead = (ctx: ChatCtx, contactId = VALID_CONTACT_ID) =>
   runApiLayer(ctx.app, { method: 'post', path: readPath(contactId) });
 
-/* ───────────────────────────── shared checks ───────────────────────────── */
-
-/** A refusal from the service: exact status + message in the `{ ok: false }` envelope. */
 export const expectRefusal = (outcome: LayerOutcome, status: number, message: string) => {
   expect(outcome.status).toBe(status);
   expectSafeErrorEnvelope(outcome);
   expect(outcome.body.message).toBe(message);
 };
 
-/** A refused message left nothing behind: no upload, no stored message, no socket emit. */
 export const expectNothingSent = (ctx: ChatCtx) => {
   expect(ctx.s3.uploadToS3).not.toHaveBeenCalled();
   expect(ctx.repository.createMessage).not.toHaveBeenCalled();
   expect(ctx.gateway.emitMessage).not.toHaveBeenCalled();
 };
 
-/** A refused read receipt changed nothing: no read marker written, no socket emit. */
 export const expectNothingMarked = (ctx: ChatCtx) => {
   expect(ctx.repository.markRead).not.toHaveBeenCalled();
   expect(ctx.gateway.emitRead).not.toHaveBeenCalled();
 };
 
-/** An accepted message was stored once, from the caller, to the contact, and pushed to both sides. */
 export const expectMessageSent = (ctx: ChatCtx, outcome: LayerOutcome, body: string, files: ChatFile[] = []) => {
   expect(outcome.status).toBe(201);
   expect(outcome.body.ok).toBe(true);
@@ -290,7 +257,6 @@ export const expectMessageSent = (ctx: ChatCtx, outcome: LayerOutcome, body: str
   expect(outcome.body.data.attachments).toHaveLength(files.length);
 };
 
-/** An accepted read receipt marked the caller's side of the conversation read and pushed it. */
 export const expectMarkedRead = (ctx: ChatCtx, outcome: LayerOutcome, contactId = VALID_CONTACT_ID) => {
   expect(outcome.status).toBe(201);
   expect(outcome.body).toEqual({
@@ -302,14 +268,7 @@ export const expectMarkedRead = (ctx: ChatCtx, outcome: LayerOutcome, contactId 
   expect(ctx.gateway.emitRead).toHaveBeenCalledTimes(1);
 };
 
-/* ───────────────────────────── fixture tables ───────────────────────────── */
-
-/**
- * `body` fixtures (the fixture `input` is the multipart text fields) through both
- * layers. Each is sent with one PDF attached so "text or an attachment" is never
- * why it fails — only the body's own rules are under test. A FAIL must come back
- * in the validation envelope with nothing stored; a PASS must be stored once.
- */
+/** `input` is the multipart text fields; one PDF rides along so "text or an attachment" never fails a case. */
 export const describeBodyTable = (ctx: ChatCtx, fixtures: LayerFixture<Record<string, string>>[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {
@@ -333,12 +292,7 @@ export const describeBodyTable = (ctx: ChatCtx, fixtures: LayerFixture<Record<st
 
 export type ChatRoute = 'send' | 'read';
 
-/**
- * contactId fixtures (the fixture `input` is the raw id, URL-encoded into the
- * path) through the API layer. A message is sent with valid text so the id is
- * the only thing under test. A FAIL must name the contactId rule and never reach
- * the service.
- */
+/** `input` is the raw id (URL-encoded); valid text is sent so only the id is tested. */
 export const describeContactIdTable = (ctx: ChatCtx, route: ChatRoute, fixtures: LayerFixture<string>[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 2 — api', async () => {

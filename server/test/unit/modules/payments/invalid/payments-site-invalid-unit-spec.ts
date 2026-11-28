@@ -32,22 +32,7 @@ import {
   usePaymentsApp,
 } from '../payments-site-support';
 
-/**
- * Payments Module · Payment Gateway Settings — invalid inputs (field validation).
- *
- * Every case here is an intentionally wrong value for one field of the portal's
- * Payments screen. A case Passes when the request is refused with "Validation failed"
- * (400) on that field — and, where the schema defines one, the exact message — without
- * reaching the service. Each fixture keeps every other field valid, so the named field
- * is the only reason it can fail.
- *
- *   :method  POST …/methods/:method/verify · /account-proof · /account-proof/confirm
- *   amount   POST …/methods/:method/account-proof/confirm   (ConfirmAccountProofSchema)
- *   key, url POST …/settings/test                           (TestPaymentGatewaySchema)
- *   the form PUT  …/settings                                (UpdatePaymentSettingsSchema)
- *
- * The valid cases for this unit live in ../valid/.
- */
+/** Each fixture keeps every other field valid. */
 
 const UNKNOWN_METHOD = 'Unknown payment method';
 const NOT_A_KEY = 'That does not look like a Xendit secret key';
@@ -58,7 +43,6 @@ const UNKNOWN_CHANNEL = 'Unknown payment channel';
 const MAX_BELOW_MIN = 'The maximum must not be below the minimum';
 const METHOD_ONCE = 'Each payment method may appear only once';
 
-/* ── :method ─────────────────────────────────────────────────────────────── */
 const methodFixtures: LayerFixture<string>[] = [
   { name: 'Director picks a payment method in lower case (gcash)', input: VALID_METHOD.toLowerCase(), expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
   { name: 'Director picks a payment method by its label (GCash)', input: 'GCash', expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
@@ -69,7 +53,6 @@ const methodFixtures: LayerFixture<string>[] = [
   { name: 'Director sends a method number instead of its name (0)', input: '0', expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
 ];
 
-/* ── confirm: amount ─────────────────────────────────────────────────────── */
 const confirmFixtures: LayerFixture[] = [
   { name: 'Director confirms without entering the amount', input: {}, expected: 'FAIL', field: 'amount' },
   { name: 'Director reports an amount of 0', input: { amount: 0 }, expected: 'FAIL', field: 'amount' },
@@ -83,7 +66,6 @@ const confirmFixtures: LayerFixture[] = [
   { name: 'Client sends the amount as "amount_php" instead of "amount"', input: { amount_php: VALID_CONFIRM.amount }, expected: 'FAIL', field: 'amount' },
 ];
 
-/* ── test connection: secret_key, api_url ────────────────────────────────── */
 const testFixtures: LayerFixture[] = [
   { name: 'Director tests an empty key', input: { secret_key: '' }, expected: 'FAIL', field: 'secret_key' },
   { name: 'Director tests a key of only spaces', input: { secret_key: ' '.repeat(SECRET_KEY_MIN) }, expected: 'FAIL', field: 'secret_key' },
@@ -115,34 +97,28 @@ const testFixtures: LayerFixture[] = [
   { name: 'Director tries to switch the gateway to LIVE while testing', input: { ...VALID_TEST, mode: 'LIVE' }, expected: 'FAIL' },
 ];
 
-/* ── save settings (PUT) ─────────────────────────────────────────────────── */
 const SETTINGS_PATH = '/api/v1/payments/settings';
 const VALID_SETTINGS = { mode: 'TEST', enabled: true, methods: [] as unknown[] };
 const VALID_ENTRY = { method: DonationPaymentMethod.GCASH, enabled: true };
 const CHANNEL = PAYMENT_CHANNEL_CODES[0];
 
-/** The valid form with `field` removed. */
 const settingsWithout = (field: keyof typeof VALID_SETTINGS) => {
   const { [field]: _omitted, ...rest } = VALID_SETTINGS;
   return rest;
 };
-/** The valid form with one method entry, `patch` applied to it. */
 const withEntry = (patch: Record<string, unknown>) => ({ ...VALID_SETTINGS, methods: [{ ...VALID_ENTRY, ...patch }] });
-/** The valid form with one method entry missing `field`. */
 const entryWithout = (field: keyof typeof VALID_ENTRY) => {
   const { [field]: _omitted, ...rest } = VALID_ENTRY;
   return { ...VALID_SETTINGS, methods: [rest] };
 };
 
 const settingsFixtures: LayerFixture[] = [
-  // mode / enabled
   { name: 'Director saves without a gateway mode', input: settingsWithout('mode'), expected: 'FAIL', field: 'mode' },
   { name: 'Director saves the gateway mode in lower case (test)', input: { ...VALID_SETTINGS, mode: 'test' }, expected: 'FAIL', field: 'mode' },
   { name: 'Director saves a gateway mode that does not exist (SANDBOX)', input: { ...VALID_SETTINGS, mode: 'SANDBOX' }, expected: 'FAIL', field: 'mode' },
   { name: 'Director saves without the on/off switch', input: settingsWithout('enabled'), expected: 'FAIL', field: 'enabled' },
   { name: 'Director sends the on/off switch as the text "true"', input: { ...VALID_SETTINGS, enabled: 'true' }, expected: 'FAIL', field: 'enabled' },
 
-  // secret_key / webhook_token
   { name: 'Director saves an empty secret key', input: { ...VALID_SETTINGS, secret_key: '' }, expected: 'FAIL', field: 'secret_key', message: NOT_A_KEY },
   {
     name: `Director saves a secret key of ${SECRET_KEY_MIN - 1} characters`,
@@ -179,12 +155,10 @@ const settingsFixtures: LayerFixture[] = [
     message: ONE_LINE,
   },
 
-  // api_url
   { name: 'Director saves a gateway URL over plain http', input: { ...VALID_SETTINGS, api_url: 'http://api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
   { name: 'Director saves a gateway URL without a scheme', input: { ...VALID_SETTINGS, api_url: 'api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
   { name: 'Director saves a gateway URL of only spaces', input: { ...VALID_SETTINGS, api_url: '   ' }, expected: 'FAIL', field: 'api_url' },
 
-  // statement_name / support_email / support_contact
   {
     name: `Director saves a statement name of ${STATEMENT_NAME_MAX + 1} characters`,
     input: { ...VALID_SETTINGS, statement_name: 'a'.repeat(STATEMENT_NAME_MAX + 1) },
@@ -201,7 +175,6 @@ const settingsFixtures: LayerFixture[] = [
     field: 'support_contact',
   },
 
-  // methods (the list)
   { name: 'Director saves without the list of payment methods', input: settingsWithout('methods'), expected: 'FAIL', field: 'methods' },
   { name: 'Director sends one payment method instead of a list', input: { ...VALID_SETTINGS, methods: VALID_ENTRY }, expected: 'FAIL', field: 'methods' },
   {
@@ -213,7 +186,6 @@ const settingsFixtures: LayerFixture[] = [
   },
   { name: 'Director sends 21 payment method entries, one over the maximum', input: { ...VALID_SETTINGS, methods: Array(21).fill(VALID_ENTRY) }, expected: 'FAIL', field: 'methods' },
 
-  // methods[] entry
   { name: 'Director saves a payment method entry without its method', input: entryWithout('method'), expected: 'FAIL', field: 'methods.0.method' },
   { name: 'Director saves a payment method that does not exist (PAYPAL)', input: withEntry({ method: 'PAYPAL' }), expected: 'FAIL', field: 'methods.0.method' },
   { name: 'Director saves a payment method in lower case (gcash)', input: withEntry({ method: 'gcash' }), expected: 'FAIL', field: 'methods.0.method' },
@@ -285,15 +257,10 @@ const settingsFixtures: LayerFixture[] = [
   },
   { name: 'Client sends a read-only field in a method entry (default_label)', input: withEntry({ default_label: 'GCash' }), expected: 'FAIL' },
 
-  // the form as a whole
   { name: 'Client sends a read-only field with the form (secret_key_last4)', input: { ...VALID_SETTINGS, secret_key_last4: 'wxyz' }, expected: 'FAIL' },
 ];
 
-/**
- * PUT fixtures through both layers. The support's tables cover the POST actions only,
- * so the save gets its own here; a FAIL must come back in the validation envelope
- * without reaching the service.
- */
+/** The support's tables cover only the POSTs, so the PUT save gets its own. */
 const describeSettingsTable = (ctx: ReturnType<typeof usePaymentsApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

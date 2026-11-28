@@ -13,13 +13,9 @@ import { LegalToc } from './ui/legal-toc'
 
 interface LegalDocumentViewProps {
   document: LegalDocument
-  /** The companion document, linked at the end (privacy ↔ terms). */
   related: { label: string; to: string }
 }
 
-/** Shared layout for the public legal pages: a green title band with the effective
- *  date, then the numbered sections beside a sticky table of contents (collapsible
- *  above the text on small screens). */
 export function LegalDocumentView({ document, related }: LegalDocumentViewProps) {
   const sectionIds = useMemo(() => document.sections.map((s) => s.id), [document])
   const activeId = useActiveSection(sectionIds, LANDING_ACTIVE_SECTION_ROOT_MARGIN)

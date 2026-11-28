@@ -21,8 +21,10 @@ const surveyInclude = {
     select: {
       lastname: true,
       address_barangay: true,
+      // Barangay fallback.
+      current_address: true,
       household_size: true,
-      /** Fallback head count when the profile has none — the latest request's. */
+      // Head count fallback.
       assistance_requests: {
         select: { household_size: true },
         orderBy: { createdAt: 'desc' },
@@ -40,7 +42,6 @@ export type NeedsAssessmentRow = Prisma.NeedsAssessmentGetPayload<{
 export class ResidentialNeedsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Every submitted survey with the respondent's household details, newest first. */
   async listSurveys(): Promise<NeedsAssessmentRow[]> {
     return this.prisma.needsAssessment.findMany({
       include: surveyInclude,
@@ -54,7 +55,7 @@ export class ResidentialNeedsRepository {
     });
   }
 
-  /** One survey per account: the first take creates it, every update overwrites it. */
+  /** Upsert: one survey per account. */
   async save(
     userId: string,
     input: SaveNeedsAssessmentInput,

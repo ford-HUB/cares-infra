@@ -5,7 +5,6 @@ import type { CalendarEvent } from '../types/calendar'
 interface CalendarState {
   events: CalendarEvent[]
   loading: boolean
-  /** False until the first fetch settles, so the grid doesn't flash as empty. */
   initialized: boolean
   error: string | null
   fetchEvents: () => Promise<void>

@@ -11,7 +11,7 @@ import type { MailFolder } from '../types/mailbox'
 
 export const MAILBOX_PAGE_SIZE = 25
 
-/** Sidebar order — `drafts` is intentionally absent; the portal never saves drafts. */
+/** No `drafts`: the portal never saves drafts. */
 export const MAILBOX_FOLDERS: {
   value: MailFolder
   label: string
@@ -24,10 +24,8 @@ export const MAILBOX_FOLDERS: {
   { value: 'trash', label: 'Trash', icon: Trash2 },
 ]
 
-/** Rows drawn by the list skeleton — matches a typical first page above the fold. */
 export const MAILBOX_SKELETON_ROWS = 8
 
-/** Recipient autocomplete: how much has to be typed, and how long to wait after it. */
 export const MAILBOX_CONTACT_MIN_CHARS = 2
 export const MAILBOX_CONTACT_DEBOUNCE_MS = 250
 export const MAILBOX_CONTACT_SUGGESTION_LIMIT = 6
@@ -46,10 +44,7 @@ export const MAILBOX_NO_SELECTION_TITLE = 'Select a message'
 export const MAILBOX_NO_SELECTION_BODY =
   'Pick a message from the list to read it and reply.'
 
-/**
- * `?gmail=` flags set by the server after Google redirects the browser back. Anything
- * unrecognised is treated as a generic failure.
- */
+/** `?gmail=` flags the server sets after the Google redirect; unknown means generic failure. */
 export const MAILBOX_CALLBACK_MESSAGES: Record<
   string,
   { type: 'success' | 'error'; message: string }
@@ -79,14 +74,12 @@ export const MAILBOX_DISCONNECTED_TOAST = 'Google account disconnected'
 
 const REPLY_PREFIX = 'Re: '
 
-/** Mail clients only stack one `Re:`, however deep the thread runs. */
 export function replySubject(subject: string): string {
   return subject.toLowerCase().startsWith(REPLY_PREFIX.toLowerCase())
     ? subject
     : `${REPLY_PREFIX}${subject}`
 }
 
-/** Today shows a clock, this year a date, anything older the year too. */
 export function formatMailTimestamp(iso: string): string {
   const value = dayjs(iso)
   if (!value.isValid()) return ''

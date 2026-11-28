@@ -21,11 +21,7 @@ export type CertificateDeploymentListDto = z.infer<
 export type DeployedSignatoryDto =
   CertificateDeploymentDto['design']['signatories'][number];
 
-/**
- * What is actually written to the deployment's `design` column: the stored template
- * design — asset ids rather than URLs — with the signature lines copied in beside it,
- * so the whole sheet is one frozen document.
- */
+/** Asset ids plus copied signature lines, frozen as one document. */
 export interface StoredDeploymentDesign extends StoredCertificateDesign {
   signatories: DeployedSignatoryDto[];
 }

@@ -18,7 +18,7 @@ from app.uclm_departments import (
 MIN_OCR_WIDTH = 1200
 MIN_TEXT_CHARS = 12
 TESSERACT_CONFIGS = ("--psm 6 --oem 3", "--psm 11 --oem 3")
-# Card detection: the ID is the large white, low-saturation region of the photo.
+# Card detection: the large white, low-saturation region.
 CARD_DETECT_SIZE = 1000
 CARD_MIN_VALUE = 160
 CARD_MAX_SATURATION = 70
@@ -26,20 +26,16 @@ CARD_MIN_AREA_RATIO = 0.1
 CARD_MAX_AREA_RATIO = 0.9
 # Tesseract reads the card best at roughly this size; huge photos add noise.
 CARD_OCR_SHORT_SIDE = 1600
-# The student ID digits are small and a worn card flips 8/9 and 5/6, so the
-# number's box is located and re-read on its own, digits only, at a few scales.
+# Worn cards flip 8/9 and 5/6: the number box is re-read alone, digits only, at several scales.
 ID_LOCATE_CONFIGS = ("--psm 6 --oem 3", "--psm 11 --oem 3")
 ID_REREAD_CONFIG = "--psm 7 --oem 3 -c tessedit_char_whitelist=0123456789"
-# Digit heights (px) the box is re-read at; sized off the box so a small or
-# large photo is read the same way.
+# Digit heights (px), sized off the box so photo resolution doesn't matter.
 ID_REREAD_DIGIT_HEIGHTS = (120, 180, 240)
 ID_REREAD_PAD = 0.6
-# A row of the number's box counts as text when this share of it is ink; a
-# mostly-black row is the ID photo's edge, an empty one is blank card.
+# Ink share of a text row: mostly black = photo edge, empty = blank card.
 ID_TEXT_ROW_MIN_DARK = 0.03
 ID_TEXT_ROW_MAX_DARK = 0.7
-# The course is printed in white on a saturated colour strip at the foot of the
-# card front; plain Otsu binarisation washes it out, so it gets its own pass.
+# White course text on a colour strip; Otsu washes it out, so it gets its own pass.
 BAND_MIN_SATURATION = 150
 BAND_MIN_VALUE = 130
 BAND_TEXT_MAX_SATURATION = 80
@@ -59,12 +55,10 @@ NAME_INLINE = re.compile(
 )
 NAME_ONLY_LABEL = re.compile(r"^['\s,|.:]*NAME[^A-Za-z0-9]*$", re.IGNORECASE)
 NAME_LABEL_WITH_JUNK = re.compile(r"^\W*NAME\W+[A-Za-z]?\W*$", re.IGNORECASE)
-# An unlabelled, already-cleaned line printed like a name: upper case, first and
-# last words of 2+ letters, initials or words between ("JAY S. ICOY").
+# Unlabelled upper-case name line, e.g. "JAY S. ICOY".
 PERSON_NAME_LINE = re.compile(r"^[A-Z]{2,}(?:\s+(?:[A-Z]\.?|[A-Z]{2,}))*\s+[A-Z]{2,}$")
 PERSON_NAME_MIN_LETTERS = 6
-# A staff / faculty ID prints the name as "REYES, JESIECA C." — surname, comma,
-# given names and an optional middle initial (its period already cleaned off).
+# Staff name format "REYES, JESIECA C." (period already cleaned off).
 STAFF_NAME_LINE = re.compile(r"^[A-Z][A-Z']+(?: [A-Z][A-Z']+)*, ?[A-Z]{2,}(?: (?:[A-Z]{2,}|[A-Z]\.?))*$")
 ADDRESS_INLINE = re.compile(
     r"\bADDRESS\.?\s*[:\-]?\s*(.+)$",
@@ -111,22 +105,18 @@ LABEL_LINE = re.compile(
 )
 NAME_CHARS = re.compile(r"^[A-Za-zÑñ.\-'\s,®]+$")
 
-# UCLM student IDs are 8 digits (YY + 6-digit serial, e.g. 24247447) printed
-# above the "ID NO ____" line on the front of the card.
+# UCLM student IDs: 8 digits (YY + serial, e.g. 24247447) above the "ID NO ____" line.
 STUDENT_ID_LENGTH = 8
 STUDENT_ID_MIN_REAL_DIGITS = 6
 STUDENT_ID_LABEL = re.compile(
     r"\b(?:I[D0O]|1D)\s*(?:N[O0]\b\.?|NUMBER\b|#)\s*[:.]?",
     re.IGNORECASE,
 )
-# Exactly 8 digit-like chars (OCR may read 0 as O, 1 as I/l, 8 as B, ...),
-# optionally split by hyphens; bounded on both sides so longer runs such as
-# phone numbers (11 digits) and dates never yield an 8-digit slice.
+# 8 digit-like chars (OCR O/I/l/B...), hyphens allowed; bounded so phones and dates never slice.
 STUDENT_ID_TOKEN = re.compile(
     r"(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){7})(?![A-Za-z0-9/]|-[0-9A-Za-z])"
 )
-# A staff / faculty ID number after "ID NO." is not a fixed length: 5–10
-# digit-like chars, still bounded so an 11-digit phone number is never sliced.
+# Staff numbers: 5–10 digit-like chars, bounded so phone numbers never slice.
 STAFF_ID_MIN_REAL_DIGITS = 4
 STAFF_ID_TOKEN = re.compile(
     r"(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){4,9})(?![A-Za-z0-9/]|-[0-9A-Za-z])"
@@ -171,9 +161,7 @@ class OcrEngine:
         return self._run_tesseract(processed)
 
     def extract_front(self, image_bytes: bytes) -> FrontRead:
-        """Reads the ID front: its text, the coloured course strip (kept apart so
-        it can never be mistaken for the cardholder's name) and a digit-only
-        re-read of the student ID, which a worn card often garbles."""
+        """Front text, course strip (kept apart from the name) and a digit-only student-ID re-read."""
         image = self._crop_to_card(self._load_oriented_image(image_bytes))
         processed = self._preprocess(image)
         return FrontRead(
@@ -190,10 +178,8 @@ class OcrEngine:
         id_number: str = "",
         staff_id: bool = False,
     ) -> ParsedIdFields:
-        """[staff_id]: the card is a UC staff / faculty ID, which prints an
-        employee number of any length after "ID NO." and the name as
-        "SURNAME, FIRST M." with no NAME label. [id_number] is the student-ID
-        re-read, so for staff the printed number is preferred over it."""
+        """[staff_id]: any-length "ID NO." number and "SURNAME, FIRST M." name;
+        the printed number beats the student-ID re-read [id_number]."""
         combined = f"{front_text}\n{back_text}"
         lines = _normalize_lines(combined)
         fields = ParsedIdFields()
@@ -218,9 +204,7 @@ class OcrEngine:
         _extract_graduation_date(combined, fields)
         fields.current_address = _extract_address(lines, combined)
 
-        # The cardholder's name is only printed on the front. The back carries
-        # the emergency contact's NAME and the president's signature line, so
-        # it is never consulted.
+        # Front only: the back has the emergency contact's NAME and a signature line.
         first, middle, last = _extract_name(_normalize_lines(front_text), staff_id=staff_id)
         fields.firstname = first
         fields.middle_name = middle
@@ -266,9 +250,7 @@ class OcrEngine:
         return binary
 
     def _crop_to_card(self, image: np.ndarray) -> np.ndarray:
-        """Cuts the white card out of a phone photo and squares it up. Background
-        texture (tables, fabric) otherwise floods Tesseract with noise and the
-        name line is lost. Photos already framed on the card pass through."""
+        """Crop and square the white card; background texture floods Tesseract. Framed photos pass through."""
         height, width = image.shape[:2]
         scale = CARD_DETECT_SIZE / max(height, width)
         small = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
@@ -401,9 +383,7 @@ def _find_id_number_box(processed: np.ndarray) -> tuple[int, int, int, int] | No
 def _trim_to_text_row(
     processed: np.ndarray, box: tuple[int, int, int, int]
 ) -> tuple[int, int, int, int]:
-    """Tesseract's word box can swallow the bottom edge of the ID photo above
-    the number; that solid dark block wrecks the re-read's thresholding. Keep
-    only the longest run of rows that look like a line of text."""
+    """Keep the longest text-like row run; the box can swallow the ID photo's dark edge and wreck thresholding."""
     x, y, w, h = box
     region = processed[y : y + h, x : x + w]
     if region.size == 0:
@@ -526,8 +506,7 @@ def _extract_name(lines: list[str], staff_id: bool = False) -> tuple[str, str, s
             if candidate and _looks_like_person_name(candidate):
                 return _split_name_value(candidate)
 
-    # "NAME" followed by OCR junk ("NAME i .", "NAME — .") is still the label;
-    # the name sits on one of the next lines.
+    # "NAME" + OCR junk ("NAME i .") is still the label; the name is on a following line.
     for index, line in enumerate(lines):
         if not (NAME_ONLY_LABEL.match(line) or NAME_LABEL_WITH_JUNK.match(line)):
             continue
@@ -709,8 +688,7 @@ def _student_id_near_label(lines: list[str]) -> str:
         label = STUDENT_ID_LABEL.search(line)
         if not label:
             continue
-        # UCLM prints the number just above the "ID NO ____" line; OCR may also
-        # merge it onto the label line or push it below.
+        # Printed above the label; OCR may merge it onto the label line or push it below.
         nearby = [line[label.end() :], line[: label.start()]]
         if index > 0:
             nearby.append(lines[index - 1])
@@ -724,8 +702,7 @@ def _student_id_near_label(lines: list[str]) -> str:
 
 
 def _staff_id_near_label(lines: list[str]) -> str:
-    """A staff / faculty ID number ("ID NO. 201346") is printed right after the
-    label and is not a fixed length. Mirrors _staffIdNearLabel in
+    """Any-length number right after "ID NO.". Mirrors _staffIdNearLabel in
     mobile/lib/features/auth/domain/register_ocr_raw_parser.dart."""
     for index, line in enumerate(lines):
         label = STUDENT_ID_LABEL.search(line)
@@ -743,8 +720,7 @@ def _staff_id_near_label(lines: list[str]) -> str:
 
 
 def _extract_id_number(front_text: str) -> str:
-    # The student ID is only printed on the front of the card; the back carries
-    # school years, phone and birthdate, so it is never consulted.
+    # Front only: the back has school years, phone and birthdate.
     lines = _normalize_lines(front_text)
     labeled = _student_id_near_label(lines)
     if labeled:

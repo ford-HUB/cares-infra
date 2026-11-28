@@ -1,22 +1,16 @@
-/** Programs page content, taken from the UCLM CARES Bulletin, Vol. 2, No. 1 (2025).
- *  Static content — the public page fetches nothing. Dates are kept as published,
- *  including those outside the cover's school-year range. */
+/** Dates kept as published, even outside the cover's school year. */
 
-/** Not /programs: a public folder named like the route would shadow it on static hosts. */
+/** Not /programs: a same-named public folder would shadow the route on static hosts. */
 const PROGRAMS_ASSETS = '/program-assets'
 
 const programPhoto = (slug: string) => `${PROGRAMS_ASSETS}/photos/${slug}.jpg`
 const programLogo = (slug: string) => `${PROGRAMS_ASSETS}/logos/${slug}.png`
 
-/** The scanned bulletin page an activity was reported on. */
 export const bulletinPagePhoto = (page: number) =>
   `${PROGRAMS_ASSETS}/pages/page-${String(page).padStart(2, '0')}.jpg`
 
 export const bulletinPageAlt = (page: number) => `Scanned UCLM CARES bulletin page ${page}`
 
-/** Shown for a unit with no `logo` set. Every unit currently has one (cut from the
- *  department logo sheet); Basic Education uses the UC seal itself.
- *  To change one, replace its file in public/program-assets/logos/. */
 export const LANDING_PROGRAM_FALLBACK_LOGO = programLogo('university-of-cebu')
 
 export const LANDING_PROGRAMS_COPY = {
@@ -32,11 +26,8 @@ export const LANDING_PROGRAMS_COPY = {
   fullDisplay: 'Full display',
 } as const
 
-/** Query param holding the department whose dialog is open on the Programs page. */
 export const LANDING_PROGRAM_DEPARTMENT_PARAM = 'department'
 
-/** Colour of a card's program label. */
-/** Pill text colour, matched to the dominant colour of each unit's logo. */
 export const LANDING_PROGRAM_TONES = {
   navy: 'text-blue-950',
   blue: 'text-blue-800',
@@ -52,11 +43,8 @@ export type LandingProgramTone = keyof typeof LANDING_PROGRAM_TONES
 
 export interface LandingProgramActivity {
   title: string
-  /** As printed: a single page, or a range like '15–17'. */
   pages: string
-  /** First page of `pages`, the one shown when the activity card is clicked. */
   sourcePage: number
-  /** Left out where the bulletin article gives no date. */
   date?: string
   summary: string
 }
@@ -65,14 +53,11 @@ export interface LandingDepartmentProgram {
   id: string
   department: string
   program: string
-  /** Left out where the department has no tagline of its own. */
   tagline?: string
-  /** Left out to show LANDING_PROGRAM_FALLBACK_LOGO. */
   logo?: string
   tone: LandingProgramTone
   photo?: string
   photoPage?: number
-  /** The bulletin names this program, rather than only labelling the department. */
   namedInBulletin: boolean
   highlights: readonly string[]
   components: readonly string[]
@@ -717,7 +702,7 @@ export const LANDING_DEPARTMENT_PROGRAMS: readonly LandingDepartmentProgram[] = 
   },
 ] as const
 
-/** Only pages an activity cites are published in public/program-assets/pages/. */
+/** Only cited pages are published in public/program-assets/pages/. */
 export const isBulletinSourcePage = (page: number) =>
   LANDING_DEPARTMENT_PROGRAMS.some((program) =>
     program.activities.some((activity) => activity.sourcePage === page),

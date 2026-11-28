@@ -8,7 +8,7 @@ interface MailboxMessageRowProps {
   onSelect: (id: string) => void
 }
 
-/** Height is fixed at `h-[68px]` so the list skeleton can mirror it exactly. */
+/** Fixed `h-[68px]`, mirrored by the list skeleton. */
 export function MailboxMessageRow({
   message,
   active,

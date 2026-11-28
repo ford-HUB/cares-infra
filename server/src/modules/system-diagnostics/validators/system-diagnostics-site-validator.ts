@@ -34,7 +34,7 @@ export const DiagnosticHistoryEntrySchema = z.object({
   failing: z.number(),
 });
 
-/** `report` is null until the first sweep has run after a fresh deploy. */
+/** Null until the first sweep after a deploy. */
 export const SystemDiagnosticsSchema = z.object({
   report: DiagnosticReportSchema.nullable(),
   history: z.array(DiagnosticHistoryEntrySchema),

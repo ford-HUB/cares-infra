@@ -12,9 +12,7 @@ import type {
 interface DeployedCertificateState {
   deployments: DeployedCertificate[]
   loading: boolean
-  /** False until the first fetch settles, so the header doesn't flash "0 of 0". */
   initialized: boolean
-  /** True while a deploy or a status change is in flight. */
   saving: boolean
   error: string | null
   fetchDeployments: () => Promise<void>
@@ -53,8 +51,7 @@ export const useDeployedCertificateStore = create<DeployedCertificateState>((set
     set({ saving: true })
     try {
       const deployment = await deployCertificateTemplate(templateId, eventId)
-      // A re-deploy comes back with the id it already had, so the row is replaced when
-      // it is one this page already lists and prepended when it is new.
+      // Re-deploys keep their id: replace if listed, else prepend.
       set((state) => ({
         saving: false,
         deployments: state.deployments.some((one) => one.id === deployment.id)

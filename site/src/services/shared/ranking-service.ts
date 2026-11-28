@@ -1,10 +1,4 @@
-/**
- * The volunteer and donor boards are scored on separate criteria and never compared
- * against each other; the department board ranks colleges on both. All three boards
- * and the scoring settings come from the server — `/api/v1/rankings/*` — where a
- * coordinator's volunteer call is cut to their own college's events; the donor
- * board is scored from confirmed donations.
- */
+/** Boards come from `/api/v1/rankings/*`; coordinators' volunteer board is cut to their college. */
 import { PARTICIPATION_ROLE_POINTS, RANKING_DEFAULT_BOARD } from '../../constants/ranking'
 import type { ApiResponse } from '../../types/portal-roles'
 import type {
@@ -22,7 +16,6 @@ import type {
 } from '../../types/ranking'
 import { apiClient, parseApiError } from '../api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
 interface RankingTierResponse {
@@ -142,7 +135,7 @@ function fromTier(tier: RankingTier, isLast: boolean): RankingTierResponse {
   }
 }
 
-/** The default board is a portal-only preference, so it rides along in memory. */
+/** The default board is a portal-only preference, kept in memory. */
 let localSettings = {
   defaultBoard: RANKING_DEFAULT_BOARD,
 }
@@ -240,10 +233,7 @@ export async function updateRankingSettings(
   }
 }
 
-/**
- * The volunteer standings for a period. The server scopes the board to the
- * caller: the whole school for a director or admin, one college for a coordinator.
- */
+/** Server scopes the board to the caller. */
 export async function listVolunteerRankings(
   period: RankingPeriod,
 ): Promise<ApiResponse<{ department: string | null; entries: VolunteerRankingEntry[] }>> {
@@ -289,11 +279,6 @@ export async function getVolunteerRankingTrend(
   }
 }
 
-/* ---------------------------------------------------------------------------
- * Donor board — confirmed donations scored on the server.
- * ------------------------------------------------------------------------- */
-
-/** Points are always derived from the saved criteria, never stored. */
 export function donorPoints(amount: number, pesosPerPoint: number): number {
   return Math.floor(amount / pesosPerPoint)
 }
@@ -337,10 +322,6 @@ export async function getDonorRankingTrend(
   }
 }
 
-/* ---------------------------------------------------------------------------
- * Department board — colleges on volunteer hours and confirmed donations.
- * ------------------------------------------------------------------------- */
-
 function toDepartmentEntry(row: DepartmentRankingEntryResponse): DepartmentRankingEntry {
   return {
     id: row.key,
@@ -357,7 +338,6 @@ function toDepartmentEntry(row: DepartmentRankingEntryResponse): DepartmentRanki
   }
 }
 
-/** Every college's standing — always school-wide, since the board compares them. */
 export async function listDepartmentRankings(
   period: RankingPeriod,
 ): Promise<ApiResponse<DepartmentRankings>> {

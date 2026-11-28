@@ -4,7 +4,6 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:mobile/features/auth/presentation/utils/face_bbox_mapper.dart';
 import 'package:mobile/features/auth/presentation/utils/face_camera_input_helper.dart';
 
-/// Face guide overlay + liveness geometry (centered, not instant).
 abstract final class FaceGuideGeometry {
   static const centerYNorm = 0.45;
   static const widthNorm = 0.62;
@@ -36,7 +35,7 @@ abstract final class FaceGuideGeometry {
     return false;
   }
 
-  /// Face centered in oval — required before center / final capture.
+  /// Required before center / final capture.
   static bool isFaceCenteredInOval(Face face, CameraFrameInput frame) {
     for (final n in FaceBboxMapper.normalizedVariants(face, frame)) {
       if (_centeredInOval(n)) return true;

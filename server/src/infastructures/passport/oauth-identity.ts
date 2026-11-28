@@ -1,7 +1,4 @@
-/**
- * Identity a provider vouched for, normalised so the donor flow never branches on
- * provider. This is what the identity strategies hang on `req.user`.
- */
+/** Provider-agnostic identity placed on `req.user`. */
 export interface OAuthIdentityProfile {
   /** The provider's immutable subject id — `sub` for Google, `id` for Facebook. */
   providerUserId: string;
@@ -14,16 +11,11 @@ export interface OAuthIdentityProfile {
   avatar: string | null;
 }
 
-/** Trims and collapses whitespace in a name a provider returned. */
 export function normalizeName(value: string | undefined | null): string {
   return (value ?? '').replace(/\s+/g, ' ').trim();
 }
 
-/**
- * Splits a provider's single display name into first / middle / last. Only used when a
- * provider gives no structured name — Google's `given_name`/`family_name` and
- * Facebook's `first_name`/`last_name` are preferred wherever they are present.
- */
+/** Fallback only when the provider gives no structured name. */
 export function splitDisplayName(displayName: string): {
   firstname: string;
   middleName: string;
@@ -44,7 +36,7 @@ export function splitDisplayName(displayName: string): {
   };
 }
 
-/** Pulls the provider token a mobile client posted, before any pipe has run. */
+/** Read before pipes run. */
 export function readPostedToken(body: unknown): string {
   const token =
     body && typeof body === 'object'

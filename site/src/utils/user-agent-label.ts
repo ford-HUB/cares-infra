@@ -1,8 +1,4 @@
-/**
- * Condenses a raw user-agent string into a short "Browser on OS" label for the grid.
- * Deliberately coarse — the full string stays on the row's tooltip and in the CSV, so
- * this only has to be readable at a glance, not exhaustive.
- */
+/** Deliberately coarse; the full string stays in the tooltip and CSV. */
 const BROWSERS: { match: RegExp; label: string }[] = [
   { match: /Edg\//i, label: 'Edge' },
   { match: /OPR\/|Opera/i, label: 'Opera' },

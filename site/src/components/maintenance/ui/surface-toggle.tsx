@@ -12,16 +12,11 @@ import { LivePulse } from '../../attendance/ui/live-pulse'
 interface SurfaceToggleProps {
   surface: MaintenanceSurface
   state: SurfaceState
-  /** True while the switch for this surface is in flight. */
   busy: boolean
   onToggle: (surface: MaintenanceSurface) => void
 }
 
-/**
- * One surface of CARES, as a legend entry under the availability bar — and the switch
- * that closes it. The count above the bar is only worth reading if it can be acted on,
- * so the legend is the control rather than a second row of buttons.
- */
+/** Legend entry under the availability bar that doubles as the surface's switch. */
 export function SurfaceToggle({ surface, state, busy, onToggle }: SurfaceToggleProps) {
   const down = state === 'down'
 

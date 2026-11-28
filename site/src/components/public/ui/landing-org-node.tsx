@@ -14,13 +14,10 @@ interface LandingOrgPersonNodeProps {
   emphasis?: boolean
 }
 
-/* Hover or tap, shared by every card: a slow, settling lift (400ms ease-out, no
- * overshoot) while the edge turns mint with a soft mint glow, as on the Objectives cards. */
 const ORG_HOVER =
   'transition-[translate,border-color,box-shadow] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-emerald-400 hover:shadow-[0_0_0_3px_rgba(110,231,183,0.35),0_14px_30px_-14px_rgba(16,185,129,0.45)] active:border-emerald-400 motion-safe:hover:-translate-y-1'
 
-/** The brighter mint wash that fades in behind a light card's content on hover or tap,
- *  the same as on the Objectives cards. Needs a `group` card. */
+/** Needs a `group` card. */
 function MintWash() {
   return (
     <span
@@ -30,17 +27,13 @@ function MintWash() {
   )
 }
 
-/* Frosted-glass surfaces: a translucent gradient, a bright top edge and a soft green
- * glow. The emphasised node is a single, solid mid green. */
 const GLASS_NODE =
   'relative isolate overflow-hidden border border-black/40 bg-gradient-to-br from-white/85 via-emerald-50/70 to-green-100/60 text-gray-900 shadow-[0_12px_30px_-14px_rgba(21,128,61,0.45),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md'
-/** The department cards: warm cream, with the same edge, shadow and light as the glass. */
 const GLASS_UNIT =
   'relative isolate overflow-hidden border border-black/40 bg-[var(--cares-about-card)] shadow-[0_12px_28px_-16px_rgba(21,128,61,0.45),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md'
 const GLASS_NODE_EMPHASIS =
   'relative isolate overflow-hidden border border-black/40 bg-[#13893f] text-white shadow-[0_14px_34px_-14px_rgba(20,83,45,0.7),inset_0_1px_0_rgba(255,255,255,0.4)] backdrop-blur-md'
 
-/** One named position in the chart's spine: portrait, name, title. */
 export function LandingOrgPersonNode({ person, emphasis = false }: LandingOrgPersonNodeProps) {
   return (
     <div
@@ -65,8 +58,7 @@ export function LandingOrgPersonNode({ person, emphasis = false }: LandingOrgPer
           className="h-full w-full scale-110 object-cover object-top"
         />
       </span>
-      {/* The empty column after the text mirrors the portrait's, so the name and title
-          centre on the card itself, in line with the connector above and below. */}
+      {/* An empty column mirrors the portrait's, so the text centres on the card. */}
       <div className="min-w-0 text-center">
         <p className={`${LANDING_SERIF} text-[15px] leading-snug font-bold text-balance`}>
           {person.name}
@@ -114,13 +106,9 @@ function LandingOrgPortrait({
   )
 }
 
-/* Coordinator portraits get a dark CARES-green ring with a white gap, which stays put on
- * hover; assistants keep the plain one. */
 const COORDINATOR_RING =
   'ring-[var(--cares-primary)] ring-offset-2 ring-offset-white group-hover:ring-[var(--cares-primary)]'
 
-/** A department's coordinators, its name on a dark-green pill, then any assistant coordinator
- *  set apart at the foot. */
 export function LandingOrgUnitCard({ unit }: { unit: LandingOrgUnit }) {
   const coordinators = unit.members.filter((member) => !member.assistant)
   const assistants = unit.members.filter((member) => member.assistant)
@@ -130,7 +118,6 @@ export function LandingOrgUnitCard({ unit }: { unit: LandingOrgUnit }) {
     <div
       className={cn(
         `group ${GLASS_UNIT} flex h-full flex-col items-center rounded-2xl p-3 pt-4 text-center ${ORG_HOVER}`,
-        // With no assistant row to anchor the foot, the coordinator sits mid-card.
         assistants.length === 0 && 'justify-center pb-4',
       )}
     >
@@ -152,7 +139,6 @@ export function LandingOrgUnitCard({ unit }: { unit: LandingOrgUnit }) {
             >
               {member.name ?? member.title}
             </p>
-            {/* A shared department tells its coordinators apart by programme. */}
             {shared && member.name && (
               <p className="text-[11px] leading-snug font-medium text-emerald-800">{member.title}</p>
             )}
@@ -185,7 +171,6 @@ export function LandingOrgUnitCard({ unit }: { unit: LandingOrgUnit }) {
   )
 }
 
-/** An unnamed group in the chart (faculty, students). */
 export function LandingOrgGroupNode({ label }: { label: string }) {
   return (
     <div
@@ -196,7 +181,6 @@ export function LandingOrgGroupNode({ label }: { label: string }) {
   )
 }
 
-/** Vertical link in the spine. It draws itself downward on first view. */
 export function LandingOrgConnector({ className }: { className?: string }) {
   const { ref, visible } = useReveal<HTMLSpanElement>(0.6)
 

@@ -24,7 +24,7 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
-/** Read-only roster detail — attendance itself is validated from the app's coordinates. */
+/** Read-only: attendance is validated from the app's coordinates. */
 export function AttendeeDetailModal({ attendee, onClose }: AttendeeDetailModalProps) {
   if (!attendee) return null
 

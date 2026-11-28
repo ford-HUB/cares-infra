@@ -11,18 +11,13 @@ import type { DeploymentStatus } from '../../../types/deployed-certificate'
 interface DeploymentStatusSegmentProps {
   status: DeploymentStatus
   value: number
-  /** Share of all deployments this status holds, 0–1. */
+  /** 0–1. */
   share: number
-  /** True while the list is filtered to this status. */
   active: boolean
   onToggle: (status: DeploymentStatus) => void
 }
 
-/**
- * One status of the deployment log, as a legend entry under the split bar. It doubles
- * as the list's filter — clicking narrows the deployments, clicking again clears it,
- * which is why this is a button and not a plain tile.
- */
+/** Legend entry that doubles as the list's status filter; clicking again clears it. */
 export function DeploymentStatusSegment({
   status,
   value,

@@ -1,4 +1,3 @@
-/// Peso and date formatting shared by every donor screen.
 abstract final class DonationFormat {
   static const _months = [
     'Jan',

@@ -7,9 +7,7 @@ import '../../data/certificate_service.dart';
 import '../../data/models/certificate_design.dart';
 import '../utils/certificate_palette.dart';
 
-/// The seal: the director's uploaded SVG when there is one, otherwise the
-/// pre-built mark they picked — stamp, starburst, rosette, laurel, ribbon or
-/// monogram — in the seal's accent, sized off the seal block.
+/// The director's uploaded SVG, else the picked preset in the seal's accent.
 class CertificateSealMark extends StatelessWidget {
   const CertificateSealMark({
     super.key,

@@ -18,7 +18,7 @@ const EMPTY_MESSAGES: Record<AssistanceFilter, string> = {
   all: 'No beneficiary has requested assistance yet.',
 }
 
-/** Groups by submission day, newest first — the same trail as the access queue. */
+/** By submission day, newest first. */
 function groupByDay(requests: AssistanceRequest[]) {
   const groups = new Map<string, AssistanceRequest[]>()
   for (const request of [...requests].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))) {

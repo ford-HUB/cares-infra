@@ -17,7 +17,6 @@ interface PortalSearchProps {
   onSignOut: () => void
 }
 
-/** Header search over every module, page, setting and action the account can use. */
 export function PortalSearch({ nav, onSignOut }: PortalSearchProps) {
   const {
     query,
@@ -36,7 +35,6 @@ export function PortalSearch({ nav, onSignOut }: PortalSearchProps) {
   } = usePortalSearch(nav, onSignOut)
   const shortcut = useMemo(() => portalSearchShortcutLabel(), [])
 
-  // Keep the highlighted row in view while arrowing through a long list.
   useEffect(() => {
     if (!open) return
     document.getElementById(optionId(activeIndex))?.scrollIntoView({ block: 'nearest' })
@@ -96,7 +94,6 @@ export function PortalSearch({ nav, onSignOut }: PortalSearchProps) {
                   </p>
                   <ul role="presentation">
                     {group.entries.map((entry) => {
-                      // Position in the flat, keyboard-order list (a few dozen rows at most).
                       const index = flat.indexOf(entry)
                       return (
                         <PortalSearchResult

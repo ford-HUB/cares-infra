@@ -12,12 +12,7 @@ import type {
 } from '../types/residential-needs'
 import { apiClient, parseApiError } from './api-client'
 
-/**
- * Residential Needs — the Needs Assessment Surveys beneficiaries submitted from
- * the mobile app, and the K-Means grouping of them behind the Clusters screen.
- * The server reads the rows from the database for both, and hands them to
- * decision-service (scikit-learn KMeans) for the grouping.
- */
+/** Server reads the surveys and hands them to decision-service (KMeans) for grouping. */
 
 interface HouseholdApiRow {
   id: string
@@ -105,7 +100,6 @@ function mapClusteringResult(body: ClusterNeedsApiResponse): NeedsClusteringResu
   }
 }
 
-/** Every submitted survey, newest first. */
 export async function fetchHouseholds(): Promise<ApiResponse<Household[]>> {
   try {
     const { data: body } = await apiClient.get<{
@@ -118,7 +112,6 @@ export async function fetchHouseholds(): Promise<ApiResponse<Household[]>> {
   }
 }
 
-/** Groups every submitted survey; the server reads the rows itself. */
 export async function clusterHouseholds(
   k: number,
   seed: number,

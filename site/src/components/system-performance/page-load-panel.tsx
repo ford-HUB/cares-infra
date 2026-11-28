@@ -17,11 +17,7 @@ interface PageLoadPanelProps {
   pages: PageLoadTiming[]
 }
 
-/**
- * Loading time as the browser measures it, per screen. Each bar is one page split into
- * the three phases, so a slow screen says *why* it is slow — waiting on the API reads
- * differently from a heavy bundle, and they have different fixes.
- */
+/** Each bar splits one page's load into three phases, so a slow screen shows why. */
 export function PageLoadPanel({ pages }: PageLoadPanelProps) {
   const slowest = Math.max(...pages.map((page) => page.interactiveMs), 1)
 
@@ -79,8 +75,7 @@ export function PageLoadPanel({ pages }: PageLoadPanelProps) {
                     </span>
                   </div>
 
-                  {/* One bar per screen, scaled against the slowest — the phases are
-                      parts of that screen's wait, so they share it. */}
+                  {/* Scaled against the slowest screen; the phases share that screen's bar. */}
                   <div
                     className="flex h-2 gap-0.5"
                     style={{ width: `${(page.interactiveMs / slowest) * 100}%` }}

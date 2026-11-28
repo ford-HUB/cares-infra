@@ -26,9 +26,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
     if (isAxiosError<BackendError>(error) && isRevokedSession(error)) {
-      // The token is dead server-side — `SessionGuard` dropped it — so keeping it
-      // would only make every later request fail the same way. Clear it here and
-      // let the auth store bounce the tab to the login page.
+      // Token is dead server-side (`SessionGuard`); auth store redirects to login.
       sessionStorage.removeItem(SESSION_KEY)
       sessionStorage.removeItem(TOKEN_KEY)
       window.dispatchEvent(
@@ -41,19 +39,14 @@ apiClient.interceptors.response.use(
   },
 )
 
-/**
- * A 401 on any request other than the login endpoint, where it is a wrong password
- * and is left to the form to report. Whether a token was sent does not matter: a
- * bare request from a tab that still shows a signed-in user means the token was
- * lost, and that is as much an ended session as a revoked one.
- */
+/** Any 401 except login (wrong password); a bare request from a signed-in tab means the token was lost. */
 function isRevokedSession(error: AxiosError<BackendError>): boolean {
   if (error.response?.status !== 401) return false
   const isLogin = (error.config?.url ?? '').includes('/auth/admin/login')
   return !isLogin
 }
 
-/** The server refused the credentials — as opposed to not answering at all. */
+/** Server refused the credentials, as opposed to not answering. */
 export function isAuthFailure(error: unknown): boolean {
   return isAxiosError(error) && error.response?.status === 401
 }

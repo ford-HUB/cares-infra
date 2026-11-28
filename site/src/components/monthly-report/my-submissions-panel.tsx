@@ -15,18 +15,14 @@ import { ReportStatusBadge } from './ui/report-status-badge'
 import { ReportSubmissionListSkeleton } from './ui/report-submission-list-skeleton'
 
 interface MySubmissionsPanelProps {
-  /** This coordinator's reports only, newest movement first. */
+  /** Newest movement first. */
   reports: MonthlyReport[]
   initialized: boolean
   errored: boolean
   onOpenDocument: (report: MonthlyReport, documentId: string) => void
 }
 
-/**
- * The status side of Upload Report: every report this coordinator has sent, where
- * each one sits with the director, and — when one comes back — the note explaining
- * why. Approved reports stay listed here as the coordinator's own record.
- */
+/** Approved reports stay listed as the coordinator's own record. */
 export function MySubmissionsPanel({
   reports,
   initialized,
@@ -55,8 +51,6 @@ export function MySubmissionsPanel({
           )}
         </div>
 
-        {/* One tile per status so the coordinator sees at a glance what is still
-            with the director and what needs a corrected copy. */}
         <div className="mt-2.5 grid grid-cols-3 gap-2">
           {counts.map(({ status, count }) => (
             <StatusTile key={status} status={status} count={count} initialized={initialized} />

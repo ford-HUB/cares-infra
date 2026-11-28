@@ -23,7 +23,6 @@ export const TICKET_STATUS_LABELS: Record<SupportTicketStatus, string> = {
   closed: 'Closed',
 }
 
-/** What each status means, shown beside the option in the update dialog. */
 export const TICKET_STATUS_HINTS: Record<SupportTicketStatus, string> = {
   open: 'Reported, not picked up yet',
   in_progress: 'Someone is working on it',
@@ -33,7 +32,6 @@ export const TICKET_STATUS_HINTS: Record<SupportTicketStatus, string> = {
   closed: 'Finished, no further action',
 }
 
-/** Still counts against the queue — anything not resolved or closed. */
 export const TICKET_UNRESOLVED_STATUSES: SupportTicketStatus[] = [
   'open',
   'in_progress',
@@ -53,27 +51,21 @@ export const TICKET_TYPE_LABELS: Record<SupportTicketType, string> = {
   other: 'Other',
 }
 
-/**
- * The three buckets the portal triages by. Priority and category are the same axis
- * here — an Issue is by definition the high-priority bucket, a Feature the low one.
- */
+/** An Issue is the high bucket and a Feature the low one. */
 export const TICKET_PRIORITY_LABELS: Record<SupportTicketPriority, string> = {
   high: 'Issue',
   medium: 'Support',
   low: 'Feature',
 }
 
-/** Plain-language line under each mini-dashboard tile. */
 export const TICKET_PRIORITY_CAPTIONS: Record<SupportTicketPriority, string> = {
   high: 'High priority — broken or blocking',
   medium: 'Medium priority — help requests',
   low: 'Low priority — improvement ideas',
 }
 
-/** Tile order on the mini dashboard, most urgent first. */
 export const TICKET_PRIORITY_ORDER: SupportTicketPriority[] = ['high', 'medium', 'low']
 
-/** Prefix + zero padding for the tracking number, e.g. `Support #007`. */
 export const TICKET_REFERENCE_PREFIX = 'Support #'
 export const TICKET_REFERENCE_PAD = 3
 
@@ -81,7 +73,6 @@ export function formatTicketReference(sequence: number): string {
   return `${TICKET_REFERENCE_PREFIX}${String(sequence).padStart(TICKET_REFERENCE_PAD, '0')}`
 }
 
-/** Workflow order — also the option order in the update dialog. */
 export const TICKET_STATUS_ORDER: SupportTicketStatus[] = [
   'open',
   'in_progress',
@@ -107,7 +98,6 @@ export const TICKET_TYPE_FILTERS: { value: TicketTypeFilter; label: string }[] =
   })),
 ]
 
-/** Ordering used when sorting the grid — issues first, so triage reads top-down. */
 export const TICKET_PRIORITY_RANK: Record<SupportTicketPriority, number> = {
   high: 0,
   medium: 1,

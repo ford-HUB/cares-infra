@@ -1,15 +1,12 @@
-// Unit tests for email verification — the OTP step every self-registration
-// (and an unverified sign-in) goes through:
+// Email verification (OTP) unit tests:
 //
 //   POST /v1/auth/send-verification   AuthRegistrationService.sendVerificationCode
 //   POST /v1/auth/verification-status AuthRegistrationService.getVerificationStatus
 //   POST /v1/auth/verify-otp          AuthRegistrationService.verifyOtp
 //   EmailVerificationScreen           countdown, code entry, resend, conflicts
 //
-// The network is replaced with package:http's MockClient, and the screen gets
-// its service through an `authRegistrationServiceProvider` override, so nothing
-// here reaches a real server. Each test records the requests it captured and
-// replies with a mock `{ ok, message, data }` envelope.
+// MockClient plus an `authRegistrationServiceProvider` override; no real
+// server.
 
 import 'dart:convert';
 import 'dart:io';
@@ -118,10 +115,6 @@ http.Response _conflict(String path, String message) => _json(409, {
   ],
 });
 
-// ---------------------------------------------------------------------------
-// Screen harness
-// ---------------------------------------------------------------------------
-
 /// What happened around the screen while the test drove it.
 class _Outcome {
   int verifiedCalls = 0;
@@ -129,9 +122,8 @@ class _Outcome {
   bool popped = false;
 }
 
-/// Pumps a launcher page and pushes the verification screen on top, the way
-/// the registration and sign-in flows do, so a pop and the snackbars shown
-/// afterwards can both be observed.
+/// Pushed over a launcher page, as the real flows do, so pops and later
+/// snackbars are observable.
 Future<_Outcome> _openScreen(
   WidgetTester tester,
   _Recorder rec, {
@@ -190,9 +182,8 @@ Future<_Outcome> _openScreen(
   return outcome;
 }
 
-/// Lets the route transition and the mock network finish. The countdown timer
-/// and the progress spinner never go idle, so `pumpAndSettle` can't be used —
-/// it would run the countdown out.
+/// The countdown and spinner never idle, so `pumpAndSettle` would run the
+/// countdown out.
 Future<void> _settle(WidgetTester tester) async {
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 400));
@@ -227,10 +218,6 @@ void main() {
     AuthSession.clear();
     AuthSession.onSessionEnded = null;
   });
-
-  // -------------------------------------------------------------------------
-  // Service
-  // -------------------------------------------------------------------------
 
   group('POST /auth/send-verification (registration)', () {
     test('sends a JSON POST with the trimmed email and purpose "registration"',
@@ -497,10 +484,6 @@ void main() {
       );
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Screen
-  // -------------------------------------------------------------------------
 
   group('EmailVerificationScreen — content and countdown', () {
     testWidgets('tells the user where the code went', (tester) async {

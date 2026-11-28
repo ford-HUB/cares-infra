@@ -3,13 +3,9 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 
-/// What the beneficiary picked from [RequestActionDialog].
 enum RequestAction { assistance, assessment }
 
-/// The Request tab's single entry point: a white dialog offering the two
-/// things a beneficiary can start — file an assistance request, or take (or
-/// revisit) the Needs Assessment Survey. Returns the choice, or null when
-/// dismissed; the caller opens the matching screen.
+/// Returns the choice, or null when dismissed; the caller opens the screen.
 class RequestActionDialog extends StatelessWidget {
   const RequestActionDialog({super.key, required this.assessment});
 
@@ -88,8 +84,6 @@ class RequestActionDialog extends StatelessWidget {
   }
 }
 
-/// One choice in the dialog — a soft tile with a tinted icon, a dark green
-/// title over an ink line, and a chevron.
 class _ActionOption extends StatelessWidget {
   const _ActionOption({
     required this.icon,

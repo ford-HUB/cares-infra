@@ -9,23 +9,16 @@ import type {
   ProcessOwner,
 } from '../types/system-performance'
 
-/** How often the live stream takes a new reading while the page is open. */
 export const PERFORMANCE_TICK_MS = 3_000
 
-/** The window the page charts, and how the stream behind it is sampled. */
 export type PerformanceRangeId = 'live' | 'hour' | 'day'
 
 export interface PerformanceRange {
   id: PerformanceRangeId
   label: string
-  /** Readings held in the window. */
   points: number
-  /** Seconds between readings. */
   stepSeconds: number
-  /**
-   * Only the live window ticks. The hour and day views are aggregates — appending a
-   * 3-second reading to a 10-minute bucket would draw a lie.
-   */
+  /** Hour/day views are aggregates, so only live streams. */
   streaming: boolean
 }
 
@@ -41,7 +34,6 @@ export function findPerformanceRange(id: PerformanceRangeId): PerformanceRange {
   return PERFORMANCE_RANGES.find((range) => range.id === id) ?? PERFORMANCE_RANGES[0]
 }
 
-/** Draw order of the CPU bands, busiest-by-nature first — also the stack order. */
 export const CPU_BAND_ORDER: CpuBand[] = ['user', 'system', 'ioWait']
 
 export const CPU_BAND_LABELS: Record<CpuBand, string> = {
@@ -50,38 +42,30 @@ export const CPU_BAND_LABELS: Record<CpuBand, string> = {
   ioWait: 'I/O wait',
 }
 
-/** What each band means in staff language — the segment tooltips. */
 export const CPU_BAND_HINTS: Record<CpuBand, string> = {
   user: 'CARES code itself: API handlers, the ML services, report jobs.',
   system: 'The kernel working on their behalf — sockets, disk, scheduling.',
   ioWait: 'Cores idle but blocked, waiting on disk or the database to answer.',
 }
 
-/**
- * Identity colours, not status ones: the three bands are parts of one measurement,
- * so they never borrow the emerald/amber/red that mean "good" and "bad" elsewhere.
- * Validated for colour-vision separation as a categorical trio.
- */
+/** CVD-validated categorical trio; never status colours. */
 export const CPU_BAND_COLOR: Record<CpuBand, string> = {
   user: '#2563eb',
   system: '#c2410c',
   ioWait: '#0d9488',
 }
 
-/** Bar-segment fill for each band, matching {@link CPU_BAND_COLOR}. */
 export const CPU_BAND_BAR_STYLES: Record<CpuBand, string> = {
   user: 'bg-[#2563eb]',
   system: 'bg-[#c2410c]',
   ioWait: 'bg-[#0d9488]',
 }
 
-/** The two response-time series — a cool/warm pair, median against the slow tail. */
 export const RESPONSE_SERIES_COLOR = {
   p50: '#2563eb',
   p95: '#c2410c',
 } as const
 
-/** Idle capacity: inert grey, because unused CPU is not a state to act on. */
 export const CPU_IDLE_BAR_STYLE = 'bg-gray-200'
 
 export const HEALTH_LABELS: Record<HealthState, string> = {
@@ -102,15 +86,12 @@ export const HEALTH_DOT_STYLES: Record<HealthState, string> = {
   critical: 'bg-red-500',
 }
 
-/** Where CPU busy stops being headroom and starts being a queue. */
 export const CPU_STRAINED_PERCENT = 65
 export const CPU_CRITICAL_PERCENT = 85
 
-/** The slow tail staff start noticing, and the point they file a ticket about. */
 export const RESPONSE_STRAINED_MS = 600
 export const RESPONSE_CRITICAL_MS = 1_200
 
-/** Memory pressure thresholds, used for the tile's tone only. */
 export const MEMORY_STRAINED_PERCENT = 75
 export const MEMORY_CRITICAL_PERCENT = 90
 
@@ -138,7 +119,6 @@ export function memoryHealth(percent: number): HealthState {
   return 'healthy'
 }
 
-/** Busy CPU is the three bands together; idle is whatever is left of 100. */
 export function cpuBusy(sample: PerformanceSample): number {
   return sample.cpuUser + sample.cpuSystem + sample.cpuIoWait
 }
@@ -149,15 +129,11 @@ export function bandValue(sample: PerformanceSample, band: CpuBand): number {
   return sample.cpuIoWait
 }
 
-/**
- * The host's verdict, taken from CPU and the response tail together — a busy host
- * answering in 200 ms is doing its job, and an idle one answering in 2 s is not.
- */
+/** Combines CPU with response tail: busy-but-fast is healthy, idle-but-slow is not. */
 export function overallHealth(sample: PerformanceSample): HealthState {
   return worst(cpuHealth(cpuBusy(sample)), responseHealth(sample.responseP95Ms))
 }
 
-/** Tone for a metric's value text — the only place a reading is allowed colour. */
 export const HEALTH_TEXT_STYLES: Record<HealthState, string> = {
   healthy: 'text-gray-900',
   strained: 'text-amber-700',
@@ -172,7 +148,6 @@ export const PROCESS_OWNER_LABELS: Record<ProcessOwner, string> = {
   other: 'Other',
 }
 
-/** Method chips in the endpoint table — reads, writes, and deletes at a glance. */
 export const HTTP_METHOD_STYLES: Record<HttpMethod, string> = {
   GET: 'bg-gray-100 text-gray-600',
   POST: 'bg-blue-50 text-blue-700',
@@ -181,7 +156,6 @@ export const HTTP_METHOD_STYLES: Record<HttpMethod, string> = {
   DELETE: 'bg-red-50 text-red-700',
 }
 
-/** How the endpoint table is ordered — the two questions staff ask of it. */
 export type EndpointSort = 'slowest' | 'busiest'
 
 export const ENDPOINT_SORT_LABELS: Record<EndpointSort, string> = {
@@ -189,10 +163,8 @@ export const ENDPOINT_SORT_LABELS: Record<EndpointSort, string> = {
   busiest: 'Busiest',
 }
 
-/** Rows the endpoint table shows before it is scrolled. */
 export const ENDPOINT_ROWS = 8
 
-/** `842 ms` under a second, `1.4 s` above it — the axis and every cell agree. */
 export function formatDuration(ms: number): string {
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`
 }
@@ -201,14 +173,12 @@ export function formatPercentPoints(value: number): string {
   return `${value.toFixed(value >= 10 ? 0 : 1)}%`
 }
 
-/** Uptime as staff say it: `12d 4h`, or hours alone under a day. */
 export function formatUptime(hours: number): string {
   const days = Math.floor(hours / 24)
   const rest = Math.round(hours % 24)
   return days > 0 ? `${days}d ${rest}h` : `${Math.round(hours)}h`
 }
 
-/** Clock label under the live chart; the day view needs the hour only. */
 export function formatSampleTime(at: string, range: PerformanceRangeId): string {
   const date = new Date(at)
   return range === 'day'
@@ -220,12 +190,7 @@ export function formatSampleTime(at: string, range: PerformanceRangeId): string 
       })
 }
 
-/**
- * The reading of the numbers, written out. A director watching this page should not
- * have to know that 14 % I/O wait means the database is the bottleneck — the page says
- * so. Findings are ordered worst-first and never invented: each one is a threshold on
- * a value drawn elsewhere on the screen.
- */
+/** Findings ordered worst-first, each a threshold on a value shown elsewhere. */
 export function analyseCpu(
   sample: PerformanceSample,
   cores: CpuCore[],
@@ -287,7 +252,6 @@ export function analyseCpu(
   return findings
 }
 
-/** The three phases a portal screen goes through before it answers a click. */
 export type PageLoadPhase = 'ttfb' | 'dom' | 'interactive'
 
 export const PAGE_PHASE_ORDER: PageLoadPhase[] = ['ttfb', 'dom', 'interactive']
@@ -304,17 +268,15 @@ export const PAGE_PHASE_HINTS: Record<PageLoadPhase, string> = {
   interactive: 'Bundle execution and the first data read, until the screen answers clicks.',
 }
 
-/** The same validated identity trio as the CPU bands — phases, not states. */
 export const PAGE_PHASE_COLOR: Record<PageLoadPhase, string> = {
   ttfb: CPU_BAND_COLOR.user,
   dom: CPU_BAND_COLOR.ioWait,
   interactive: CPU_BAND_COLOR.system,
 }
 
-/** Where a screen stops feeling instant. */
 export const PAGE_INTERACTIVE_BUDGET_MS = 1_500
 
-/** Phase lengths, as durations rather than the cumulative marks the browser reports. */
+/** Durations, not the browser's cumulative marks. */
 export function pagePhaseDurations(page: {
   ttfbMs: number
   domReadyMs: number

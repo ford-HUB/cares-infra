@@ -2,14 +2,13 @@ import { Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface DeployedCertificatesEmptyProps {
-  /** True when the log is filtered down to nothing rather than genuinely empty. */
+  /** Filtered to nothing, as opposed to genuinely empty. */
   filtered: boolean
   errored: boolean
   onClearFilters: () => void
   onBrowseTemplates: () => void
 }
 
-/** Designed zero state — the screen never renders a bare empty grid. */
 export function DeployedCertificatesEmpty({
   filtered,
   errored,

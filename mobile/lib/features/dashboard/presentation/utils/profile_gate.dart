@@ -6,36 +6,31 @@ import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
 import 'package:mobile/features/dashboard/presentation/screens/mobile_profile_edit_screen.dart';
 
-/// Locks a role's actions (requesting assistance, applying to or joining an
-/// event, donating, ...) until the server says that role's profile is
-/// complete. Completion is read from the role account [ProfileService] keeps
-/// in sync — never computed on the device.
+/// Locks a role's actions until the server says its profile is complete (via
+/// [ProfileService]); never computed locally.
 class ProfileGate {
   ProfileGate._();
 
-  /// The server's completion for [roleType], or null before the first read.
+  /// Null before the first read.
   static ProfileCompletion? completionFor(String roleType) =>
       RoleAccountStore.instance.byType(roleType)?.serverProfile?.completion;
 
-  /// Whether [roleType]'s actions are open. Signed-out prototype paths have
-  /// no server record and are never locked.
+  /// Signed-out prototype paths are never locked.
   static bool isUnlocked(String roleType) {
     if (!AuthSession.isSignedIn) return true;
     return completionFor(roleType)?.complete ?? false;
   }
 
-  /// Resolves to true when the action may go ahead. Otherwise explains what
-  /// is missing and offers to open the profile form; the action only goes
-  /// ahead if that save completes the profile.
+  /// Otherwise explains what's missing and offers the form; proceeds only if
+  /// that save completes the profile.
   static Future<bool> ensureComplete(
     BuildContext context,
     String roleType,
   ) async {
     if (!AuthSession.isSignedIn) return true;
 
-    // No read yet (still loading, or the first fetch failed), or the last read
-    // was incomplete — read again so a slow dashboard load or an approval the
-    // administrator gave since the last read never locks a complete profile.
+    // Re-read when unknown or incomplete, so a slow load or a fresh admin
+    // approval never locks a complete profile.
     if (!(completionFor(roleType)?.complete ?? false)) {
       try {
         await ProfileService().syncRoleAccount(roleType: roleType);
@@ -48,8 +43,7 @@ class ProfileGate {
     final completion = completionFor(roleType);
     if (completion?.complete ?? false) return true;
 
-    // Nothing left to fill in — only the administrator's approval of the
-    // uploaded document. Opening the form would not help, so just say so.
+    // Only awaiting admin approval: the form wouldn't help, so just say so.
     if (completion != null && completion.onlyAwaitingReview) {
       await _showUnderReviewDialog(context);
       return false;

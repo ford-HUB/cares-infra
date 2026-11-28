@@ -1,9 +1,6 @@
 import { CalendarClock } from 'lucide-react'
 
-/**
- * Shown when nothing of today's has started yet. The monitor is only meaningful for a
- * running event — the finished roster and its ruling live on the Attendees page.
- */
+/** Finished rosters and rulings live on the Attendees page. */
 export function NoActiveSession() {
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">

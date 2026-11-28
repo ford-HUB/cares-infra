@@ -52,7 +52,7 @@ import {
 import { RegistrationStatusTokens } from './registration-status-tokens';
 import type { RegistrationReviewKind } from '../repositories/auth-repository';
 
-/** What each reviewed sign-up registered, as the public status page names it. */
+/** Public status page wording. */
 const REGISTRATION_STATUS_LABELS: Record<RegistrationReviewKind, string> = {
   [UserRequestKind.BENEFICIARY_REGISTRATION]: 'beneficiary',
   [UserRequestKind.ALUMNI_REGISTRATION]: 'alumni volunteer',
@@ -61,7 +61,7 @@ const REGISTRATION_STATUS_LABELS: Record<RegistrationReviewKind, string> = {
 };
 import { portalUrl as resolvePortalUrl } from 'src/shared/utils/environment-utils';
 
-/** Minimum gap between two temporary-password mails for the same address. */
+/** Min gap between temporary-password mails per address. */
 const RESET_COOLDOWN = DurationUtils.ONE_MINUTE * 2;
 
 @Injectable()
@@ -81,11 +81,7 @@ export class AuthSiteService {
     private readonly registrationStatusTokens: RegistrationStatusTokens,
   ) {}
 
-  /**
-   * The review behind a "Check status" link. A bad or expired link is a 400, never
-   * a 401 — the portal treats a 401 as its own session ending. A request moved to
-   * the recycle bin still reads as under review, as it does at sign-in.
-   */
+  /** Bad links are 400, not 401 (401 ends the portal session). Recycled requests still read as under review. */
   async getRegistrationStatus(
     token: string,
   ): Promise<RegistrationStatusResponseDto> {
@@ -145,8 +141,7 @@ export class AuthSiteService {
       throw new ForbiddenException(message);
     }
 
-    // Hours, allowlist and lockout are checked before the account is even looked up:
-    // they refuse the attempt itself, so whether the email exists is beside the point.
+    // Checked before lookup: these refuse the attempt regardless of the email.
     await this.loginPolicyEnforcer.assertLoginAllowed(attempt);
 
     const account = await this.authRepository.findAccountForLogin(email);
@@ -165,8 +160,7 @@ export class AuthSiteService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Social-only accounts (donors, on mobile) have no stored hash and no portal
-    // presence. Same reply as a wrong password, for the same reason.
+    // Social-only accounts: same reply as a wrong password.
     if (!account.password) {
       const reason = 'Account signs in through a social provider';
       await this.loginActivityRecorder.record({
@@ -221,8 +215,7 @@ export class AuthSiteService {
       });
       await this.recordSignIn(attempt, {
         outcome: 'DENIED',
-        // Valid credentials reaching a portal they hold no role for is worth a
-        // second look, even though the refusal itself worked as intended.
+        // Valid credentials without a portal role warrant review.
         severity: 'WARNING',
         description: `Portal sign-in refused for ${email} — not a portal role`,
         reason: message,
@@ -232,8 +225,7 @@ export class AuthSiteService {
       throw new ForbiddenException(message);
     }
 
-    // A provisioned credential stops working on its own. The account stays as it is,
-    // so an administrator re-issues from the user list rather than recreating it.
+    // Provisioned credentials expire; admins re-issue rather than recreate.
     if (
       account.credential_expires_at &&
       account.credential_expires_at.getTime() <= Date.now()
@@ -299,7 +291,7 @@ export class AuthSiteService {
       roleType: account.user.role.type,
     });
 
-    // The session is what makes this token revocable — see `SessionGuard`.
+    // Makes the token revocable (`SessionGuard`).
     const session = await this.sessionRegistry.create({
       userId: account.user.user_id,
       email: account.email,
@@ -331,7 +323,7 @@ export class AuthSiteService {
     };
   }
 
-  /** Ends only the caller's own device; other sessions of the account stay signed in. */
+  /** Ends only this device's session. */
   async logout(
     user: JwtPayload,
     context: RequestContextDto = {},
@@ -353,14 +345,7 @@ export class AuthSiteService {
     });
   }
 
-  /**
-   * The audit entry beside the sign-in trail. `LoginActivity` answers "who tried to
-   * sign in"; this puts the same event in the one place an operator reviews every
-   * privileged action, so a refused sign-in sits next to what followed it.
-   *
-   * A refused attempt has no token behind it, so the actor is written from the
-   * submitted email rather than resolved from an account that may not exist.
-   */
+  /** Audit entry beside `LoginActivity`; actor taken from the submitted email (no token yet). */
   private async recordSignIn(
     attempt: { email: string; ipAddress?: string; userAgent?: string },
     entry: {
@@ -378,9 +363,7 @@ export class AuthSiteService {
       category: 'AUTHENTICATION',
       severity: entry.severity,
       outcome: entry.outcome,
-      // There is no token yet at sign-in time, so the actor is assembled from the
-      // attempt. A null actor — an email matching no account — is recorded as the
-      // system, which is exactly what an unattributable attempt is.
+      // No token at sign-in; an unmatched email is recorded as the system.
       actor: entry.userId
         ? {
             sub: entry.userId,
@@ -397,11 +380,7 @@ export class AuthSiteService {
     });
   }
 
-  /**
-   * "Forgot password" on the portal login page: confirm the email belongs to a portal
-   * account, then replace its password with a generated temporary one and mail it.
-   * The owner signs in with it and sets their own from Settings → Change password.
-   */
+  /** Replaces the password with a mailed temporary one, changed later in Settings. */
   async requestPasswordReset(
     email: string,
     context: RequestContextDto = {},
@@ -426,8 +405,7 @@ export class AuthSiteService {
       );
     }
 
-    // One mail per cooldown window. A second request inside the window is refused
-    // outright — otherwise each click would overwrite the password just mailed.
+    // Refuse within the cooldown, so a second click can't overwrite the mailed password.
     const cooldownKey = this.resetCooldownKey(normalizedEmail);
     if (await this.redisService.get<string>(cooldownKey)) {
       const remaining = await this.redisService.ttl(cooldownKey);
@@ -455,8 +433,7 @@ export class AuthSiteService {
       },
     );
 
-    // Mail first, write second: if delivery fails the old password still works,
-    // rather than the account being locked behind a password nobody received.
+    // Mail before writing, so a failed delivery leaves the old password working.
     try {
       await this.nodemailerService.sendEmail(
         normalizedEmail,
@@ -527,11 +504,7 @@ export class AuthSiteService {
     };
   }
 
-  /**
-   * Request Access on the portal login page: relays the applicant's message and their
-   * ID attachments to the CARES support inbox. No account is created here — an admin
-   * reads the mail and provisions the account manually.
-   */
+  /** Relays the message and ID files to the support inbox; an admin provisions manually. */
   async submitAccessRequest(
     data: AccessRequestDto,
     files: Express.Multer.File[] = [],

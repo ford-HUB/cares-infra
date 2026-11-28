@@ -9,7 +9,6 @@ interface QuestionnairePreviewProps {
 
 const noop = () => undefined
 
-/** The questionnaire as a participant will see it — no handles, no controls. */
 export function QuestionnairePreview({ form }: QuestionnairePreviewProps) {
   const header = typographyStyles(form.headerTypography)
 

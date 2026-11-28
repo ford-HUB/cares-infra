@@ -103,13 +103,7 @@ export class OverviewSiteService {
     };
   }
 
-  /**
-   * Everything scoped to the caller's college: its volunteers, its events and their
-   * attendance, and the monthly reports filed under it. A coordinator with no
-   * department on their profile gets zeros rather than the whole system — the empty
-   * state is the honest answer. When the profile text is not one of the report
-   * colleges, reports fall back to the ones this coordinator submitted themselves.
-   */
+  /** No department yields zeros, not system-wide. Unknown colleges fall back to the coordinator's own reports. */
   async getDepartmentOverview(userId: string): Promise<DepartmentOverviewDto> {
     const now = new Date();
     const since = recentWindowStart(now);
@@ -168,7 +162,7 @@ export class OverviewSiteService {
     since: Date,
     where: Prisma.EventWhereInput = {},
   ): Promise<EventCountsDto> {
-    // "Soon" mirrors "recent": the same number of days, looking forward.
+    // "Soon" mirrors "recent", looking forward.
     const until = new Date(now.getTime() + (now.getTime() - since.getTime()));
     const [counts, startingSoon] = await Promise.all([
       this.repository.countEventsByStatus(now, where),

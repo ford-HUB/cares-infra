@@ -12,10 +12,6 @@ export type NewLocationPing = Omit<
   'event_location_ping_id' | 'createdAt'
 >;
 
-/**
- * The roster join the portal needs: attendance row + its event + enough of the
- * volunteer to fill the table (name, login email, department, year level).
- */
 const ROSTER_INCLUDE = {
   event: {
     select: {
@@ -69,7 +65,7 @@ const EVENT_ZONE_SELECT_WITH_DEPARTMENT = {
 export class EventAttendanceRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Newest event first, then the volunteer's name, so the table reads chronologically. */
+  /** Newest event first, then name. */
   async findRoster(eventId?: number) {
     return this.prisma.eventAttendance.findMany({
       where: eventId ? { event_id: eventId } : undefined,
@@ -82,7 +78,7 @@ export class EventAttendanceRepository {
     });
   }
 
-  /** These rows in the same roster shape as `findRoster`, for echoing back an update. */
+  /** Same shape as `findRoster`. */
   async findRosterByIds(eventAttendanceIds: string[]) {
     return this.prisma.eventAttendance.findMany({
       where: { event_attendance_id: { in: eventAttendanceIds } },
@@ -90,7 +86,6 @@ export class EventAttendanceRepository {
     });
   }
 
-  /** What a manual ruling needs per row: where it stands and its event's window. */
   async findForManualMark(eventAttendanceIds: string[]) {
     return this.prisma.eventAttendance.findMany({
       where: { event_attendance_id: { in: eventAttendanceIds } },
@@ -112,11 +107,7 @@ export class EventAttendanceRepository {
     });
   }
 
-  /**
-   * A director's or coordinator's ruling, used when the geofence could not rule. It
-   * is stored as MANUAL so the validator never overrides it, and a row that is
-   * already COMPLETED is left alone so its hours are not credited twice.
-   */
+  /** Stored as MANUAL so the validator never overrides; COMPLETED rows skipped to avoid double hours. */
   async applyManualPresence(
     eventAttendanceId: string,
     ruling: { hours_rendered: number; remarks: string },
@@ -135,7 +126,6 @@ export class EventAttendanceRepository {
     return count > 0;
   }
 
-  /** What the validator needs to judge one event: its window and its fence. */
   async findEventForValidation(eventId: number) {
     return this.prisma.event.findUnique({
       where: { event_id: eventId },
@@ -143,11 +133,7 @@ export class EventAttendanceRepository {
     });
   }
 
-  /**
-   * The event the live monitor should be showing: started, not yet over, not
-   * cancelled. When two overlap, the one ending first — it is the one whose roster
-   * is about to be ruled on.
-   */
+  /** Started, not over, not cancelled; on overlap, the one ending first. */
   async findActiveEvent(now: Date) {
     return this.prisma.event.findFirst({
       where: {
@@ -160,7 +146,7 @@ export class EventAttendanceRepository {
     });
   }
 
-  /** Events already over that still have volunteers nobody has ruled on. */
+  /** Ended events with un-ruled volunteers. */
   async findEndedEventIdsWithPending(now: Date, limit = 50): Promise<number[]> {
     const rows = await this.prisma.eventAttendance.findMany({
       where: {
@@ -175,7 +161,7 @@ export class EventAttendanceRepository {
     return rows.map((row) => row.event_id);
   }
 
-  /** PENDING rows the validator may rule on — a MANUAL ruling is never overridden. */
+  /** MANUAL rulings are never overridden. */
   async findPendingAttendance(eventId: number, userIds?: string[]) {
     return this.prisma.eventAttendance.findMany({
       where: {
@@ -196,11 +182,7 @@ export class EventAttendanceRepository {
     });
   }
 
-  /**
-   * Every reading these volunteers made for the event, oldest first. Rows the device
-   * could not name an event for (`event_id` null) are pulled in by time instead, so
-   * an offline batch tagged `unassigned` still counts.
-   */
+  /** Oldest first; rows with null `event_id` are matched by time so `unassigned` batches count. */
   async findPingsForValidation(
     eventId: number,
     userIds: string[],
@@ -230,7 +212,7 @@ export class EventAttendanceRepository {
     });
   }
 
-  /** Writes the validator's ruling on one row. Only a still-PENDING row is touched. */
+  /** Only touches still-PENDING rows. */
   async applyValidation(
     eventAttendanceId: string,
     ruling: {
@@ -251,10 +233,7 @@ export class EventAttendanceRepository {
     return count > 0;
   }
 
-  /**
-   * The event is over and these volunteers have pushed nothing: they stay PENDING,
-   * but the row now says why — the portal shows it as "awaiting sync".
-   */
+  /** Stays PENDING but flagged "awaiting sync". */
   async markAwaitingSync(eventAttendanceIds: string[]): Promise<number> {
     if (eventAttendanceIds.length === 0) return 0;
     const { count } = await this.prisma.eventAttendance.updateMany({
@@ -275,13 +254,7 @@ export class EventAttendanceRepository {
     return count > 0;
   }
 
-  /**
-   * Stores the readings and, when any landed inside the geofence, widens the
-   * volunteer's first/last ping window on their attendance row. The row's
-   * `validation_method` records where the coordinates came from until the validation
-   * service rules; MANUAL is left alone. No attendance row (not registered) is not an
-   * error — the readings are still kept for the validation service to assign.
-   */
+  /** Widens the in-fence ping window; MANUAL untouched. Unregistered readings are still kept. */
   async recordPings(pings: NewLocationPing[]): Promise<number> {
     if (pings.length === 0) return 0;
 

@@ -12,22 +12,12 @@ import {
   UserRequestStatus,
 } from '../../../infastructures/prisma/common/client';
 
-/** Roles the Flutter app signs in as — the only callers of the mobile profile. */
 export const MOBILE_PROFILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
 
-/**
- * Who may call the mobile profile routes: the app's roles plus the portal staff
- * who sign in to use its Volunteer side.
- */
+/** App roles plus staff using the Volunteer side. */
 export const MOBILE_PROFILE_ACCESS_ROLE_TYPES = MOBILE_SIGN_IN_ROLE_TYPES;
 
-/**
- * `?role=` on the mobile profile routes. The app's role switcher is local —
- * one account can open the volunteer, donor and beneficiary dashboards — so
- * the app names the side it is showing and the profile is scoped to it:
- * `profile_completion` and the role section are computed for that role, not
- * the one the account registered with. Omitted → the registered role.
- */
+/** The role switcher is local, so the app names the side; completion and section use it. Default: registered role. */
 export const MobileProfileRoleQuerySchema = z.object({
   role: z.enum(MOBILE_PROFILE_ROLE_TYPES).optional(),
 });
@@ -37,11 +27,10 @@ const AddressSchema = z.object({
   barangay: z.string().nullable(),
   city: z.string().nullable(),
   province: z.string().nullable(),
-  /** Free-text address captured at registration, kept for accounts without the split fields. */
+  /** For accounts without split fields. */
   full: z.string(),
 });
 
-/** Volunteer-only section: school record, interests, verification and service stats. */
 export const VolunteerProfileSectionSchema = z.object({
   school: z
     .object({
@@ -53,99 +42,67 @@ export const VolunteerProfileSectionSchema = z.object({
     })
     .nullable(),
   interests: z.array(z.enum(InterestCode)),
-  /** What the volunteer typed under "Others"; null unless OTHERS is picked. */
+  /** Null unless OTHERS is picked. */
   other_interest: z.string().nullable(),
-  /**
-   * True when this side was opened by a director approving a role-access
-   * request rather than by registering as a volunteer. Such accounts never
-   * uploaded a school record, so the app hides that section.
-   */
+  /** Opened via role-access approval; no school record, so the app hides it. */
   access_granted_by_director: z.boolean(),
-  /**
-   * The partner barangay a community volunteer signed up through, or null for a
-   * school volunteer. Such accounts have no school record, so the app hides that
-   * section.
-   */
+  /** Null for school volunteers; no school record, so the app hides it. */
   partner_barangay: z.string().nullable(),
   service_hours: z.number(),
   activities_completed: z.number(),
   activities_registered: z.number(),
-  /** All-time leaderboard points under the portal's scoring rule. */
+  /** All-time leaderboard points. */
   ranking_points: z.number().int(),
 });
 
-/** Donor-only section: how they sign in and where to reach them. */
 export const DonorProfileSectionSchema = z.object({
   sign_in_providers: z.array(z.enum(AuthProvider)),
   has_password: z.boolean(),
 });
 
-/** Largest household the profile form accepts — the picker tops out at "6+". */
+/** The picker tops out at "6+". */
 export const MOBILE_PROFILE_MAX_HOUSEHOLD_SIZE = 50;
 
-/**
- * Beneficiary-only section. Beneficiaries register ID-less (the email OTP
- * vouches for them), so there is nothing role-specific on file — the empty
- * object still tells the app which role the record belongs to. (Household
- * size sits on the top-level profile: the app's role switcher is local, so a
- * volunteer-registered account can be editing its beneficiary side.)
- */
+/** Empty: ID-less registration, nothing role-specific. Household size is top-level since any account can edit this side. */
 export const BeneficiaryProfileSectionSchema = z.object({});
 
-/** A proof-of-residency file on record, newest first in the profile. */
+/** Newest first. */
 export const ResidencyDocumentSchema = z.object({
   residency_document_id: z.string(),
   file_name: z.string(),
   mime_type: z.string(),
   size_bytes: z.number(),
-  /** The address OCR read off this file when it was uploaded. */
+  /** OCR result at upload. */
   extracted_address: z.string(),
-  /** ISO timestamp of the upload. */
   uploaded_at: z.string(),
 });
 
-/**
- * How much of the person's profile is actually on file, computed from the
- * stored record — not from anything the app keeps locally. `missing` names the
- * steps still outstanding so the app can point at them.
- */
+/** From the stored record; `missing` names outstanding steps. */
 export const ProfileCompletionSchema = z.object({
   percent: z.number(),
   complete: z.boolean(),
   completed_steps: z.number(),
   total_steps: z.number(),
   missing: z.array(z.string()),
-  /**
-   * Steps the person has done their part on but an administrator still has to
-   * approve (e.g. `residency_document`). They also appear in `missing`, so
-   * `complete` stays false; the app shows them as "under review", not as
-   * something left to fill in.
-   */
+  /** Done but awaiting approval; also in `missing`, shown as "under review". */
   pending_review: z.array(z.string()),
 });
 
-/**
- * Where the latest proof of residency stands in the director's review queue.
- * Null when the person never uploaded one from the profile.
- */
+/** Null when never uploaded from the profile. */
 export const ResidencyReviewSchema = z.object({
   status: z.enum(UserRequestStatus),
-  /** Set when a director rejected the document — what the person must fix. */
+  /** Set on rejection. */
   rejection_reason: z.string().nullable(),
-  /** ISO timestamp of the upload that is under (or was last given) review. */
+  /** Upload under (or last given) review. */
   submitted_at: z.string(),
   decided_at: z.string().nullable(),
 });
 
 export const MobileProfileResponseSchema = z.object({
   user_id: z.string(),
-  /** The role the account registered with — a portal role for staff on the Volunteer side. */
+  /** Registered role; a portal role for staff. */
   role_type: z.enum(MOBILE_PROFILE_ACCESS_ROLE_TYPES),
-  /**
-   * The role `profile_completion` and the section below are scoped to — the
-   * `?role=` the app asked for, else `role_type`. The app files the profile
-   * under this role account.
-   */
+  /** `?role=` or else `role_type`. */
   profiling_role: z.enum(MOBILE_PROFILE_ROLE_TYPES),
   firstname: z.string(),
   middle_name: z.string().nullable(),
@@ -155,30 +112,17 @@ export const MobileProfileResponseSchema = z.object({
   gender: z.enum(GenderType),
   age: z.number(),
   address: AddressSchema,
-  /**
-   * How many people the assistance has to cover. Meaningful on the beneficiary
-   * side; null until set. Top-level rather than in `beneficiary` because the
-   * app can edit the beneficiary side of any mobile account.
-   */
+  /** Beneficiary side; top-level since any mobile account can edit that side. */
   household_size: z.number().int().nullable(),
-  /** Proof-of-residency uploads, newest first. Empty for accounts that never changed address this way. */
+  /** Newest first. */
   residency_documents: z.array(ResidencyDocumentSchema),
   residency_review: ResidencyReviewSchema.nullable(),
   has_profile_image: z.boolean(),
-  /**
-   * How the account signs in, for every role. The app disables the email and
-   * password controls when a provider owns the identity — those change through
-   * Google or Facebook, not CARES. Mirrors the donor section's copy, which stays
-   * for the donor account card.
-   */
+  /** Provider-owned identities can't change email/password in CARES. */
   sign_in_providers: z.array(z.enum(AuthProvider)),
   has_password: z.boolean(),
-  /** ISO timestamp of the account's creation — the "member since" date. */
   member_since: z.string(),
-  /**
-   * Sides open besides `role_type` without a role-access request — a student
-   * beneficiary's Volunteer side. The app unlocks them in its role switcher.
-   */
+  /** Opened without a role-access request (student beneficiary's Volunteer side). */
   unlocked_roles: z.array(z.enum(RoleType)),
   profile_completion: ProfileCompletionSchema,
   volunteer: VolunteerProfileSectionSchema.nullable(),
@@ -186,12 +130,7 @@ export const MobileProfileResponseSchema = z.object({
   beneficiary: BeneficiaryProfileSectionSchema.nullable(),
 });
 
-/**
- * `PUT /v1/profile/me/mobile` — the editable part of the record. Email and
- * password are deliberately absent: those change through the account flows,
- * not the profile form. Arrives as multipart so an avatar can ride along, which
- * is why `age` is coerced from its string form.
- */
+/** No email/password (separate flows). Multipart for the avatar, so `age` is coerced. */
 export const UpdateMobileProfileSchema = z
   .object({
     firstname: z.string().trim().min(1, 'First name is required').max(80),
@@ -204,21 +143,14 @@ export const UpdateMobileProfileSchema = z
       .int('Age must be a whole number')
       .min(1, 'Age must be at least 1')
       .max(150, 'Age must be 150 or below'),
-    /**
-     * Free-text address, the same shape registration captures. Optional: the
-     * beneficiary form locks the address and changes it through
-     * `POST me/mobile/residency` instead, so it sends nothing here and the
-     * stored value is left alone.
-     */
+    /** Optional: the beneficiary form changes it via `POST me/mobile/residency`. */
     current_address: z
       .string()
       .trim()
       .min(1, 'Address is required')
       .max(300)
       .optional(),
-    /**
-     * Multipart carries it as a string, and an empty string clears the value.
-     */
+    /** Multipart string; empty clears. */
     household_size: z.preprocess(
       (value) => (value === '' || value === undefined ? undefined : value),
       z.coerce
@@ -236,7 +168,7 @@ export const UpdateMobileProfileSchema = z
 
 export const MOBILE_PROFILE_MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
-/** Residency papers are photos or scans — allow a larger file than an avatar. */
+/** Larger than an avatar for scans. */
 export const MOBILE_PROFILE_MAX_RESIDENCY_BYTES = 10 * 1024 * 1024;
 
 export const MOBILE_PROFILE_ALLOWED_RESIDENCY_MIMES = [
@@ -252,12 +184,7 @@ export const MOBILE_PROFILE_ALLOWED_AVATAR_MIMES = [
   'image/webp',
 ] as const;
 
-/**
- * `POST /v1/profile/me/mobile/school-record` — points at a registration
- * session that has been through ID upload, face match and OCR. The school
- * details come from the session's OCR result, never from the body, so the
- * department cannot be typed in.
- */
+/** School details come from the session's OCR, never the body. */
 export const ApplySchoolRecordSchema = z
   .object({
     registrationId: z.string().trim().uuid('Invalid registration session'),

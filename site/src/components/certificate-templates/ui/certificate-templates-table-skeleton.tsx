@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors a table row cell for cell, so the swap causes no jump. */
 export function CertificateTemplatesTableSkeleton({ rows }: { rows: number }) {
   return (
     <tbody aria-hidden className="divide-y divide-gray-100">

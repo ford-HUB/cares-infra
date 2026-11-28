@@ -7,7 +7,6 @@ import type {
 } from '../types/notification'
 import { apiClient, parseApiError } from './api-client'
 
-/** The server's row: upper-case Prisma enums and snake_case fields. */
 export interface NotificationApiResponse {
   notification_id: string
   title: string
@@ -41,10 +40,7 @@ function mapApiFeed(data: NotificationFeedApiResponse): NotificationFeed {
   return { summary: data.summary, items: data.items.map(mapApiNotification) }
 }
 
-/**
- * Every call returns the whole feed after the change, so the store can replace its
- * state rather than patch it — the server is the only place read/dismissed is decided.
- */
+/** Returns the whole feed so the store replaces rather than patches. */
 async function feedRequest(
   request: () => Promise<{ data: { ok: true; data: NotificationFeedApiResponse } }>,
 ): Promise<NotificationFeedResult> {

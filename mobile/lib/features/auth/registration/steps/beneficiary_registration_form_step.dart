@@ -5,9 +5,6 @@ import '../models/registration_data.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../../presentation/widgets/registration_form_card.dart';
 
-/// Beneficiary sign-up form, built on the same pattern as the donor form:
-/// gradient hero panel, then one white card per idea — name, who you are,
-/// organization details (only when relevant), sign-in details.
 class BeneficiaryRegistrationFormStep extends StatefulWidget {
   const BeneficiaryRegistrationFormStep({
     super.key,

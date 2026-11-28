@@ -11,17 +11,13 @@ import type { MonthlyReportStatus } from '../../../types/monthly-report'
 interface ReportStatusSegmentProps {
   status: MonthlyReportStatus
   value: number
-  /** Share of the period's submissions this status holds, 0–1. */
+  /** 0–1. */
   share: number
   active: boolean
   onToggle: (status: MonthlyReportStatus) => void
 }
 
-/**
- * One stage of the review line, as a legend entry under the pipeline bar. It doubles
- * as the queue's filter — clicking narrows the list, clicking again clears it, which
- * is why this is a button and not a plain tile.
- */
+/** Legend entry that doubles as the queue's status filter; clicking again clears it. */
 export function ReportStatusSegment({
   status,
   value,

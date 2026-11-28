@@ -91,7 +91,6 @@ class _ProfileNotificationsScreenState
   }
 }
 
-/// The volunteer's certificate wallet: every certificate they have received.
 class ProfileCertificatesScreen extends StatefulWidget {
   const ProfileCertificatesScreen({super.key});
 
@@ -115,8 +114,7 @@ class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
   void initState() {
     super.initState();
     _certificateStore.addListener(_onStoreChanged);
-    // Whatever the wallet already holds shows at once; the server's list
-    // replaces it when it lands.
+    // Shows the wallet at once; the server list replaces it on arrival.
     _certificateStore.refresh();
   }
 
@@ -274,8 +272,8 @@ class _CertificateListTile extends StatelessWidget {
   }
 }
 
-/// The wallet shows the sheet itself, small: the same drawing the review
-/// screen and the PDF use, so what the volunteer sees is what they get.
+/// Same drawing as the review screen and PDF, so what they see is what they
+/// get.
 class _CertificateThumbnail extends StatelessWidget {
   const _CertificateThumbnail({required this.certificate});
 

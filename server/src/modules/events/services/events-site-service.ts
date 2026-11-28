@@ -56,12 +56,7 @@ export class EventsSiteService {
     return events.map((event) => this.mapToDto(event));
   }
 
-  /**
-   * The event images live in a private bucket, so their S3 URLs cannot be put in an
-   * `<img src>` — the portal reads them through here instead. `no-cache` plus a
-   * content-hash ETag lets the browser revalidate cheaply rather than re-download a
-   * thumbnail on every table render.
-   */
+  /** Private bucket can't feed `<img src>`; content-hash ETag + `no-cache` allows revalidation. */
   async getEventImage(
     id: number,
     index: number,
@@ -116,8 +111,7 @@ export class EventsSiteService {
       },
     });
 
-    // The people who will run it hear about it now; the start-time reminder comes
-    // from the scheduler sweep closer to the day.
+    // The start-time reminder comes later from the scheduler sweep.
     await this.notificationScheduler.publish({
       title: `${created.title} was published`,
       description: `Starts ${formatEventStart(created.event_started)}${
@@ -295,8 +289,7 @@ export class EventsSiteService {
       action: 'event.cancelled',
       description: `Cancelled the event "${updated.title}"`,
       category: 'EVENT',
-      // Volunteers already signed up lose the event, so a cancellation is not the
-      // same ordinary edit an update is.
+      // Registered volunteers lose the event, so NOTICE.
       severity: 'NOTICE',
       actor: caller,
       targetType: 'event',
@@ -327,8 +320,7 @@ export class EventsSiteService {
       throw new NotFoundException('Event not found');
     }
 
-    // Read the participants before the delete cascades their rows away. A
-    // finished event going is housekeeping — nobody is waiting on it.
+    // Read participants before the cascade; finished events need no notice.
     if (isOpenEvent(existing)) {
       const notice = {
         title: `${existing.title} was removed`,
@@ -350,8 +342,7 @@ export class EventsSiteService {
       action: 'event.deleted',
       description: `Deleted the event "${existing.title}"`,
       category: 'EVENT',
-      // The row is gone from the events table, so this entry is the only remaining
-      // record that it existed at all.
+      // The only remaining record of the event.
       severity: 'WARNING',
       actor: caller,
       targetType: 'event',
@@ -366,11 +357,7 @@ export class EventsSiteService {
     });
   }
 
-  /**
-   * A new open event is news for every app side it serves: volunteers can
-   * register, beneficiaries can apply when it takes them, donors can give
-   * when it accepts donations.
-   */
+  /** Notifies every app side the event serves. */
   private async announceNewEvent(event: StoredEvent): Promise<void> {
     if (!isOpenEvent(event)) return;
     const when = `Starts ${formatEventStart(event.event_started)} · ${event.location}`;
@@ -421,11 +408,7 @@ export class EventsSiteService {
     }
   }
 
-  /**
-   * Who an event notice for [role] goes to: every holder of the role, or — for a
-   * School event scoped to one department — only that department's members.
-   * Null when a scoped event has nobody in its department to tell.
-   */
+  /** Department-scoped School events reach only that department; null when nobody to tell. */
   private async audience(
     event: StoredEvent,
     role: RoleType,
@@ -438,10 +421,7 @@ export class EventsSiteService {
     return userIds.length > 0 ? { userIds } : null;
   }
 
-  /**
-   * Participants only hear about edits that change where they need to be and
-   * when — a reworded description is not worth a device notification.
-   */
+  /** Only time and place changes notify. */
   private async notifyScheduleChange(
     event: StoredEvent,
     changes: AuditLogChangeDto[],
@@ -458,7 +438,7 @@ export class EventsSiteService {
       category: NotificationCategory.EVENT,
       tone: NotificationTone.ATTENTION,
       href: `/events/${event.event_id}`,
-      // Each edit is its own notice; a second move must not be swallowed.
+      // Unique per edit so later moves aren't deduped.
       dedupeKey: `event-moved:${event.event_id}:${Date.now()}`,
     };
     await this.notificationScheduler.publishToEventParticipants(
@@ -528,8 +508,7 @@ export class EventsSiteService {
         );
       }
 
-      // What the browser declares is only a claim, and an unknown type resolves to
-      // JPEG, so the file's own bytes decide what is stored and how it is served.
+      // The declared type is only a claim; the bytes decide.
       const declared = resolveImageMimeType(file.mimetype, file.originalname);
       const mime = sniffImageMimeType(file.buffer);
       if (
@@ -579,18 +558,12 @@ export class EventsSiteService {
   }
 }
 
-/**
- * Field-level before/after pairs for the audit trail. Only the fields an operator
- * edits are compared: images and geometry change on almost every save and would bury
- * the fields a review actually reads.
- */
+/** Only operator-edited fields; images and geometry would add noise. */
 function diffEvent(
   previous: StoredEvent,
   next: PersistEventDto,
 ): AuditLogChangeDto[] {
-  // Read explicitly rather than by indexing a key list: the two shapes are a Prisma
-  // row and a DTO, and indexing them by a shared key widens every value to a union
-  // wide enough to lose the compiler's help here.
+  // Explicit pairs: indexing the Prisma row and DTO by a shared key widens to a useless union.
   const pairs: [string, EventFieldValue, EventFieldValue][] = [
     ['title', previous.title, next.title],
     ['description', previous.description, next.description],
@@ -623,7 +596,7 @@ function diffEvent(
   });
 }
 
-/** Every compared field is a scalar or a date; the trail stores them as text. */
+/** Stored as text in the trail. */
 type EventFieldValue = string | number | boolean | Date | null;
 
 function formatEventValue(value: EventFieldValue | undefined): string {
@@ -632,15 +605,14 @@ function formatEventValue(value: EventFieldValue | undefined): string {
   return String(value);
 }
 
-/** "Sat, Sep 20, 6:00 AM" in the portal's timezone — a person reads this. */
-/** Edits a participant has to act on, with how the notice names them. */
+/** Field → how the notice names it. */
 const SCHEDULE_FIELDS = new Map<string, string>([
   ['event_started', 'start time'],
   ['event_ended', 'end time'],
   ['location', 'venue'],
 ]);
 
-/** Still ahead or running — the only events whose changes anyone acts on. */
+/** Upcoming or ongoing. */
 function isOpenEvent(event: {
   status: EventStatus;
   event_ended: Date;

@@ -6,10 +6,7 @@ interface CancelEventModalProps {
   loading?: boolean
 }
 
-/**
- * Confirmation for cancelling an event. Cancelling notifies registered participants, so it
- * gets the same confirm step as deleting rather than firing straight from the row menu.
- */
+/** Cancelling notifies registered participants, so it needs confirming. */
 export function CancelEventModal({
   isOpen,
   eventName,

@@ -21,7 +21,6 @@ import { withCertificateStorage } from './certificate-storage-guard';
 type Category = IssuedCertificateDto['category'];
 type Orientation = IssuedCertificateDto['orientation'];
 
-/** The volunteer's certificate wallet: what was issued to them, and each sheet. */
 @Injectable()
 export class CertificatesMobileService {
   constructor(
@@ -37,10 +36,7 @@ export class CertificatesMobileService {
     return { certificates: rows.map((row) => toDto(row)) };
   }
 
-  /**
-   * One certificate, opened. The first open is what the live page counts as
-   * "claimed" — the volunteer has actually seen the sheet, not just been sent it.
-   */
+  /** First open counts as "claimed". */
   async open(userId: string, id: string): Promise<IssuedCertificateDto> {
     const row = await this.requireOwned(userId, id);
     const claimed = row.claimed_at
@@ -52,11 +48,7 @@ export class CertificatesMobileService {
     return toDto(claimed);
   }
 
-  /**
-   * One piece of the sheet's artwork — frame, seal or an imported image. The bytes
-   * still live with the template the deployment was cut from; this route lets the
-   * volunteer's own certificate reach them without the portal's rights.
-   */
+  /** Bytes live with the template; this route needs only the volunteer's token. */
   async getAsset(
     userId: string,
     id: string,
@@ -80,7 +72,6 @@ export class CertificatesMobileService {
     };
   }
 
-  /** The signature image a line on this certificate was issued with. */
   async getSignature(
     userId: string,
     id: string,
@@ -116,7 +107,6 @@ export class CertificatesMobileService {
   }
 }
 
-/** `/api/v1/certificates/:id/signatories/:signatoryId/signature` — the app's route. */
 function signatureRoute(certificateId: string, signatoryId: string): string {
   return `/api/v1/certificates/${certificateId}/signatories/${signatoryId}/signature`;
 }
@@ -124,8 +114,7 @@ function signatureRoute(certificateId: string, signatoryId: string): string {
 function toDto(row: IssuedCertificateRow): IssuedCertificateDto {
   const design = row.design as unknown as StoredIssuedDesign;
   const values = fillValuesOf(row);
-  // `toDesignDto` builds the portal's asset routes; they are rewritten onto this
-  // certificate's own asset route, which the volunteer's token can fetch.
+  // Rewrite portal asset routes onto this certificate's route, fetchable with the volunteer token.
   const drawn = rerouteAssets(
     toDesignDto(design, design.template_id),
     design.template_id,
@@ -167,7 +156,6 @@ function toDto(row: IssuedCertificateRow): IssuedCertificateDto {
   };
 }
 
-/** `/api/v1/certificates/:id/assets/:assetId` — the app's route to one artwork file. */
 function certificateOwnAssetRoute(
   certificateId: string,
   assetId: string,

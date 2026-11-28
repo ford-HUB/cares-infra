@@ -130,8 +130,7 @@ final kMockUpcomingEvents = [
   ),
 ];
 
-/// Events the volunteer already joined and that have since ended. These drive
-/// the post-event feedback + certificate prototype flow.
+/// Drive the post-event feedback + certificate prototype flow.
 final kMockCompletedEvents = [
   CaresEvent(
     id: 'completed-1',
@@ -186,7 +185,6 @@ final kMockCompletedEvents = [
 
 final kMockAllEvents = [...kMockFeaturedEvents, ...kMockUpcomingEvents];
 
-/// Every event the app can resolve by id — browsable plus completed ones.
 final kMockEventDirectory = [...kMockAllEvents, ...kMockCompletedEvents];
 
 CaresEvent? findEventById(String id) {

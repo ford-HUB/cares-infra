@@ -28,7 +28,6 @@ import type {
   CertificateTemplateStatus,
 } from '../../types/certificate-template'
 
-/** Everything that changes a template — the "Manage templates" right covers them all. */
 const TEMPLATE_WRITE_ACTIONS = new Set([
   'customize',
   'duplicate',
@@ -67,7 +66,7 @@ export function CertificateTemplatesPage() {
     void fetchTemplates()
   }, [fetchTemplates])
 
-  // Counted over every template, so the toolbar's total does not move with a filter.
+  // Over every template so the total doesn't move with a filter.
   const counts = useMemo(() => countCertificateTemplates(templates), [templates])
 
   const visible = useMemo(() => {
@@ -94,8 +93,7 @@ export function CertificateTemplatesPage() {
     [visible, selectedId],
   )
 
-  // Kept off `visible`: a template stays open in the customizer even when the edit
-  // being saved (a status change, say) drops it out of the current filter.
+  // Not from `visible`: a save may drop the open template out of the filter.
   const customizing = useMemo(
     () => templates.find((template) => template.id === customizingId) ?? null,
     [templates, customizingId],
@@ -126,11 +124,7 @@ export function CertificateTemplatesPage() {
   const select = (template: CertificateTemplate) =>
     setSelectedId((current) => (current === template.id ? null : template.id))
 
-  /**
-   * Archiving and restoring are status edits, so they go through the same save the
-   * customizer uses rather than an endpoint of their own — the template is submitted
-   * whole either way. Duplicate and download still wait on their own endpoints.
-   */
+  /** Status edits reuse the full-template save; duplicate and download await endpoints. */
   const applyStatus = async (
     template: CertificateTemplate,
     next: CertificateTemplateStatus,
@@ -172,8 +166,7 @@ export function CertificateTemplatesPage() {
   }
 
   const handleAction = (action: string, template: CertificateTemplate) => {
-    // The controls for these are hidden without the right; this catches anything
-    // that still reaches the dispatcher, such as a stale menu.
+    // Backstop for stale menus; the controls are hidden without the right.
     if (TEMPLATE_WRITE_ACTIONS.has(action) && !canManage) {
       toast.error('Managing templates needs the "Manage templates" right')
       return
@@ -263,8 +256,6 @@ export function CertificateTemplatesPage() {
       <NewCertificateTemplateDialog
         open={creating}
         onOpenChange={setCreating}
-        // Filing a template and designing it is one errand, so the customizer opens on
-        // the new draft the moment it exists.
         onCreated={(template) => {
           setCreating(false)
           setCustomizingId(template.id)
@@ -276,8 +267,7 @@ export function CertificateTemplatesPage() {
         onOpenChange={(next) => !next && setDeployingId(null)}
         onDeployed={() => {
           setDeployingId(null)
-          // The template's "deployed to N events" tally is kept server-side, so the
-          // card is re-read rather than guessed at here.
+          // The deployed tally is server-side, so re-read.
           void fetchTemplates()
           navigate(ADMIN_DEPLOYED_CERTIFICATES_PATH)
         }}

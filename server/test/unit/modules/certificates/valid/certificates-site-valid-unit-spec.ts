@@ -12,19 +12,7 @@ import {
 import { CertificateDeploymentStatus, NotificationCategory, RoleType } from '../../../../../src/infastructures/prisma/common/client';
 import { CertificatesSiteService } from '../../../../../src/modules/certificates/services/certificates-site-service';
 
-/**
- * Certificate Module · Remind Pending — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Remind pending recipients — input validation: the action reads nothing but the
-   * deployment id in its path.
-   */
   const fixtures: LayerFixture<string>[] = [
     { name: 'valid uuid', input: VALID_DEPLOYMENT_ID, expected: 'PASS' },
     { name: 'upper-case uuid', input: VALID_DEPLOYMENT_ID.toUpperCase(), expected: 'PASS' },
@@ -45,13 +33,7 @@ import { CertificatesSiteService } from '../../../../../src/modules/certificates
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Remind pending recipients — normalisation: the service receives the validated id with
-   * the caller and where the request came from, a body is ignored, and the response schema
-   * keeps who was reminded off the wire.
-   */
   describe('certificates site · remind pending recipients — normalisation', () => {
     const ctx = useCertificatesApp();
 
@@ -76,7 +58,6 @@ import { CertificatesSiteService } from '../../../../../src/modules/certificates
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   describe('certificates site · remind pending recipients — security', () => {
     // Who is notified lives in the real service, built per case below.

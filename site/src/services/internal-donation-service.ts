@@ -7,14 +7,6 @@ import type {
 } from '../types/internal-donation'
 import { apiClient, parseApiError } from './api-client'
 
-/**
- * The donation ledger — `/api/v1/donations/site`. A money row is opened by the
- * gateway once a checkout is paid, a goods row when the donor pledges in the app;
- * the director walks either one to confirmed here. Every move writes a trail entry
- * and puts a notice on the donor's feed.
- */
-
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
 type WireKind = 'MONEY' | 'GOODS'
@@ -153,15 +145,13 @@ export async function fetchInternalDonations(): Promise<InternalDonation[]> {
 
 export interface DonationStatusChange {
   status: DonationStatus
-  /** Optional, shown on the timeline and in the donor's notice. */
   note?: string
-  /** Kept for the caller's toast; the server records its own actor from the token. */
+  /** For the toast only; the server records the actor from the token. */
   actor: string
 }
 
 export interface DonationStatusChangeResult {
   donation: InternalDonation
-  /** The address the donor's notice went to. */
   notifiedEmail: string
 }
 

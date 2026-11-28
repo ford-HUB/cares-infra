@@ -8,10 +8,7 @@ interface RegistrationStatusEnvelope {
   data?: RegistrationStatus
 }
 
-/**
- * Reads a sign-up's review status with the signed token from the email link. The
- * endpoint is public — a registrant cannot sign in until they are approved.
- */
+/** Public endpoint: registrants can't sign in until approved. */
 export async function fetchRegistrationStatus(
   token: string,
 ): Promise<ApiResponse<RegistrationStatus>> {

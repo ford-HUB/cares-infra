@@ -4,7 +4,6 @@ import type { CaresEvent, EventStatus } from '../types/event'
 
 dayjs.extend(isBetween)
 
-/** Time-range filter for the events table. */
 export type EventTimeFilter = 'all' | 'today' | 'this_week' | 'this_month' | 'past' | 'future'
 
 export const EVENT_TIME_FILTERS: { value: EventTimeFilter; label: string }[] = [
@@ -16,10 +15,7 @@ export const EVENT_TIME_FILTERS: { value: EventTimeFilter; label: string }[] = [
   { value: 'future', label: 'Future Events' },
 ]
 
-/**
- * Status filter for the events table.
- * `active` = Upcoming + Ongoing (events that are not finished or cancelled).
- */
+/** `active` = Upcoming + Ongoing. */
 export type EventStatusFilter = 'all' | 'active' | EventStatus
 
 export const EVENT_STATUS_FILTERS: { value: EventStatusFilter; label: string }[] = [
@@ -31,7 +27,7 @@ export const EVENT_STATUS_FILTERS: { value: EventStatusFilter; label: string }[]
   { value: 'Cancelled', label: 'Cancelled' },
 ]
 
-/** Recompute status from start/end timestamps (respects Cancelled). */
+/** Cancelled stays Cancelled. */
 export function deriveEventStatus(
   start: string,
   end: string,

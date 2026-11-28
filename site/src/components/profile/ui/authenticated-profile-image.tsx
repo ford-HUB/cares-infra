@@ -17,8 +17,7 @@ export function AuthenticatedProfileImage({
 }: AuthenticatedProfileImageProps) {
   const { objectUrl, loading } = useAuthenticatedProfileAsset(asset, enabled)
 
-  // The placeholder takes the caller's className so it keeps the image's exact box —
-  // the avatar's rounding and dimensions come from there, not from this component.
+  // The placeholder takes the caller's className, which carries the avatar's box.
   if (loading) {
     return (
       <Skeleton className={className} aria-hidden />

@@ -1,7 +1,5 @@
-// Unit tests for the ID recognition fallback offered to staff and alumni
-// sign-ups: when an ID photo is blurry, unclear or read with low accuracy, the
-// registrant is told the ID couldn't be recognized and may Proceed Anyway or
-// switch to Manual Registration.
+// ID recognition fallback for staff/alumni: an unclear ID offers Proceed Anyway
+// or Manual Registration.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

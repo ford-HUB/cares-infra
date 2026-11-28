@@ -18,16 +18,13 @@ import type { StatisticsRange } from '../../../types/department-statistics'
 
 interface StatisticsToolbarProps {
   title: string
-  /** The scope in words — a college name, or "All departments". */
+  /** A college name, or "All departments". */
   scopeLabel: string
   generatedAt: string | null
   range: StatisticsRange
   category: string
   categories: readonly string[]
-  /**
-   * Present only on the director-level view, where the reader picks the college.
-   * A coordinator's scope is fixed by their profile, so they get no such filter.
-   */
+  /** Director view only; a coordinator's scope is fixed by their profile. */
   departmentFilter?: {
     value: string
     options: readonly string[]
@@ -39,11 +36,6 @@ interface StatisticsToolbarProps {
   onRefresh: () => void
 }
 
-/**
- * Title plus the two filters every chart below obeys: how far back, and which event
- * category. The heading stacks above its own row of controls, all on one left margin,
- * so the filters read as applying to the whole screen rather than to one chart.
- */
 export function StatisticsToolbar({
   title,
   scopeLabel,

@@ -41,22 +41,14 @@ import {
   UpdateGoodsDonationSchema,
 } from '../validators/donations-mobile-validator';
 
-/**
- * The donor's side of money donations: open a checkout, watch it, list past
- * ones. `@Roles` sits on each handler rather than the class because the
- * return page below is reached by a browser with no token at all.
- */
+/** `@Roles` per handler: the return page is reached without a token. */
 @Controller('v1/donations')
 export class DonationsMobileController {
   constructor(
     private readonly donationsMobileService: DonationsMobileService,
   ) {}
 
-  /**
-   * Opens a checkout with the chosen channel. `Idempotency-Key` is required:
-   * the app generates one UUID per attempt and re-sends it on retry, so a
-   * flaky connection can never open two charges for one tap.
-   */
+  /** `Idempotency-Key` (one UUID per attempt) prevents double charges on retry. */
   @Post('payments')
   @Roles(...DONATIONS_MOBILE_ROLE_TYPES)
   @ResponseMessage('Checkout ready')
@@ -90,7 +82,7 @@ export class DonationsMobileController {
     return this.donationsMobileService.listMine(user.sub);
   }
 
-  /** Polled by the app while a checkout is open in GCash / the browser / a QR. */
+  /** Polled while a checkout is open. */
   @Get('payments/:id')
   @Roles(...DONATIONS_MOBILE_ROLE_TYPES)
   @ResponseMessage('Donation payment')
@@ -102,9 +94,7 @@ export class DonationsMobileController {
     return this.donationsMobileService.getPayment(user.sub, id);
   }
 
-  // ------------------------------------------------------------- ledger
-
-  /** Every donation the donor made — money and goods — latest first. */
+  /** Money and goods, latest first. */
   @Get('me')
   @Roles(...DONATIONS_MOBILE_ROLE_TYPES)
   @ResponseMessage('Your donations')
@@ -126,10 +116,7 @@ export class DonationsMobileController {
     return this.donationsMobileService.pledgeGoods(user.sub, body);
   }
 
-  /**
-   * `:id` also matches the portal's `site` segment — `DonationsModule`
-   * registers the site controller first so its literal routes win.
-   */
+  /** Also matches the portal's `site` segment; the site controller registers first so its literals win. */
   @Get(':id')
   @Roles(...DONATIONS_MOBILE_ROLE_TYPES)
   @ResponseMessage('Donation')
@@ -165,12 +152,7 @@ export class DonationsMobileController {
     return this.donationsMobileService.cancelGoods(user.sub, id);
   }
 
-  /**
-   * Where GCash and the hosted checkout send the browser afterwards. It is a
-   * plain "go back to the app" page — the outcome in the query is only a hint
-   * for the copy; the real status comes from the callback and is what the app
-   * polls for.
-   */
+  /** Plain "back to the app" page; the query outcome only tweaks the copy, the callback is authoritative. */
   @Get('payments/:id/return')
   @Public()
   paymentReturn(

@@ -23,7 +23,6 @@ const config: ChartConfig = {
   serviceHours: { label: 'Service hours', color: STATISTICS_SERIES_COLOR.single },
 }
 
-/** Credited volunteer hours per month — a single series, so an area reads best. */
 export function ServiceHoursChart({ monthly }: ServiceHoursChartProps) {
   const total = monthly.reduce((sum, row) => sum + row.serviceHours, 0)
 

@@ -1,7 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors `ReportLibrary` — the consolidated card, the folder row, then file cards. */
 export function ReportLibrarySkeleton() {
   return (
     <div aria-hidden className="min-h-0 flex-1 space-y-4">

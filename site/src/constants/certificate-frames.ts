@@ -10,29 +10,20 @@ export const CERTIFICATE_FRAME_ORDER: CertificateFrame[] = [
   'minimal',
 ]
 
-/** Where the frame prints the seal. */
 export type FrameSealPlacement = 'body' | 'signature-row' | 'body-right'
 
 export interface CertificateFramePreset {
   label: string
   description: string
-  /** Outer edge treatment of the sheet. */
   sheet: string
-  /** Padding the ornament needs to clear. */
   padding: string
   headline: string
-  /** The award line — a script-leaning face on the ornate frames. */
   title: string
   body: string
   signatureName: string
   sealPlacement: FrameSealPlacement
 }
 
-/**
- * One record per frame, holding both the ornament and the text formatting that goes
- * with it — a frame and its typography are one design decision, so they are picked
- * together rather than left to drift apart.
- */
 export const CERTIFICATE_FRAME_PRESETS: Record<CertificateFrame, CertificateFramePreset> =
   {
     plain: {
@@ -122,6 +113,6 @@ export const CERTIFICATE_FRAME_LABELS: Record<CertificateFrame, string> =
     ]),
   ) as Record<CertificateFrame, string>
 
-/** Imported logos are inlined as data URLs in the mock, so keep them small. */
+/** Inlined as data URLs in the mock. */
 export const LOGO_MAX_BYTES = 512 * 1024
 export const LOGO_ACCEPTED_TYPES = 'image/png,image/jpeg,image/svg+xml,image/webp'

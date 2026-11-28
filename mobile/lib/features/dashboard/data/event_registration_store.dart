@@ -17,9 +17,8 @@ class EventParticipation {
     required this.registeredAt,
   }) : eventId = event.id;
 
-  /// The joined event — the geofence tracker reads its venue and schedule.
-  /// Replaced by [EventRegistrationStore.refreshEvent] whenever the feed
-  /// brings a newer copy (status, end time, slot counts).
+  /// Read by the geofence tracker; replaced by
+  /// [EventRegistrationStore.refreshEvent] when the feed brings a newer copy.
   CaresEvent event;
   final String eventId;
   final String participantEmail;
@@ -29,11 +28,8 @@ class EventParticipation {
   DateTime? attendanceVerifiedAt;
 }
 
-/// In-memory event registration store for the static prototype phase.
-///
-/// Joins and cancellations are also mirrored to SQLite (`joined_events`) so
-/// the geofence recorder — which may be running in the background service
-/// with no UI alive — knows which events to record against.
+/// Prototype in-memory store, mirrored to SQLite (`joined_events`) so the
+/// background recorder knows which events to record.
 class EventRegistrationStore extends ChangeNotifier {
   EventRegistrationStore._();
 
@@ -92,9 +88,8 @@ class EventRegistrationStore extends ChangeNotifier {
     return participation;
   }
 
-  /// Swaps in a fresher copy of an already-joined event without touching the
-  /// registration itself, so a status flip on the server (Ongoing, Completed)
-  /// or a corrected end time reaches the activity page and the tracker.
+  /// Keeps the registration; lets server status or end-time changes reach the
+  /// activity page and tracker.
   void refreshEvent(CaresEvent event, {required String email}) {
     final participation = _participations[_key(event.id, email)];
     if (participation == null) return;
@@ -105,8 +100,7 @@ class EventRegistrationStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Seeds the prototype scenario: the volunteer already joined every
-  /// completed event and their attendance was verified on the event day.
+  /// Prototype seed: every completed event joined, with verified attendance.
   void seedCompletedEventParticipation({String? email, String? name}) {
     final participantEmail =
         email ??
@@ -141,8 +135,6 @@ class EventRegistrationStore extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
-  /// Cancels participation locally — the event goes back to its unjoined
-  /// state for this participant.
   void cancelParticipation(String eventId, String email) {
     final removed = _participations.remove(_key(eventId, email));
     unawaited(_db.deleteJoinedEvent(eventId, email));

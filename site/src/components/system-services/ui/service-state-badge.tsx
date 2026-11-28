@@ -12,7 +12,6 @@ interface ServiceStateBadgeProps {
   className?: string
 }
 
-/** Where one scheduler sits in its cycle. Only a run in flight animates. */
 export function ServiceStateBadge({ state, className }: ServiceStateBadgeProps) {
   return (
     <span

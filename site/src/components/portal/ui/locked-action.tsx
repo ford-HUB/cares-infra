@@ -8,15 +8,11 @@ interface LockedActionProps {
   label: string
   icon?: LucideIcon
   side?: 'top' | 'bottom' | 'left' | 'right'
-  /** Matches the live button it stands in for — `sm` for the h-8 panel buttons. */
+  /** Matches the live button: `sm` for the h-8 panel buttons. */
   size?: 'sm' | 'md'
 }
 
-/**
- * A toolbar button whose right has been suspended. It keeps the button's place on
- * the screen — same height and shape as the live one — but reads red, cannot be
- * pressed, and explains itself on hover.
- */
+/** Keeps the live button's place and shape, but reads red, is inert, and explains on hover. */
 export function LockedActionButton({
   suspension,
   label,
@@ -40,10 +36,7 @@ export function LockedActionButton({
   )
 }
 
-/**
- * A row-menu entry whose right has been suspended. Stays in the menu so the person
- * can see the action exists, but is inert and red; hover for the reason and window.
- */
+/** Stays in the menu, inert and red; hover shows the reason and window. */
 export function LockedMenuItem({
   suspension,
   label,
@@ -64,11 +57,7 @@ export function LockedMenuItem({
   )
 }
 
-/**
- * The same, for a shadcn `DropdownMenuContent`. Rendered as a plain row rather than a
- * `DropdownMenuItem` because Radix drops pointer events on a disabled item, which
- * would also swallow the hover the tooltip needs.
- */
+/** A plain row, not `DropdownMenuItem`: Radix drops pointer events on disabled items, killing the tooltip hover. */
 export function LockedDropdownItem({
   suspension,
   label,

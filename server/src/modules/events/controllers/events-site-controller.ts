@@ -47,7 +47,7 @@ import {
   UpdateEventSchema,
 } from '../validators/events-site-validator';
 
-/** Uploads are buffered in memory, so the cap has to apply while the file is read. */
+/** Memory buffered, so the cap applies during read. */
 const EVENT_IMAGES_INTERCEPTOR = FilesInterceptor(
   'event_images',
   EVENT_MAX_IMAGE_COUNT,
@@ -66,12 +66,7 @@ export class EventsSiteController {
     return this.eventsSiteService.listEvents();
   }
 
-  /**
-   * Event images sit in a private bucket, so the portal cannot point an `<img>` at the
-   * stored S3 URL — it fetches the bytes through this authenticated route instead.
-   * Every mobile role (volunteers, donors, beneficiaries) reads the same stream
-   * for the cards on their events and campaign tabs.
-   */
+  /** Private bucket, so streamed here; also used by every mobile role. */
   @Get(':id/images/:index')
   @Roles(...PORTAL_ROLE_TYPES, ...MOBILE_ROLE_TYPES)
   async getEventImage(

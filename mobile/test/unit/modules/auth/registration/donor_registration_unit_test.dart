@@ -1,7 +1,7 @@
-// Unit tests for donor registration — both sign-up routes the donor screen
-// (RegisterDonorScreen) offers, in the order it sends them:
+// Donor registration unit tests for both RegisterDonorScreen routes (MockClient
+// only):
 //
-//   Email + password (no provider vouches for the address, so it borrows OTP):
+//   Email + password:
 //     POST /v1/auth/send-verification    AuthRegistrationService.sendVerificationCode
 //     POST /v1/auth/verify-otp           AuthRegistrationService.verifyOtp
 //     POST /v1/auth/donor/register-email DonorAuthService.registerDonorWithEmail
@@ -9,12 +9,6 @@
 //   Google / Facebook:
 //     POST /v1/auth/donor/oauth          DonorAuthService.exchangeProviderToken
 //     POST /v1/auth/donor/register       DonorAuthService.registerDonor (spends the ticket)
-//
-// Plus the models the screen builds the donor from: the OAuth result and
-// profile, the login session it gets back, and the in-memory DonorSession.
-//
-// The network is replaced with package:http's MockClient, so nothing here
-// reaches a real server or a real Google / Facebook account.
 
 import 'dart:convert';
 import 'dart:io';
@@ -47,12 +41,7 @@ const _oauthPath = '/v1/auth/donor/oauth';
 const _registerPath = '/v1/auth/donor/register';
 const _registerEmailPath = '/v1/auth/donor/register-email';
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
-/// A MockClient that keeps every request so the test can inspect them. One
-/// recorder backs both services, as one server backs both on the real screen.
+/// One recorder backs both services, as one server does on the real screen.
 class _Recorder {
   _Recorder([Future<http.Response> Function(http.Request request)? reply])
     : _reply = reply ?? _defaultReply;
@@ -147,11 +136,6 @@ Future<http.Response> _defaultReply(http.Request request) async {
   return _fail(404, 'Not found');
 }
 
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
-
-/// A complete address picked from the directory, as the donor form builds it.
 PhAddress _address() {
   final city = PhAddressDirectory.localityNamed('Lapu-Lapu City')!;
   return PhAddress(
@@ -226,10 +210,6 @@ void main() {
       expect(_address().formatted, _formattedAddress);
     },
   );
-
-  // -------------------------------------------------------------------------
-  // Email + password route
-  // -------------------------------------------------------------------------
 
   group('POST /auth/donor/register-email', () {
     test('sends an unauthenticated JSON POST to the versioned path', () async {
@@ -383,10 +363,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Google / Facebook route
-  // -------------------------------------------------------------------------
 
   group('POST /auth/donor/oauth (new donor)', () {
     test(
@@ -575,10 +551,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Whole process, end to end against the mock server
-  // -------------------------------------------------------------------------
-
   group('full donor registration process', () {
     test('email route: send code → verify → create, no ID number', () async {
       final rec = _Recorder();
@@ -727,10 +699,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Models
-  // -------------------------------------------------------------------------
 
   group('donor models', () {
     test(

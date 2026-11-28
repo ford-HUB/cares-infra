@@ -9,11 +9,9 @@ import type { EventStatus, EventTableRow } from '../types/event'
 import { PdfReport } from './pdf/pdf-report'
 
 interface EventsPdfOptions {
-  /** The college a coordinator is scoped to; absent for admins and directors. */
+  /** Absent for admins and directors. */
   scopeLabel?: string
-  /** The filters in force, in words, so the reader knows what subset they hold. */
   filters: { label: string; value: string }[]
-  /** Every event in scope before filtering — for the "N of M" line. */
   total: number
 }
 
@@ -28,11 +26,7 @@ function donationSummary(row: EventTableRow) {
   return kinds.length ? kinds.join(', ') : '—'
 }
 
-/**
- * The Manage Events grid as a report: the filters that produced it, a count per
- * status, then one row per event in the order the table shows them. Landscape,
- * because ten columns of event detail don't fit a portrait page.
- */
+/** Landscape: ten columns don't fit portrait. */
 export function exportEventsPdf(
   rows: EventTableRow[],
   { scopeLabel, filters, total }: EventsPdfOptions,
@@ -66,7 +60,6 @@ export function exportEventsPdf(
     ],
   )
 
-  // ── Headline figures ────────────────────────────────────────────────────────
   report.heading('Summary')
   report.facts(
     [
@@ -84,7 +77,6 @@ export function exportEventsPdf(
     6,
   )
 
-  // ── Every event ────────────────────────────────────────────────────────────
   report.heading('Events', `${rows.length} listed`)
   report.table(
     [

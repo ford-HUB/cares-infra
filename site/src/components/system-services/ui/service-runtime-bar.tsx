@@ -2,18 +2,14 @@ import { cn } from '@/lib/utils'
 import { formatRuntime } from '../../../constants/system-services'
 
 interface ServiceRuntimeBarProps {
-  /** Seconds the run being described has spent — elapsed if it is still going. */
+  /** Elapsed, if the run is still going. */
   spentSeconds: number
   averageSeconds: number
   capSeconds: number
   running: boolean
 }
 
-/**
- * How much of its runtime window a run is using. The cap is the whole bar, the median
- * run is a tick on it — so a run drifting toward the kill line reads as drift, not as
- * a number staff have to compare against a setting elsewhere on the row.
- */
+/** The cap is the whole bar and the median run a tick, so drift toward the kill line is visible. */
 export function ServiceRuntimeBar({
   spentSeconds,
   averageSeconds,

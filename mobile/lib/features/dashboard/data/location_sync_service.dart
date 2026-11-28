@@ -9,7 +9,6 @@ import '../../../core/services/api_client.dart';
 import '../domain/location_records.dart';
 import 'location_capture_db.dart';
 
-/// Outcome of one sync attempt for one event.
 class LocationSyncResult {
   const LocationSyncResult({
     required this.uploaded,
@@ -20,8 +19,7 @@ class LocationSyncResult {
   /// Rows the server accepted (0 when there was nothing pending).
   final int uploaded;
 
-  /// Where the CSV copy sits on the device — written even when the upload
-  /// fails, so the trail survives offline until the next attempt.
+  /// Written even when the upload fails, so the trail survives offline.
   final String? csvPath;
 
   final String? error;
@@ -29,14 +27,10 @@ class LocationSyncResult {
   bool get succeeded => error == null;
 }
 
-/// Pushes coordinates to the server — live one fix at a time while online,
-/// or as one CSV per event for whatever piled up in SQLite while offline.
-///
-/// Offline flow: pending rows → CSV text → saved under
-/// `<app documents>/geolocation/uploads/<event>_<yyyy-MM-dd>.csv` → multipart
-/// upload → rows flipped to synced. Any failure after the file is written
-/// leaves the rows pending and the file on disk, so a later "Sync" simply
-/// retries.
+/// Offline flow: pending rows → CSV at
+/// `<app documents>/geolocation/uploads/<event>_<yyyy-MM-dd>.csv` →
+/// multipart upload → rows marked synced. Failures leave the rows pending and
+/// the file on disk for a retry.
 class LocationSyncService {
   LocationSyncService({ApiClient? apiClient, LocationCaptureDb? db})
     : _api = apiClient ?? ApiClient(),
@@ -44,14 +38,11 @@ class LocationSyncService {
 
   static const csvHeader = LocationRecords.csvHeader;
 
-  /// Server endpoint that ingests one event's CSV for the signed-in
-  /// volunteer. Not built on the NestJS side yet — until it is, the request
-  /// fails and rows stay pending, which is the same path as being offline.
+  /// Not built on the server yet; until then the request fails and rows stay
+  /// pending, like offline.
   static const syncPath = '/attendance/geofence/mobile/sync';
 
-  /// Server endpoint that takes one fix as JSON while the volunteer is
-  /// online. Not built on the NestJS side yet either — a failure sends the
-  /// fix down the offline path instead.
+  /// Not built on the server yet; failures take the offline path.
   static const livePath = '/attendance/geofence/mobile/coordinates';
 
   /// Short so a slow server can't stack up one-second ticks.
@@ -60,8 +51,7 @@ class LocationSyncService {
   final ApiClient _api;
   final LocationCaptureDb _db;
 
-  /// Sends one fix straight to the server. False on any failure — the caller
-  /// stores the row locally instead.
+  /// False on any failure; the caller stores the row locally.
   Future<bool> submitLive(LocationCaptureRow row) async {
     try {
       await _api.postJson(
@@ -75,8 +65,7 @@ class LocationSyncService {
     }
   }
 
-  /// Uploads every event that still has pending rows. Returns the number of
-  /// rows accepted and the first error, if any event failed.
+  /// Returns rows accepted and the first error, if any.
   Future<({int uploaded, String? error})> syncPending({
     required String email,
   }) async {
@@ -90,9 +79,8 @@ class LocationSyncService {
     return (uploaded: uploaded, error: error);
   }
 
-  /// Uploads the event's pending rows. With [resync], and nothing pending,
-  /// the whole trail is sent again — the manual button on the sync sheet, so
-  /// the volunteer never has to wait on an automatic push.
+  /// With [resync] and nothing pending, resends the whole trail (the sync
+  /// sheet's manual button).
   Future<LocationSyncResult> syncEvent({
     required String eventId,
     required String email,
@@ -149,8 +137,7 @@ class LocationSyncService {
     return LocationSyncResult(uploaded: pending.length, csvPath: csvPath);
   }
 
-  /// Writes (or rewrites) the event's upload CSV under
-  /// `<app documents>/geolocation/uploads/` — separate from the daily logs.
+  /// Separate from the daily logs.
   Future<String> _writeCsv(
     String eventId,
     List<LocationCaptureRow> rows,

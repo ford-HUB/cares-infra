@@ -12,10 +12,8 @@ interface CalendarToolbarProps {
   title: string
   view: CalendarView
   category: CalendarCategoryFilter
-  /** Events drawn in the current range, after the category filter. */
   shown: number
   total: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
   onViewChange: (view: CalendarView) => void
   onCategoryChange: (category: CalendarCategoryFilter) => void

@@ -40,7 +40,7 @@ interface PeakDotProps {
   payload?: { sample: boolean }
 }
 
-/** The peak marker, faded on sample days like the bar beneath it. */
+/** Faded on sample days, like the bar beneath it. */
 function renderPeakDot({ cx, cy, index, payload }: PeakDotProps) {
   if (cx === undefined || cy === undefined) return <g key={index} />
   return (
@@ -57,13 +57,7 @@ function renderPeakDot({ cx, cy, index, payload }: PeakDotProps) {
   )
 }
 
-/**
- * CPU usage per day: the bar is the day's average, the line its busiest moment —
- * two readings of one measure on one 0–100 % axis, pinned so a quiet week never
- * looks as alarming as a saturated one. The last bar is live (the server's last
- * 24 h); earlier days are sample data until the server keeps a daily history, so
- * they are drawn faded and say so in the tooltip and the footnote.
- */
+/** Axis pinned to 0–100 %. Only the last bar is live (server's last 24 h); earlier days are sample data until a daily history exists, so they're faded. */
 export function DailyCpuChart({ daily, range, onRangeChange }: DailyCpuChartProps) {
   const rows = daily.map((d) => ({
     date: d.date,
@@ -117,7 +111,7 @@ export function DailyCpuChart({ daily, range, onRangeChange }: DailyCpuChartProp
             className="text-[11px]"
             tickFormatter={(value: number) => `${value}%`}
           />
-          {/* A threshold, not a series — gray so it never competes with the data. */}
+          {/* A threshold, not a series; grey so it never competes with the data. */}
           <ReferenceLine
             y={CPU_STRAINED_PERCENT}
             stroke="var(--color-gray-400)"

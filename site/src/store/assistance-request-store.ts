@@ -8,7 +8,6 @@ import type { AssistanceDecision, AssistanceRequest } from '../types/assistance-
 interface AssistanceRequestState {
   requests: AssistanceRequest[]
   loading: boolean
-  /** False until the first fetch settles, so the empty state can't flash on mount. */
   initialized: boolean
   error: string | null
   fetchRequests: () => Promise<void>

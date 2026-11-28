@@ -3,10 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { bulletinPageAlt, bulletinPagePhoto } from '../../constants/landing-programs'
 import { PROGRAMS_PATH } from '../../constants/routes'
 
-/** react-router's key for the first entry of a visit: nothing on the site to go back to. */
+/** react-router's key for the first entry of a visit (nothing to go back to). */
 const FIRST_HISTORY_ENTRY_KEY = 'default'
 
-/** One scanned bulletin page, filling the screen. */
 export function LandingBulletinPageViewer({ page }: { page: number }) {
   const navigate = useNavigate()
   const { key } = useLocation()

@@ -23,22 +23,17 @@ import { LivePulse } from '../attendance/ui/live-pulse'
 import { CpuBandSegment } from './ui/cpu-band-segment'
 
 interface PerformanceBannerProps {
-  /** The newest reading — everything here is "right now", not an average. */
+  /** The newest reading; nothing here is an average. */
   sample: PerformanceSample
   host: PerformanceHost
   loadAverage: [number, number, number]
-  /** Which band the CPU chart is focused on, or null while all three are charted. */
+  /** Null while all three bands are charted. */
   focus: CpuBand | null
   onFocusChange: (band: CpuBand | null) => void
-  /** True while the live window is appending readings. */
   streaming: boolean
 }
 
-/**
- * The one question this page answers: how much of the host is being used right now.
- * The three CPU bands are parts of that single measurement, so they share one capacity
- * bar rather than sitting as three tiles — and each part focuses the chart below it.
- */
+/** The three CPU bands share one capacity bar; each legend entry focuses the chart. */
 export function PerformanceBanner({
   sample,
   host,
@@ -79,7 +74,7 @@ export function PerformanceBanner({
           <div className="hidden w-px self-stretch bg-gray-100 lg:block" />
 
           <div className="min-w-0 flex-1 space-y-2">
-            {/* One bar, four parts: the three busy bands and the headroom that is left. */}
+            {/* The three busy bands plus the remaining headroom. */}
             <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-gray-100">
               {CPU_BAND_ORDER.map((band) => (
                 <div

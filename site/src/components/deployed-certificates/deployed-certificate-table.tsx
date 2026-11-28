@@ -18,7 +18,6 @@ interface DeployedCertificateTableProps {
 const headCell =
   'px-3 py-2 text-[11px] font-semibold tracking-wider text-gray-400 uppercase'
 
-/** The dense view, for comparing distribution across every event at once. */
 export function DeployedCertificateTable({
   deployments,
   showSkeleton,

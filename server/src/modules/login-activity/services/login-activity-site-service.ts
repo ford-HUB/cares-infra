@@ -10,7 +10,7 @@ import {
   type LoginActivityRow,
 } from '../repositories/login-activity-repository';
 
-/** How far back each range reaches, in hours. `all` is unbounded, so it has no entry. */
+/** `all` is unbounded. */
 const RANGE_HOURS: Record<Exclude<LoginActivityRangeDto, 'all'>, number> = {
   '24h': 24,
   '7d': 24 * 7,
@@ -35,7 +35,7 @@ export class LoginActivitySiteService {
       limit: query.limit,
     });
 
-    // A short page means the trail is exhausted; a full one may still have more.
+    // A short page means exhausted.
     const exhausted = rows.length < query.limit;
 
     return {

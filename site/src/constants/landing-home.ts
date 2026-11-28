@@ -8,11 +8,7 @@ import programAppreciation from '../assets/landing_page/photos/program-appreciat
 import heroBackground from '../assets/landing_page/photos/hero-background.jpg'
 import visayasDisasterCenter from '../assets/landing_page/photos/visayas-disaster-center.jpg'
 
-/** Home-page "at a glance" figures.
- *
- *  MOCK DATA: the public site fetches nothing, so these are sample figures shaped
- *  like the event-evaluation and attendance records the portal already keeps.
- *  Swap them for a public summary endpoint when one exists. */
+/** MOCK DATA: the public site fetches nothing; swap for a public summary endpoint when one exists. */
 
 // export const LANDING_STATS_NOTE =
 //   'Sample figures for SY 2024–2025 — live values will come from event evaluations and attendance records.'
@@ -22,7 +18,6 @@ export interface LandingRatingBucket {
   count: number
 }
 
-/** Volunteer and beneficiary evaluation responses, by star rating. */
 export const LANDING_RATING_BUCKETS: readonly LandingRatingBucket[] = [
   { stars: 5, count: 1012 },
   { stars: 4, count: 186 },
@@ -36,12 +31,11 @@ export const LANDING_RATING_MAX = 5
 export interface LandingBeneficiaryGroup {
   label: string
   count: number
-  /** One step of a single-hue ramp: these are parts of one total, not states. */
   barClass: string
   dotClass: string
 }
 
-/** Beneficiaries served, by community. Sums to the headline total. */
+/** Sums to the headline total. */
 export const LANDING_BENEFICIARY_GROUPS: readonly LandingBeneficiaryGroup[] = [
   { label: 'Barangay Looc', count: 1420, barClass: 'bg-emerald-800', dotClass: 'bg-emerald-800' },
   { label: 'Barangay Opao', count: 1180, barClass: 'bg-emerald-600', dotClass: 'bg-emerald-600' },
@@ -55,21 +49,17 @@ export const LANDING_BENEFICIARY_GROUPS: readonly LandingBeneficiaryGroup[] = [
   },
 ] as const
 
-/** Home-page video. Leave `src` empty to show the "coming soon" frame; set it to a
- *  video URL (served from the public S3 bucket) to show the player. */
+/** Empty `src` shows the "coming soon" frame. */
 export const LANDING_VIDEO = {
   src: 'https://amzn-s3-cares-storage-dev.s3.ap-southeast-2.amazonaws.com/videos/UCLM+CARES+AVP.mp4',
   poster: heroBackground,
   title: 'UCLM CARES video',
-  /** Share of the video that must be on screen before it plays. */
   visibleRatio: 0.5,
   heading: { before: 'Watch', accent: 'CARES', after: 'in Action' },
   description: 'Discover stories, programs, and real moments of impact from our communities.',
   placeholder: 'Video coming soon',
 } as const
 
-/** Home-page partners. Logos are cleaned, transparent copies of the originals in
- *  `public/partners/`, kept in its `logos/` folder. */
 export interface LandingPartner {
   name: string
   logo: string
@@ -79,7 +69,6 @@ export const LANDING_PARTNERS_COPY = {
   eyebrow: 'Partners',
   title: { before: 'Our', accent: 'Partners' },
   description: 'Working with communities and organizations to create meaningful impact.',
-  /** Names the partner grid for screen readers, now that it has no visible group titles. */
   listLabel: 'Partner barangays and organizations',
 } as const
 
@@ -137,8 +126,6 @@ export const LANDING_EXPLORE_LINKS: readonly LandingExploreLink[] = [
   },
 ] as const
 
-/** Banner copy for each section after Home. The title reads `title accent`, with the
- *  accent in gold italic. */
 export const LANDING_PAGE_HEADERS = {
   about: {
     title: 'Community Awareness, Relations and',
@@ -152,7 +139,6 @@ export const LANDING_PAGE_HEADERS = {
     accent: 'Programs',
     description: 'Community awareness, relations and extension services across UCLM.',
     photos: { left: programAppreciation, right: ccsGiftGiving },
-    /** The programs grid sits on mint, so the hills end in mint. */
     waveFill: 'mint',
   },
   highlights: {
@@ -162,10 +148,8 @@ export const LANDING_PAGE_HEADERS = {
     photos: {
       left: caresLeadersFormal,
       right: partnershipAwards,
-      /** Crop the portrait from higher up so all three faces stay in the strip. */
       leftPosition: '50% 22%',
     },
-    /** The year list below sits on white, so the hills end in white. */
     waveFill: 'white',
   },
 } as const

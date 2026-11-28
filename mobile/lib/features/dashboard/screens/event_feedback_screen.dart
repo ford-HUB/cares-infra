@@ -11,11 +11,8 @@ import '../data/event_feedback_store.dart';
 import '../data/models/event_evaluation_models.dart';
 import '../domain/cares_event.dart';
 
-/// Post-event feedback form. The questions are the questionnaire the director
-/// assigned to this event in the portal's Evaluation → Forms — so two events
-/// can ask different things — falling back to the default questionnaire when
-/// the event has none of its own. Submitting here records the answers
-/// server-side and unlocks the event certificate.
+/// Questions come from the event's assigned questionnaire (or the default).
+/// Submitting records the answers and unlocks the certificate.
 class EventFeedbackScreen extends StatefulWidget {
   const EventFeedbackScreen({super.key, required this.event});
 
@@ -39,9 +36,8 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
   final _store = EventFeedbackStore.instance;
   final _service = EventEvaluationService();
 
-  /// Answers keyed by question id, in the shape the server stores them:
-  /// a string, a list of strings, or a number. An image-upload answer holds
-  /// the picked photos' local paths until submit sends them as files.
+  /// Server shape: a string, list of strings or number. Image answers hold
+  /// local paths until submit sends them as files.
   final Map<String, dynamic> _answers = {};
 
   EventEvaluation? _evaluation;
@@ -91,7 +87,6 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
   List<EvaluationQuestion> get _questions =>
       _evaluation?.form?.questions ?? const [];
 
-  /// A question counts as answered when the value is non-empty for its type.
   bool _isAnswered(EvaluationQuestion q) {
     final value = _answers[q.id];
     if (value == null) return false;
@@ -272,8 +267,8 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Two events can ask different questions, so the form says whose
-              // questions these are rather than leaving it to be guessed.
+              // Events ask different questions, so the form says whose these
+              // are.
               _FormOriginChip(isDefault: form.isDefault),
               const SizedBox(height: 18),
               for (var i = 0; i < form.questions.length; i++) ...[
@@ -346,7 +341,6 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
   }
 }
 
-/// Full-screen notice for the states where there is nothing to fill in.
 class _MessageState extends StatelessWidget {
   const _MessageState({
     required this.icon,
@@ -418,7 +412,6 @@ class _MessageState extends StatelessWidget {
   }
 }
 
-/// One question in its own card, with the input the question type calls for.
 class _QuestionCard extends StatelessWidget {
   const _QuestionCard({
     required this.index,
@@ -651,7 +644,6 @@ class _TextAnswerState extends State<_TextAnswer> {
   }
 }
 
-/// 1..N buttons in a row with the director's end labels underneath.
 class _ScaleAnswer extends StatelessWidget {
   const _ScaleAnswer({
     required this.question,
@@ -798,7 +790,7 @@ class _StarAnswer extends StatelessWidget {
   }
 }
 
-/// Stores the pick as `YYYY-MM-DD`, which is what the portal formats.
+/// Stored as `YYYY-MM-DD`, which the portal formats.
 class _DateAnswer extends StatelessWidget {
   const _DateAnswer({required this.value, required this.onChanged});
 
@@ -842,8 +834,7 @@ class _DateAnswer extends StatelessWidget {
   }
 }
 
-/// Photo picker for an image-upload question: thumbnails of what is attached,
-/// each removable, plus an add tile until the director's limit is reached.
+/// An add tile shows until the director's limit.
 class _ImageAnswer extends StatefulWidget {
   const _ImageAnswer({
     required this.maxFiles,
@@ -1037,7 +1028,6 @@ class _ImageAnswerState extends State<_ImageAnswer> {
   }
 }
 
-/// "Thank you for your feedback!" confirmation shown after submission.
 Future<void> showFeedbackThankYouDialog(
   BuildContext context,
   CaresEvent event,
@@ -1108,7 +1098,6 @@ Future<void> showFeedbackThankYouDialog(
   );
 }
 
-/// Whether these questions were chosen for this event or are the general set.
 class _FormOriginChip extends StatelessWidget {
   const _FormOriginChip({required this.isDefault});
 

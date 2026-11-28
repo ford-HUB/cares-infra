@@ -7,16 +7,11 @@ import {
   registerQueueSchedulers,
 } from '../scheduler-registry';
 
-/** Job names on the certificates queue — one catalogued sweep. */
 export const CERTIFICATES_JOBS = {
   issueEventCertificates: 'issue-event-certificates',
 } as const;
 
-/**
- * Certificate generation on its own queue. A deployment is queued by a director in
- * the portal; this sweep is what turns it into sheets once the event is over and the
- * ruling and the questionnaire have settled who earned one.
- */
+/** Turns queued deployments into sheets once the event, ruling and questionnaire settle. */
 @Injectable()
 export class CertificatesScheduler implements OnModuleInit {
   private readonly logger = new Logger(CertificatesScheduler.name);

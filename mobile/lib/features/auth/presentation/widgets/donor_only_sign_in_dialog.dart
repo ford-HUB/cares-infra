@@ -2,12 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 
-/// Shown from the login screen when a Google / Facebook sign-in comes back
-/// `registration_required`: the provider vouched for the person, but no CARES
-/// account is linked to it. Explains that social sign-in is a donor-only path
-/// and asks before moving them on to the donor sign-up.
-///
-/// Returns true when they choose to register as a donor, false / null otherwise.
+/// For a social sign-in that came back `registration_required`. True when they
+/// choose donor sign-up.
 Future<bool> showDonorOnlySignInDialog(
   BuildContext context, {
   required SocialAuthProvider provider,
@@ -30,8 +26,7 @@ class DonorOnlySignInDialog extends StatelessWidget {
 
   final SocialAuthProvider provider;
 
-  /// The address the provider reported; shown so they can tell which account
-  /// was tried. Empty when the provider withheld it.
+  /// Empty when the provider withheld it.
   final String email;
 
   @override

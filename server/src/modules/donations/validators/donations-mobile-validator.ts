@@ -9,15 +9,10 @@ import { GOODS_TYPE_IDS } from '../../../shared/constants/goods-types';
 import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import { PhoneNumberSchema } from '../../../shared/validators/phone-number-validator';
 
-/**
- * Accounts that can open the donor side of the app. The role switcher is local
- * (the donor side unlocks with no check), so a volunteer or beneficiary giving
- * from the donor side still carries the token they registered with. Portal
- * staff only ever get the volunteer side, so they stay out.
- */
+/** The role switcher is local, so any registered mobile role may donate. Portal staff excluded. */
 export const DONATIONS_MOBILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
 
-/** Xendit enforces PHP 1 minimum on every channel; the cap keeps a typo from becoming a ₱1M charge. */
+/** Xendit's PHP 1 minimum; the cap stops a typo becoming a ₱1M charge. */
 export const DONATION_MIN_AMOUNT = 1;
 export const DONATION_MAX_AMOUNT = 500_000;
 
@@ -29,7 +24,7 @@ export const CreateDonationPaymentSchema = z
       .trim()
       .min(1, 'Campaign title is required')
       .max(200),
-    /** Present when the campaign is a director event with donations enabled. */
+    /** Set when the campaign is an event with donations enabled. */
     eventId: z.number().int().positive().optional(),
     amount: z
       .number()
@@ -40,7 +35,7 @@ export const CreateDonationPaymentSchema = z
   })
   .strict();
 
-/** The `Idempotency-Key` header: one UUID per checkout attempt on the device. */
+/** One UUID per checkout attempt. */
 export const IdempotencyKeySchema = z.uuid(
   'Idempotency-Key header must be a UUID',
 );
@@ -64,7 +59,7 @@ export const DonationPaymentSchema = z.object({
   expires_at: z.iso.datetime().nullable(),
   paid_at: z.iso.datetime().nullable(),
   failure_reason: z.string().nullable(),
-  /** The ledger row opened when the checkout settled as PAID; null until then. */
+  /** Null until settled as PAID. */
   donation_id: z.string().nullable(),
   created_at: z.iso.datetime(),
 });
@@ -80,26 +75,22 @@ export const DonationIdSchema = z.uuid('A valid donation id is required');
 export const GOODS_ITEM_MAX = 120;
 export const GOODS_QUANTITY_MAX = 10_000;
 
-/**
- * What a goods pledge carries, and what an edit may change. Goods are handed in
- * by the donor at the CARES office, so there is no address or time to collect —
- * only the day they plan to drop by and a number to reach them on.
- */
+/** Dropped off at the CARES office, so only a date and contact number. */
 const GoodsDonationFieldsSchema = z.object({
   goodsType: z.enum(
     GOODS_TYPE_IDS,
     'Pick one of the goods this event asks for',
   ),
-  /** Free text for what exactly is being given — required when the type is `other`. */
+  /** Required when the type is `other`. */
   goodsItem: z.string().trim().max(GOODS_ITEM_MAX).optional(),
   quantity: z
     .number()
     .int('Quantity must be a whole number')
     .min(1, 'Quantity must be at least 1')
     .max(GOODS_QUANTITY_MAX),
-  /** PH mobile in the canonical `+639XXXXXXXXX` shape the app normalises to. */
+  /** Canonical `+639XXXXXXXXX`. */
   contactNumber: PhoneNumberSchema,
-  /** Calendar day, `YYYY-MM-DD`, when the donor plans to deliver the goods. */
+  /** `YYYY-MM-DD`. */
   deliveryDate: z.iso.date('Delivery date is required'),
 });
 
@@ -127,16 +118,15 @@ export const DonationTrailEntrySchema = z.object({
   created_at: z.iso.datetime(),
 });
 
-/** One ledger row as the donor sees it. */
 export const DonationSchema = z.object({
   donation_id: z.string(),
-  /** `DN-0007`. */
+  /** e.g. `DN-0007`. */
   reference: z.string(),
   kind: z.enum(DonationKind),
   status: z.enum(DonationStatus),
   event_id: z.number(),
   event_title: z.string(),
-  /** Whole pesos: what was paid, or the credited value of the goods. */
+  /** Whole pesos: paid amount or credited goods value. */
   amount: z.number(),
   /** Money only. */
   payment_id: z.string().nullable(),

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     verify_threshold: float = 0.4
     embedding_dim: int = 512
     cors_origins: str = "*"
-    # REDIS_URL (Railway's Redis, password included) wins over host/port/password.
+    # REDIS_URL wins over host/port/password.
     redis_url: str = ""
     redis_host: str = "localhost"
     redis_port: int = 6379

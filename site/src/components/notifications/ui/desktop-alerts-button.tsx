@@ -13,11 +13,7 @@ import {
   type BrowserNotificationPermission,
 } from '../../../utils/browser-notifications'
 
-/**
- * The one control for desktop alerts. Browsers only honour the permission prompt
- * from a click, so the ask lives on a button; once granted or refused there is
- * nothing more the page can do, and the button says so instead of hiding.
- */
+/** Browsers only honour the permission prompt from a click, so it lives on a button. */
 export function DesktopAlertsButton() {
   const [permission, setPermission] = useState<BrowserNotificationPermission>(() =>
     browserNotificationPermission(),

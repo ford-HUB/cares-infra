@@ -10,26 +10,20 @@ import type {
   StatisticsRange,
 } from '../types/department-statistics'
 
-/** The college the numbers are scoped to; null reads every department. */
 export type StatisticsScope = string | null
 
 interface DepartmentStatisticsState {
   statistics: DepartmentStatistics | null
   range: StatisticsRange
   category: string
-  /**
-   * The director-level department filter. A coordinator never sets it — their
-   * profile fixes the scope — so it only drives the admin and director view.
-   */
+  /** Admin/director only; a coordinator's scope comes from their profile. */
   departmentFilter: string
   loading: boolean
-  /** False until the first fetch settles, so the mount render shows the skeleton. */
   initialized: boolean
   error: string | null
   fetchStatistics: (scope: StatisticsScope) => Promise<void>
   setRange: (scope: StatisticsScope, range: StatisticsRange) => Promise<void>
   setCategory: (scope: StatisticsScope, category: string) => Promise<void>
-  /** Only records the choice — the system hook refetches when the scope changes. */
   setDepartmentFilter: (department: string) => void
 }
 

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 
-/// Option catalogs for the beneficiary side.
-///
-/// Assistance needs and household situation are no longer part of profile
-/// completion — they are captured on each assistance request instead, so
-/// only the pickers live here. Profile completion itself is the server's
-/// verdict (`profile_completion` on `GET /profile/me/mobile`): personal
-/// details plus household size.
+/// Assistance needs are captured per request, not in profile completion;
+/// completion is the server's `profile_completion` (personal details +
+/// household size).
 abstract final class BeneficiaryProfileOptions {
   static const assistanceNeeds = [
     ProfileSelectableOption(

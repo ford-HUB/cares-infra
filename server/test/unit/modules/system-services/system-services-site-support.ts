@@ -13,19 +13,7 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'System Module', unit: 'Services', prefix: 'SVC' });
 
-/**
- * Shared by every spec in this folder — the two POSTs on the portal's Services
- * screen (System):
- *   POST /api/v1/system-services/:id/run   (triggerRun: fires a run outside the schedule)
- *   POST /api/v1/system-services/:id/stop  (stopRun: cancels a queued manual run)
- *
- * Neither reads a body, so the id is the only input. Its schema is a private const
- * in the controller, so id fixtures run through the API layer only. `@RequirePermission`
- * is not exercised: the global guards are out of scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
+/** The id is the only input; its schema is private to the controller, so id cases are API-layer only. */
 export const VALID_SERVICE_ID = 'unread-digest';
 
 const servicePath = (id: string, action: string) =>
@@ -64,11 +52,7 @@ export const ROSTER_RESPONSE = [
   },
 ];
 
-/**
- * Boots `SystemServicesSiteController` with a mocked service for the enclosing
- * `describe`. Neither handler reads the caller, so no stand-in guard is needed.
- * Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Neither handler reads the caller, so no stub guard; `app` is assigned in `beforeAll`. */
 export const useSystemServicesApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -90,11 +74,7 @@ export const useSystemServicesApp = () => {
   return ctx;
 };
 
-/**
- * Service id fixtures (the fixture `input` is the raw id, URL-encoded into the path)
- * through the API layer. A FAIL must come back in the validation envelope without
- * reaching the service; a PASS must reach it exactly once.
- */
+/** `input` is the raw id, URL-encoded into the path. FAIL: service untouched. PASS: called once. */
 export const describeServiceIdTable = (
   ctx: ReturnType<typeof useSystemServicesApp>,
   endpoint: (typeof ENDPOINTS)[number],

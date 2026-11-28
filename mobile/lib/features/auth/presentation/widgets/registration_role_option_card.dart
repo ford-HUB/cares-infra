@@ -25,8 +25,6 @@ class RegistrationRoleOptionCard extends StatefulWidget {
 
 class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
     with SingleTickerProviderStateMixin {
-  /// Springs the card back to full size after a tap, so expanding feels
-  /// physical instead of a plain height change.
   late final AnimationController _bounceController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 620),
@@ -117,8 +115,8 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
                         ],
                       ),
                     ),
-                    // Swap the chevron only — the old quarter turn on top of
-                    // the swapped icon pointed it sideways.
+                    // Swap the chevron only; an added quarter turn pointed it
+                    // sideways.
                     Icon(
                       widget.isExpanded
                           ? Icons.keyboard_arrow_up_rounded
@@ -141,7 +139,6 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
                 : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 420),
             reverseDuration: const Duration(milliseconds: 260),
-            // Overshoots the final height a touch on the way open.
             sizeCurve: Curves.easeOutBack,
             firstCurve: Curves.easeOutCubic,
             secondCurve: Curves.easeOutCubic,
@@ -152,8 +149,6 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
   }
 }
 
-/// The rounded badge in front of each role. It reads as a tinted chip while
-/// idle and fills with the role's colour once the card is open.
 class _RoleIconTile extends StatelessWidget {
   const _RoleIconTile({
     required this.icon,

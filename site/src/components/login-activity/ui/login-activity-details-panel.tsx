@@ -33,10 +33,7 @@ function Field({ label, value }: { label: string; value?: ReactNode }) {
   )
 }
 
-/**
- * The full record for one attempt. Everything shown here is already loaded with the
- * row — the trail is append-only, so there is nothing to fetch or edit.
- */
+/** Append-only: everything is already loaded with the row. */
 export function LoginActivityDetailsPanel({
   entry,
   onClose,

@@ -5,8 +5,7 @@ import { UsersRepository } from '../repositories/users-repository';
 import { UsersSiteService } from '../services/users-site-service';
 
 @Module({
-  // Provisioning sets an account's scope, which is the access-control repository's
-  // job — the override rows are written the same way that screen writes them.
+  // Provisioning writes scope overrides via the access-control repository.
   imports: [AccessControlSiteModule],
   controllers: [UsersSiteController],
   providers: [UsersSiteService, UsersRepository],

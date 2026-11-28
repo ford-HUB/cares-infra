@@ -5,7 +5,7 @@ const InterestCodeSchema = z.enum(InterestCode);
 
 export const OTHER_INTEREST_MAX_LENGTH = 100;
 
-/** Plain text only: no markup characters, no control characters. */
+/** No markup or control characters. */
 const OTHER_INTEREST_PATTERN = /^[^<>\p{Cc}]*$/u;
 
 const OtherInterestSchema = z
@@ -20,11 +20,7 @@ const OtherInterestSchema = z
 export const SaveUserInterestsSchema = z
   .object({
     selected: z.array(InterestCodeSchema).min(1),
-    /**
-     * What the volunteer typed under "Others". Omit it to keep the saved
-     * text (older clients and code-only saves); when sent alongside OTHERS
-     * it must not be empty.
-     */
+    /** Omit to keep the saved text; required non-empty alongside OTHERS. */
     other_interest: OtherInterestSchema.nullish(),
   })
   .strict()

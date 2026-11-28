@@ -7,31 +7,17 @@ interface AuthModalProps {
   open: boolean
   onClose: () => void
   children: ReactNode
-  /** Width cap for the card, e.g. `max-w-sm`. */
   className?: string
   /** Changing it remounts the card, so a swap between forms springs in again. */
   contentKey?: string
-  /** Keeps a half-filled form open when the visitor clicks the backdrop by accident. */
   preventOutsideClose?: boolean
 }
 
-/** Heading of an auth modal; names the dialog for screen readers. */
 export function AuthModalTitle(props: ComponentProps<typeof DialogPrimitive.Title>) {
   return <DialogPrimitive.Title {...props} />
 }
 
-/**
- * A frosted-glass card floating over the page behind a lightly blurred, 20%-dimmed
- * backdrop. Radix locks the page scroll and traps focus while it is open; the card
- * bounces in and out. Centring uses the `translate` property, so the keyframes'
- * `transform` does not fight it.
- *
- * The card sits one layer above the backdrop (z-51 over z-50) rather than relying on DOM
- * order: Radix portals the overlay and the card separately, and when `contentKey` differs
- * from the last form shown (e.g. opening request-access after the closed modal last held
- * sign-in), the card's portal mounts first and the overlay lands after it in <body>. At
- * equal z-index the overlay then paints over the card, blurring and dimming the form.
- */
+/** Card is z-51 over the z-50 overlay: Radix portals them separately, so a new `contentKey` can mount the card first. */
 export function AuthModal({
   open,
   onClose,

@@ -17,16 +17,12 @@ import { CalendarEventBlock } from './calendar-event-block'
 import { CalendarEventChip } from './calendar-event-chip'
 
 interface CalendarTimeGridProps {
-  /** One column per day — seven for the week view, one for the day view. */
   days: Dayjs[]
   events: CalendarEvent[]
   onSelect: (event: CalendarEvent) => void
 }
 
-/**
- * The hour-by-hour grid behind both the week and the day view. The only
- * difference between them is how many day columns are handed in.
- */
+/** Shared by the week and day views; they differ only in column count. */
 export function CalendarTimeGrid({ days, events, onSelect }: CalendarTimeGridProps) {
   const columns = `${CALENDAR_GUTTER_WIDTH} repeat(${days.length}, minmax(0, 1fr))`
   const today = dayjs()

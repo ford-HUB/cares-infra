@@ -1,24 +1,8 @@
-// UNIT TESTING — Process Registration, beneficiary side (REG-BEN-###).
-//
-// Each case is one row of the project's unit testing table: Module Name,
-// Unit Name, Test Case ID, Test Case Description and Expected Result are in
-// the case declaration; `dart run tool/unit_case_report.dart <this file>`
-// prints the table with Date Tested, Actual Result and Result filled in.
-//
-// Units, in the order the beneficiary meets them (no ID card, no face scan):
-//   Register (Beneficiary Type)      individual / organization, regular / student
-//   Register (Session)               POST /v1/auth/start-session
-//   Register (Supporting Document)   POST /v1/auth/registration-document
-//   Register (Organization Details)  name, type, role, address
-//   Register (Personal Details)      home address, phone
-//   Register (Account Creation)      POST /v1/auth/register-from-session
-//   Register (Full Process)          the whole flow on one session
-//
-// send-verification / verify-otp are covered in email_verification/.
-// The student-beneficiary ID path is also covered in
-// student_beneficiary_and_unclear_id_unit_test.dart.
-// Volunteer registration lives in volunteer_registration_unit_test.dart.
-// Shared mocks and fixtures live in registration_test_support.dart.
+// UNIT TESTING — Process Registration, beneficiary side (REG-BEN-###);
+// `dart run tool/unit_case_report.dart <this file>` prints the table. OTP is
+// covered in email_verification/, the student ID path in
+// student_beneficiary_and_unclear_id_unit_test.dart; shared fixtures are in
+// registration_test_support.dart.
 
 import 'package:flutter_test/flutter_test.dart' hide test;
 import 'package:mobile/core/services/api_client.dart';
@@ -36,7 +20,6 @@ final _cases = TestCases(module: 'Process Registration', prefix: 'REG-BEN');
 
 const _beneficiaryEmail = 'ana.reyes@example.com';
 
-/// The details a regular beneficiary types in on the details step.
 RegisterOcrSample _beneficiaryDetails() =>
     RegisterOcrSample.empty(volunteerType: 'STUDENT').copyWith(
       firstname: 'Ana',
@@ -47,7 +30,6 @@ RegisterOcrSample _beneficiaryDetails() =>
       phoneNumber: '0918 765 4321',
     );
 
-/// A home address picked from the directory, as the details step builds it.
 PhAddress _homeAddress({String street = '123 Rizal St.'}) {
   final city = PhAddressDirectory.localityNamed('Lapu-Lapu City')!;
   return PhAddress(
@@ -76,10 +58,6 @@ Future<Map<String, dynamic>> _register(RequestRecorder rec) =>
 
 void main() {
   setUpRegistrationTests();
-
-  // -------------------------------------------------------------------------
-  // Register (Beneficiary Type)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Beneficiary Type)', () {
     _cases.test(
@@ -255,10 +233,6 @@ void main() {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // Register (Session)
-  // -------------------------------------------------------------------------
-
   _cases.unit('Register (Session)', () {
     _cases.test(
       'Beneficiary starts registration without an ID card',
@@ -321,10 +295,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Supporting Document)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Supporting Document)', () {
     _cases.test(
@@ -416,10 +386,6 @@ void main() {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // Register (Organization Details)
-  // -------------------------------------------------------------------------
-
   _cases.unit('Register (Organization Details)', () {
     _cases.test(
       'Organization does not input its name, type, role or address',
@@ -464,10 +430,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Personal Details)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Personal Details)', () {
     _cases.test(
@@ -523,10 +485,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Account Creation)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Account Creation)', () {
     _cases.test(
@@ -638,10 +596,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Full Process)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Full Process)', () {
     _cases.test(

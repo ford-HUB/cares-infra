@@ -1,35 +1,9 @@
-// UNIT TESTING — Process Registration, volunteer side (REG-VOL-###).
-//
-// Each case is one row of the project's unit testing table: Module Name,
-// Unit Name, Test Case ID, Test Case Description and Expected Result are in
-// the case declaration; `dart run tool/unit_case_report.dart <this file>`
-// prints the table with Date Tested, Actual Result and Result filled in.
-//
-// Units — the volunteer types first, then the steps in the order the
-// volunteer meets them:
-//   Register (Volunteer Type)             student / staff / alumni / partner
-//   Register (Student Volunteer)          school record, course, year level
-//   Register (Staff Volunteer)            department, non-teaching personnel
-//   Register (Alumni Volunteer)           course, graduated year, alumni ID
-//   Register (Partner Barangay Volunteer) partnered barangay, no school record
-//   Register (ID Upload)                  POST /v1/auth/upload-id, /upload-manual-id
-//   Register (Face Verification)          POST /v1/auth/verify-face
-//   Register (ID Extraction)              POST /v1/auth/extract-id
-//   Register (Personal Information)       name, gender, age
-//   Register (Contact Information)        phone number
-//   Register (Home Address)               street, barangay, city
-//   Register (Supporting Document)        certificate / barangay document
-//   Register (Account Information)        email, password, terms
-//   Register (Account Creation)           POST /v1/auth/register-from-session
-//   Register (Full Process)               the whole flow on one session
-//
-// The details-step checks run through VolunteerDetailsRules and the account
-// step through RegistrationAccountRules — the same rules the registration
-// flow gates Continue on.
-//
-// send-verification / verify-otp are covered in email_verification/.
-// Beneficiary registration lives in beneficiary_registration_unit_test.dart.
-// Shared mocks and fixtures live in registration_test_support.dart.
+// UNIT TESTING — Process Registration, volunteer side (REG-VOL-###);
+// `dart run tool/unit_case_report.dart <this file>` prints the table. Details
+// and account checks run through VolunteerDetailsRules and
+// RegistrationAccountRules, the same rules that gate Continue. OTP is covered
+// in email_verification/; shared fixtures are in
+// registration_test_support.dart.
 
 import 'package:flutter_test/flutter_test.dart' hide test;
 import 'package:mobile/core/constants/partner_barangays.dart';
@@ -53,24 +27,20 @@ final _cases = TestCases(module: 'Process Registration', prefix: 'REG-VOL');
 
 final _thisYear = DateTime.now().year;
 
-/// Inline error for a name with characters a name cannot have.
 const _nameCharsError =
     'Use letters, spaces, hyphens, apostrophes or periods only';
 
-/// Inline error for a street with characters an address cannot have.
 const _streetCharsError = "Use letters, numbers and . , # ' - / ( ) & only.";
 
-/// The OCR result after the user has reviewed it on the details step.
 RegisterOcrSample _reviewedVolunteer() =>
     RegisterOcrSampleApi.fromApiJson(ocrData());
 
-/// A student volunteer's details step with every section filled in.
 RegisterOcrSample _student() => RegisterOcrSample.sample.copyWith(
   graduationYear: _thisYear + 1,
   currentAddress: '123 A.C. Cortes Avenue, Looc, Mandaue City, Cebu',
 );
 
-/// A non-teaching staff member: no course, year level or graduation year.
+/// Non-teaching: no course, year level or graduation year.
 RegisterOcrSample _staff() =>
     RegisterOcrSample.empty(volunteerType: 'STAFF').copyWith(
       firstname: 'Ramon',
@@ -83,7 +53,6 @@ RegisterOcrSample _staff() =>
       departmentName: 'Non-Teaching Personnel',
     );
 
-/// An alumnus with the course and year they graduated.
 RegisterOcrSample _alumni() =>
     RegisterOcrSample.empty(volunteerType: 'ALUMNI').copyWith(
       firstname: 'Liza',
@@ -98,7 +67,6 @@ RegisterOcrSample _alumni() =>
       graduationYear: 2019,
     );
 
-/// A partner-barangay volunteer: a valid ID and their partnered barangay.
 RegisterOcrSample _partner() =>
     RegisterOcrSample.empty(volunteerType: 'PARTNER_BARANGAY').copyWith(
       firstname: 'Leo',
@@ -110,7 +78,6 @@ RegisterOcrSample _partner() =>
       partnerBarangay: 'Barangay Looc',
     );
 
-/// Every volunteer type with its complete details.
 Map<VolunteerType, RegisterOcrSample> _everyType() => {
   VolunteerType.student: _student(),
   VolunteerType.staff: _staff(),
@@ -118,7 +85,7 @@ Map<VolunteerType, RegisterOcrSample> _everyType() => {
   VolunteerType.partnerBarangay: _partner(),
 };
 
-/// Whether the details step may continue (the flow's Continue gate).
+/// The flow's Continue gate.
 bool _detailsComplete(
   RegisterOcrSample data,
   VolunteerType type, {
@@ -129,7 +96,6 @@ bool _detailsComplete(
   hasDocument: hasDocument,
 );
 
-/// Whether the Create Account step may continue.
 bool _accountComplete({
   String email = testEmail,
   String password = testPassword,
@@ -144,13 +110,11 @@ bool _accountComplete({
   policy: policy,
 );
 
-/// Labels of the password rules [password] still misses.
 List<String> _unmet(
   String password, [
   PasswordPolicy policy = PasswordPolicy.fallback,
 ]) => policy.unmetRules(password).map((rule) => rule.label).toList();
 
-/// A home address picked from the directory, as the details step builds it.
 PhAddress _homeAddress({
   String street = '123 A.C. Cortes Avenue',
   String barangay = 'Looc',
@@ -192,10 +156,6 @@ Future<RegistrationConflict?> _conflictOn(String path, String message) async {
 
 void main() {
   setUpRegistrationTests();
-
-  // -------------------------------------------------------------------------
-  // Register (Volunteer Type)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Volunteer Type)', () {
     _cases.test(
@@ -241,10 +201,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Student Volunteer)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Student Volunteer)', () {
     _cases.test(
@@ -486,10 +442,6 @@ void main() {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // Register (Staff Volunteer)
-  // -------------------------------------------------------------------------
-
   _cases.unit('Register (Staff Volunteer)', () {
     _cases.test(
       'Non-teaching staff fills in their details with no course, year level '
@@ -581,10 +533,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Alumni Volunteer)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Alumni Volunteer)', () {
     _cases.test(
@@ -687,10 +635,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Partner Barangay Volunteer)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Partner Barangay Volunteer)', () {
     _cases.test(
@@ -798,10 +742,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (ID Upload)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (ID Upload)', () {
     _cases.test(
@@ -959,10 +899,6 @@ void main() {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // Register (Face Verification)
-  // -------------------------------------------------------------------------
-
   _cases.unit('Register (Face Verification)', () {
     _cases.test(
       'User takes a selfie for the face scan',
@@ -1037,10 +973,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (ID Extraction)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (ID Extraction)', () {
     _cases.test(
@@ -1135,10 +1067,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Personal Information)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Personal Information)', () {
     _cases.test(
@@ -1264,8 +1192,6 @@ void main() {
         }
       },
     );
-
-    // Invalid field values -------------------------------------------------
 
     _cases.test(
       'User enters a first or last name with numbers or symbols (Maria2, '
@@ -1453,10 +1379,6 @@ void main() {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // Register (Contact Information)
-  // -------------------------------------------------------------------------
-
   _cases.unit('Register (Contact Information)', () {
     _cases.test(
       'User enters an incomplete or non-mobile phone number',
@@ -1537,10 +1459,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Home Address)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Home Address)', () {
     _cases.test(
@@ -1653,8 +1571,6 @@ void main() {
         }
       },
     );
-
-    // Invalid field values -------------------------------------------------
 
     _cases.test(
       'User types symbols that do not belong in an address into the street '
@@ -1862,10 +1778,6 @@ void main() {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // Register (Supporting Document)
-  // -------------------------------------------------------------------------
-
   _cases.unit('Register (Supporting Document)', () {
     _cases.test(
       'User signs up as student, staff, alumni or partner barangay',
@@ -2006,10 +1918,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Account Information)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Account Information)', () {
     _cases.test(
@@ -2152,10 +2060,6 @@ void main() {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // Register (Account Creation)
-  // -------------------------------------------------------------------------
-
   _cases.unit('Register (Account Creation)', () {
     _cases.test(
       'User submits the reviewed volunteer details',
@@ -2245,10 +2149,6 @@ void main() {
       },
     );
   });
-
-  // -------------------------------------------------------------------------
-  // Register (Full Process)
-  // -------------------------------------------------------------------------
 
   _cases.unit('Register (Full Process)', () {
     _cases.test(

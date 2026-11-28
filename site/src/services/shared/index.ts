@@ -1,7 +1,4 @@
-/**
- * Shared domain services migrated from Capstone `services/common/*`.
- * These still return fixtures — replace each with apiClient calls as the backend lands.
- */
+/** Still fixtures; replace with apiClient calls as the backend lands. */
 
 export * from './attendance-service'
 export * from './certificate-service'

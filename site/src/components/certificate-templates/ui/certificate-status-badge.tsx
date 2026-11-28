@@ -5,7 +5,6 @@ import {
 } from '../../../constants/certificate-templates'
 import type { CertificateTemplateStatus } from '../../../types/certificate-template'
 
-/** Dense status pill, shared by the gallery card and the table row. */
 export function CertificateStatusBadge({
   status,
 }: {

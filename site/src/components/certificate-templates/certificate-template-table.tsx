@@ -18,7 +18,6 @@ interface CertificateTemplateTableProps {
 const headCell =
   'px-3 py-2 text-[11px] font-semibold tracking-wider text-gray-400 uppercase'
 
-/** The dense view, for comparing issuance across the whole library at once. */
 export function CertificateTemplateTable({
   templates,
   showSkeleton,

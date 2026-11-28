@@ -4,7 +4,6 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/app_theme.dart';
 import '../domain/cares_event.dart';
 
-/// Result of asking the device for location access before joining an event.
 enum LocationPermissionOutcome {
   granted,
   denied,
@@ -21,13 +20,13 @@ class LocationPermissionResult {
 
   bool get isGranted => outcome == LocationPermissionOutcome.granted;
 
-  /// Denials the user cannot clear from the in-app prompt.
+  /// Denials the in-app prompt can't clear.
   bool get needsSettings =>
       outcome == LocationPermissionOutcome.deniedForever ||
       outcome == LocationPermissionOutcome.serviceDisabled;
 }
 
-/// Asks the device for location access (services + permission).
+/// Services + permission.
 Future<LocationPermissionResult> requestEventLocationPermission() async {
   try {
     if (!await Geolocator.isLocationServiceEnabled()) {
@@ -74,8 +73,7 @@ Future<LocationPermissionResult> requestEventLocationPermission() async {
   }
 }
 
-/// Explains why location is needed before the device prompt is raised.
-/// Returns true when the user chooses to allow location access.
+/// True when the user chooses to allow.
 Future<bool> showLocationPermissionRequestDialog(
   BuildContext context,
   CaresEvent event,
@@ -199,10 +197,8 @@ Future<bool> showLocationPermissionRequestDialog(
   return allow ?? false;
 }
 
-/// What the user chose after a denied permission.
 enum LocationDeniedAction { tryAgain, openSettings, cancel }
 
-/// Explains that the event cannot be joined without location access.
 Future<LocationDeniedAction> showLocationPermissionDeniedDialog(
   BuildContext context,
   LocationPermissionResult result,

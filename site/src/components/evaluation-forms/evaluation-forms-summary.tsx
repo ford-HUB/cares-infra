@@ -13,17 +13,10 @@ import { FormStatusSegment } from './ui/form-status-segment'
 
 interface EvaluationFormsSummaryProps {
   counts: EvaluationFormCounts
-  /** The list's current filter — the matching segment reads as selected. */
   status: FormStatusFilter
   onStatusChange: (value: FormStatusFilter) => void
 }
 
-/**
- * The screen's one question: of every event, how many ask questions chosen for them
- * rather than the default questionnaire. The questionnaire statuses beside it are
- * parts of a second whole — the library — so they share one bar and double as its
- * filter, and the answer count stands apart because it belongs to neither.
- */
 export function EvaluationFormsSummary({
   counts,
   status,

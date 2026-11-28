@@ -3,23 +3,18 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/id_image_pre_validator.dart';
 import 'package:mobile/features/auth/domain/id_image_quality.dart';
 
-/// What the registrant picked in [showIdUnclearDialog].
 enum IdUnclearChoice {
-  /// Take or pick another photo of this side.
   retake,
 
-  /// Keep this photo and continue the standard sign-up; the details read off
-  /// it are then open for correction.
+  /// Details read off it stay open for correction.
   proceed,
 
-  /// Switch to manual registration: no automatic ID check, no face scan, the
-  /// details are typed in, and a director approves the account.
+  /// No ID check or face scan; a director approves the account.
   manual,
 }
 
-/// Pops up as soon as the photo check says an ID side is blurry, unclear or
-/// read with low accuracy, so the notice can't be scrolled past. Returns
-/// [IdUnclearChoice.retake] when dismissed.
+/// Modal so the notice can't be scrolled past; dismissing means
+/// [IdUnclearChoice.retake].
 Future<IdUnclearChoice> showIdUnclearDialog(
   BuildContext context, {
   required IdImageCheckResult result,
@@ -161,7 +156,6 @@ class _IdUnclearDialog extends StatelessWidget {
   }
 }
 
-/// The detected problems, one short line each, in a soft warning panel.
 class _IssueList extends StatelessWidget {
   const _IssueList({required this.issues});
 

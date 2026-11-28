@@ -4,10 +4,6 @@ import { NEEDS_CHART_HEIGHT } from '../../../constants/residential-needs'
 
 const rows = (count: number) => Array.from({ length: count }, (_, index) => index)
 
-/**
- * The Residential Needs overview while the survey loads: the heading, the
- * priority banner, two chart cards, and the table's first rows.
- */
 export function ResidentialNeedsSkeleton() {
   return (
     <div aria-busy aria-label="Loading residential needs" className="space-y-4">

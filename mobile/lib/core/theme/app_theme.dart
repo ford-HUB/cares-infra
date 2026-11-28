@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Environmental green palette — sage background, forest accents.
 class AppColors {
-  // Main surfaces
-  /// Mint page ground behind white cards (2026-11-09 reference set).
   static const Color background = Color(0xFFF1F7EF);
   static const Color surface = Color(0xFFFEFEFE);
 
-  // Brand greens
   static const Color primary = Color(0xFF2D7634);
   static const Color primaryDark = Color(0xFF1F5F28);
   static const Color primaryLight = Color(0xFF3A9042);
@@ -21,15 +17,13 @@ class AppColors {
   static const Color accentYellow = Color(0xFF8DB878);
   static const Color accentGreen = Color(0xFF1F5F28);
 
-  // Semantic
   static const Color error = Color(0xFFC62828);
   static const Color accentOrange = Color(0xFFE65100);
   static const Color heart = Color(0xFFE53935);
 
-  /// "Not there yet" — a password rule still unmet, a strength bar short of the policy.
+  /// Unmet password rule / short strength bar.
   static const Color warning = Color(0xFFFF9800);
 
-  // Fills & borders
   static const Color inputFill = Color(0xFFCFE8C8);
   static const Color fieldFill = Colors.white;
   static const Color borderCard = Color(0xFFB7DDB5);
@@ -37,13 +31,12 @@ class AppColors {
   static const Color fieldBorder = Color(0xFFC8E6C9);
   static const Color borderActive = Color(0xFF2D7634);
 
-  // Text — headings stay dark green; body copy, typed input and hints are
-  // ink greys (the user's "black way", 2026-11-09), never bright green.
+  // Headings dark green; body, input and hints are ink greys, never bright
+  // green.
   static const Color textPrimary = Color(0xFF1F5F28);
   static const Color textSecondary = Color(0xFF4A544E);
   static const Color textMuted = Color(0xFF8B968F);
 
-  // "Dark green → black" immersive surface (see mobile-flutter skill).
   static const Color darkGreenTop = Color(0xFF0F2A1A);
   static const Color darkGreenMid = Color(0xFF0B1F14);
   static const Color darkGreenBottom = Color(0xFF050A07);
@@ -51,16 +44,13 @@ class AppColors {
   static const Color onDarkGreen = Color(0xFFFFFFFF);
   static const Color onDarkGreenMuted = Color(0xFFB7C9BC);
 
-  // "Photo hero + floating card" pattern (login, 2026-11-09 — see the
-  // mobile-flutter skill). Soft fields and secondary buttons share one pale
-  // green fill; body copy on the white card is ink, not green.
+  // Soft fields and secondary buttons share one pale green fill.
   static const Color softFieldFill = Color(0xFFEFF7EB);
   static const Color softFieldBorder = Color(0xFFD2E6CB);
   static const Color ink = Color(0xFF2B3830);
   static const Color inkMuted = Color(0xFF6F7D72);
   static const Color waveHighlight = Color(0xFF9CCC65);
 
-  // Header bands and the dashboard chrome.
   static const Color headerTop = Color(0xFF13622A);
   static const Color headerBottom = Color(0xFF2E9B3F);
   static const Color deepHeaderTop = Color(0xFF0B3A1A);
@@ -70,10 +60,8 @@ class AppColors {
   static const Color navActiveFill = Color(0xFF1E5A27);
   static const Color navActive = Color(0xFF9BDB5A);
 
-  /// Glassy search field / icon button sitting on a deep header band.
   static const Color onHeaderField = Color(0x33FFFFFF);
 
-  /// Warm amber that still reads on a deep band (pending status, trophies).
   static const Color amberOnDark = Color(0xFFFFC233);
 
   static const double cardRadius = 18;
@@ -89,8 +77,7 @@ class AppColors {
   ];
 }
 
-/// Brand gradients — only for the one element per screen that should pull the
-/// eye (the primary action button).
+/// Only for the one element per screen that should pull the eye.
 abstract final class AppGradients {
   static const LinearGradient primaryButton = LinearGradient(
     begin: Alignment.centerLeft,
@@ -98,21 +85,18 @@ abstract final class AppGradients {
     colors: [AppColors.primaryLight, AppColors.primaryDark],
   );
 
-  /// Registration / settings header band: dark green top-left → fresh green.
   static const LinearGradient header = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [AppColors.headerTop, AppColors.primary, AppColors.headerBottom],
   );
 
-  /// Dashboard header band (home, events, notifications): deep forest green.
   static const LinearGradient deepHeader = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [AppColors.deepHeaderTop, AppColors.deepHeaderBottom],
   );
 
-  /// Mint page ground, slightly lighter at the top.
   static const LinearGradient page = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
@@ -120,9 +104,7 @@ abstract final class AppGradients {
   );
 }
 
-/// Reusable surfaces matching the eco-friendly dashboard palette.
 class AppDecorations {
-  /// White card that floats over a photo hero and the page waves.
   static BoxDecoration floatingCard({double radius = 24}) {
     return BoxDecoration(
       color: Colors.white,
@@ -137,7 +119,6 @@ class AppDecorations {
     );
   }
 
-  /// White card on the mint ground: hairline green border + soft lift.
   static BoxDecoration groundCard({double radius = 22}) {
     return BoxDecoration(
       color: Colors.white.withValues(alpha: 0.94),
@@ -153,7 +134,6 @@ class AppDecorations {
     );
   }
 
-  /// Rounded tinted square holding a section / list icon.
   static BoxDecoration iconTile({Color? tint, double radius = 16}) {
     return BoxDecoration(
       color: (tint ?? AppColors.primary).withValues(alpha: 0.14),
@@ -161,7 +141,6 @@ class AppDecorations {
     );
   }
 
-  /// Pale green filled field with a dark green leading icon.
   static InputDecoration softInput({
     required String hint,
     required IconData icon,
@@ -229,9 +208,8 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      // Edge-swipe back on every route: Android's predictive back drags the
-      // page with the finger (needs enableOnBackInvokedCallback in the
-      // manifest), iOS gets the native swipe-from-edge pop.
+      // Android predictive back (needs enableOnBackInvokedCallback in the
+      // manifest); iOS edge-swipe.
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
@@ -240,7 +218,6 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppColors.background,
       fontFamily: 'Roboto',
-      // Headings dark green; everything a person reads or types is ink.
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
           fontSize: 28,

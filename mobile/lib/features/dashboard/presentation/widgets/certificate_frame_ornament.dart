@@ -4,11 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../utils/certificate_palette.dart';
 
-/// The decoration that makes each preset frame recognisable — inner keyline,
-/// curved side panel, corner ribbons, banner corners, header band — drawn
-/// with paint rather than artwork so it follows the accent, as the portal
-/// does. Sizes are fractions of the sheet width: the portal's pixel values
-/// on its 896px preview.
+/// Painted rather than artwork so it follows the accent, as the portal does.
+/// Sizes are fractions of the sheet width (portal px on its 896px preview).
 class CertificateFrameOrnament extends StatelessWidget {
   const CertificateFrameOrnament({
     super.key,
@@ -30,7 +27,6 @@ class CertificateFrameOrnament extends StatelessWidget {
   }
 }
 
-/// Outer edge of the sheet for a preset frame — border width, style, colour.
 BoxBorder certificateSheetBorder(String frame, String accent, double width) {
   final tone = certificatePalette(accent);
   final unit = width / 896;
@@ -135,7 +131,6 @@ class _OrnamentPainter extends CustomPainter {
     );
   }
 
-  /// A 45° band across one corner, with a thinner gilt band beside it.
   void _ribbon(Canvas canvas, Size size, double unit, {required bool topLeft}) {
     final length = 320 * unit;
     final thick = 40 * unit;
@@ -150,7 +145,6 @@ class _OrnamentPainter extends CustomPainter {
       canvas.translate(size.width, size.height);
       canvas.rotate(math.pi / 4);
     }
-    // Band centred on the corner, so it reads as a sash across it.
     canvas.drawRect(
       Rect.fromCenter(
         center: Offset(0, topLeft ? 56 * unit : -56 * unit),

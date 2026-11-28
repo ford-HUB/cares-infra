@@ -21,7 +21,7 @@ import {
 } from '../repositories/session-repository';
 import { SessionRegistry, type SessionRecord } from './session-registry';
 
-/** Splits the two halves of a `{signed-in timestamp}_{session id}` cursor. */
+/** Cursor: `{signed-in timestamp}_{session id}`. */
 const CURSOR_SEPARATOR = '_';
 
 @Injectable()
@@ -40,8 +40,7 @@ export class SessionsSiteService {
     const sessions = await this.sessionRegistry.listAll();
     const users = await this.loadUsers(sessions);
 
-    // `listAll` already sorts newest sign-in first, which is the order the cursor
-    // walks; the account rows only fill in names and roles.
+    // `listAll` is already in cursor order; account rows only add names and roles.
     const matched = sessions
       .map((session) =>
         toActiveSession(session, users.get(session.user_id), caller.sid),
@@ -81,7 +80,7 @@ export class SessionsSiteService {
         ? 'Signed out one of their own devices'
         : `Signed out a device of ${session.email}`,
       category: 'AUTHENTICATION',
-      // Ending someone else's session is an intervention; ending your own is not.
+      // Ending someone else's session is an intervention.
       severity: own ? 'INFO' : 'NOTICE',
       actor: caller,
       targetType: 'session',
@@ -90,11 +89,10 @@ export class SessionsSiteService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
       metadata: {
-        // Lets the owner's own activity trail pick this entry up.
+        // Surfaces in the owner's activity trail.
         subject_user_id: session.user_id,
         session_source: session.source,
-        // Where the revoked session itself signed in from — not where the
-        // administrator was sitting, which the entry already records.
+        // The revoked session's IP, not the admin's.
         session_ip: session.ip_address,
       },
     });
@@ -141,10 +139,7 @@ export class SessionsSiteService {
     return { revoked };
   }
 
-  /**
-   * The root administrator is the account that can always reach the portal, so no
-   * other admin may sign it out. Signing yourself out is always allowed.
-   */
+  /** Nobody else may sign out the root admin; self-sign-out is always allowed. */
   private assertMayRevoke(
     caller: JwtPayload,
     ownerId: string,
@@ -175,11 +170,7 @@ function cursorOf(row: ActiveSessionDto): string {
   return `${row.created_at}${CURSOR_SEPARATOR}${row.session_id}`;
 }
 
-/**
- * Where the next page starts. The cursor is compared by value rather than looked up by
- * id, so a page still lands in the right place when the session it points at was
- * revoked — or expired — between requests.
- */
+/** Compared by value, so it still works if the cursor's session was revoked or expired. */
 function indexAfterCursor(rows: ActiveSessionDto[], cursor: string): number {
   const separator = cursor.indexOf(CURSOR_SEPARATOR);
   if (separator === -1) {
@@ -195,8 +186,7 @@ function indexAfterCursor(rows: ActiveSessionDto[], cursor: string): number {
 
   const index = rows.findIndex((row) => {
     const rowTime = new Date(row.created_at).getTime();
-    // Rows are newest first, so "after the cursor" means older — or equally old with a
-    // higher id, which is how `listAll` breaks ties.
+    // Newest first: "after" = older, or equal with a higher id (`listAll` tiebreak).
     return (
       rowTime < cursorTime ||
       (rowTime === cursorTime && row.session_id.localeCompare(sessionId) > 0)
@@ -219,8 +209,7 @@ function toActiveSession(
     lastname: user?.lastname ?? null,
     avatar: user?.avatar ?? null,
     department: user?.portal_department ?? null,
-    // The record's copy is what the token was signed with; the account row wins when
-    // the role changed after sign-in.
+    // The account row wins if the role changed after sign-in.
     role_type: (user?.role.type as RoleType) ?? session.role_type,
     is_restricted: user?.accounts[0]?.is_restricted ?? false,
     ip_address: session.ip_address,

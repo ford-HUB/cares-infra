@@ -22,7 +22,6 @@ import type {
 import { DepartmentChip } from './department-chip'
 import { DocumentKindIcon } from './document-kind-icon'
 
-/** One row is one uploaded file, with the report it was filed under kept alongside. */
 interface FileRow {
   document: ReportDocument
   report: MonthlyReport
@@ -32,12 +31,12 @@ type SortKey = 'name' | 'modified' | 'type' | 'size'
 
 interface ReportFileListProps {
   reports: MonthlyReport[]
-  /** Director's folders. Omit both this and `onMove` for a read-only listing. */
+  /** Omit both this and `onMove` for a read-only listing. */
   folders?: ReportFolder[]
-  /** Folder assignment per report id; absent while a report sits under its college. */
+  /** Absent while a report sits under its college. */
   folderOf?: Map<string, string>
   onOpenDocument: (report: MonthlyReport, documentId: string) => void
-  /** Filing action; when absent the ⋮ menu is not drawn and rows are read-only. */
+  /** Absent hides the ⋮ menu; rows are read-only. */
   onMove?: (report: MonthlyReport, folderId: string | null) => void
 }
 
@@ -48,7 +47,7 @@ const COLUMNS: { key: SortKey; label: string; className: string }[] = [
   { key: 'size', label: 'Size', className: 'w-24 shrink-0 justify-end' },
 ]
 
-/** `5/24/2026 9:34 PM` — the file-manager reading of a timestamp, not a prose date. */
+/** `5/24/2026 9:34 PM`. */
 function formatFileTimestamp(timestamp: string): string {
   const date = new Date(timestamp)
   return `${date.toLocaleDateString('en-US')} ${date.toLocaleTimeString('en-US', {
@@ -57,7 +56,7 @@ function formatFileTimestamp(timestamp: string): string {
   })}`
 }
 
-/** `DOCX File` / `PDF File`, so the column reads like a file type and not a label. */
+/** `DOCX File` / `PDF File`. */
 function fileTypeLabel(document: ReportDocument): string {
   return document.kind === 'image'
     ? DOCUMENT_KIND_LABELS.image
@@ -83,12 +82,7 @@ function compare(a: FileRow, b: FileRow, key: SortKey): number {
   }
 }
 
-/**
- * A folder's contents drawn the way a file manager draws them: every uploaded file
- * on its own row, sorted by a column the director picks. The report a file belongs
- * to rides in the name column, because filing still happens per report — the ⋮ moves
- * the whole report, files and all.
- */
+/** One row per file; ⋮ moves the whole report, since filing is per report. */
 export function ReportFileList({
   reports,
   folders = [],
@@ -118,8 +112,7 @@ export function ReportFileList({
 
   return (
     <div className="overflow-hidden rounded-xl bg-white ring-1 ring-gray-200">
-      {/* Header and rows share one column template so the list stays aligned while
-          the name column absorbs whatever width is left. */}
+      {/* Header and rows share one column template so they stay aligned. */}
       <div className="hidden items-center gap-4 border-b border-gray-200 bg-gray-50/80 px-3 py-2 sm:flex">
         {COLUMNS.map((column) => (
           <button

@@ -1,8 +1,4 @@
-/**
- * What a notification is about. Each category maps to one portal module; the server
- * already scopes the feed to the caller, so a coordinator never sees a blocked-IP
- * notice and an admin never sees "your report was returned".
- */
+/** The server scopes the feed to the caller. */
 export type NotificationCategory =
   | 'event'
   | 'report'
@@ -16,7 +12,7 @@ export type NotificationCategory =
   | 'support'
   | 'mail'
 
-/** How loudly a row asks for attention; colour is spent on this, never on the category. */
+/** Colour is spent on tone, never on category. */
 export type NotificationTone = 'info' | 'attention' | 'critical'
 
 export interface NotificationItem {
@@ -27,7 +23,6 @@ export interface NotificationItem {
   tone: NotificationTone
   read: boolean
   createdAt: string
-  /** Where "Open" takes the reader — the screen the notice is about. */
   href?: string
 }
 

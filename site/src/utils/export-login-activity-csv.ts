@@ -18,7 +18,6 @@ function escapeCell(value: string) {
   return `"${value.replace(/"/g, '""')}"`
 }
 
-/** Downloads the given attempts as a CSV file from the browser — no server round-trip. */
 export function exportLoginActivityCsv(
   entries: LoginActivityEntry[],
   filename = 'login-activity.csv',

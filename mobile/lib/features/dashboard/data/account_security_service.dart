@@ -1,9 +1,8 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/account_security_models.dart';
 
-/// The calls behind Account Security: the three-step email change (code to
-/// the current inbox → change token → new address), the password change,
-/// and the caller's own session list.
+/// Email change is three steps: code to the current inbox → change token → new
+/// address.
 class AccountSecurityService {
   AccountSecurityService({ApiClient? apiClient})
     : _api = apiClient ?? ApiClient();
@@ -53,8 +52,7 @@ class AccountSecurityService {
     final response = await _api.putJson(
       '/account/mobile/password',
       body: {'current_password': currentPassword, 'new_password': newPassword},
-      // The server answers a wrong current password with 401; keep that on
-      // the form instead of signing the person out.
+      // A 401 here means a wrong current password; keep it on the form.
       endSessionOnUnauthorized: false,
     );
     return ChangePasswordResponse.fromJson(

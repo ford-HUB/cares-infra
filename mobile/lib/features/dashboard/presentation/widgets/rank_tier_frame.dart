@@ -3,15 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:mobile/features/dashboard/data/models/ranking_models.dart';
 
-/// The badge frame drawn around a ranked avatar. Which ornament and colours it
-/// wears comes from the [tier] the standing falls into — the same ladder the
-/// portal's Customization page edits — so the app and the portal agree on what
-/// a Mythic border looks like.
-///
-/// [child] is the avatar itself and the widget lays out at exactly [size]; the
-/// ornament is painted around it and overflows the box by a few pixels on each
-/// side without taking layout room, the way a badge should sit over its
-/// neighbours. Pass a null [tier] to draw a quiet neutral ring.
+/// Ornament and colours come from the [tier], the same ladder the portal edits.
+/// Lays out at [size] and paints the ornament outside without taking room; a
+/// null [tier] draws a neutral ring.
 class RankTierFrame extends StatelessWidget {
   const RankTierFrame({
     super.key,
@@ -23,12 +17,10 @@ class RankTierFrame extends StatelessWidget {
 
   final RankTier? tier;
 
-  /// Diameter of the avatar inside the frame.
   final double size;
   final Widget child;
 
-  /// Drops the ornaments outside the band — for list rows where they would
-  /// collide with the neighbours. The band and its colours stay.
+  /// For list rows: drops the ornaments outside the band.
   final bool compact;
 
   @override
@@ -89,7 +81,6 @@ class _FramePainter extends CustomPainter {
       ..shader = gradient
       ..style = PaintingStyle.fill;
 
-    // The band hugs the avatar with a hairline of breathing room.
     final bandRadius = avatarRadius + 2.5;
 
     switch (design) {
@@ -314,7 +305,6 @@ class _FramePainter extends CustomPainter {
     canvas.drawPath(path, paint..strokeJoin = StrokeJoin.round);
   }
 
-  /// A diamond sitting on top of the band.
   void _gem(Canvas canvas, Offset c, double r, Paint paint) {
     final top = c + Offset(0, -r);
     final path = Path()
@@ -326,7 +316,6 @@ class _FramePainter extends CustomPainter {
     canvas.drawPath(path, paint);
   }
 
-  /// Leaves stepped along both sides of the band, tips pointing up.
   void _leaves(Canvas canvas, Offset c, double r, Paint paint) {
     const angles = [0.32, 0.72, 1.12, 1.52, 1.92, 2.32];
     for (final side in [-1, 1]) {
@@ -374,7 +363,6 @@ class _FramePainter extends CustomPainter {
     }
   }
 
-  /// Three tongues rising off the band, the centre one tallest.
   void _flames(Canvas canvas, Offset c, double r, Paint paint) {
     for (final (dx, h) in [(-7.0, 6.0), (0.0, 9.0), (7.0, 6.0)]) {
       final base = c + Offset(dx, -r + 1);

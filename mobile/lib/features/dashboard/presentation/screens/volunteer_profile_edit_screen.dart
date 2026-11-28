@@ -13,7 +13,6 @@ import 'package:mobile/features/dashboard/presentation/widgets/volunteer_profile
 import 'package:mobile/features/interests/data/interests_service.dart';
 import 'package:mobile/features/interests/domain/user_interest.dart';
 
-/// Post-onboarding profile management — view and edit all volunteer information.
 class VolunteerProfileEditScreen extends StatefulWidget {
   const VolunteerProfileEditScreen({
     super.key,
@@ -41,7 +40,7 @@ class _VolunteerProfileEditScreenState
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  /// Server rejection of the phone number (already on another account).
+  /// Already on another account.
   String? _phoneConflict;
   final _idNumberController = TextEditingController();
 

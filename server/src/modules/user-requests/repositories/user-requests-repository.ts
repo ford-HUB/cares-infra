@@ -20,7 +20,7 @@ export interface CreateUserRequestInput {
   kind: UserRequestKind;
   userId: string;
   summary: string;
-  /** Written as the first trail line, attributed to the requester. */
+  /** First trail line, attributed to the requester. */
   actorName: string;
   requestedRole?: RoleType;
   eventId?: number;
@@ -34,9 +34,9 @@ export interface CreateUserRequestInput {
 
 export interface DecideUserRequestInput {
   status: UserRequestStatus;
-  /** Null clears the decision — what a restore back to PENDING does. */
+  /** Null clears the decision (restore to PENDING). */
   decidedByUserId: string | null;
-  /** Only a REJECTED decision carries one; every other decision leaves it null. */
+  /** REJECTED only. */
   rejectionReason?: string | null;
   trail: { label: string; actorName: string };
 }
@@ -100,7 +100,7 @@ export class UserRequestsRepository {
     });
   }
 
-  /** The open request the requester already has for the same role / event, if any. */
+  /** Open request for the same role / event, if any. */
   async findPendingDuplicate(input: {
     userId: string;
     kind: UserRequestKind;
@@ -119,11 +119,7 @@ export class UserRequestsRepository {
     });
   }
 
-  /**
-   * The event's beneficiary cap and how many applications a director has
-   * already accepted against it. Beneficiaries are counted here, never on the
-   * attendance table — that list is the volunteers'.
-   */
+  /** Beneficiaries are counted on requests, never the volunteers' attendance table. */
   async findBeneficiaryCapacity(eventId: number) {
     const [event, accepted] = await Promise.all([
       this.prisma.event.findUnique({
@@ -192,7 +188,6 @@ export class UserRequestsRepository {
     });
   }
 
-  /** The volunteer's attendance row an EVENT_ROLE request is about, if they still hold one. */
   async findEventRoleAttendance(userId: string, eventId: number) {
     return this.prisma.eventAttendance.findUnique({
       where: { event_id_user_id: { event_id: eventId, user_id: userId } },
@@ -200,11 +195,7 @@ export class UserRequestsRepository {
     });
   }
 
-  /**
-   * Rules on an EVENT_ROLE request and moves the volunteer's attendance row to
-   * match, in one transaction — the app reads the role's standing off the
-   * attendance row, the portal off the request, so they must never disagree.
-   */
+  /** One transaction: the app reads the attendance row, the portal the request, so they must agree. */
   async decideEventRole(
     id: string,
     input: DecideUserRequestInput,
@@ -237,12 +228,7 @@ export class UserRequestsRepository {
     });
   }
 
-  /**
-   * Accepting a role-access request enrols the proof the request carried as
-   * the user's verified ID check, in the same transaction as the decision —
-   * so profile completion and anything else that reads `UserVerification`
-   * sees the ID as verified the moment the director approves.
-   */
+  /** Enrols the proof as the verified `UserVerification` in the decision's transaction. */
   async acceptRoleAccess(
     id: string,
     input: Omit<DecideUserRequestInput, 'status'> & { decidedByUserId: string },
@@ -267,8 +253,7 @@ export class UserRequestsRepository {
         },
       });
 
-      // A user can only hold one verified check; a second accepted request
-      // (after a restore, say) must not enrol a duplicate.
+      // One verified check per user; a re-accept mustn't duplicate.
       if (row.user.user_verifications.length === 0) {
         const faceUrl = row.selfie_url ?? row.id_front_url;
         await tx.userVerification.create({

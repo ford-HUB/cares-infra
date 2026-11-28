@@ -4,7 +4,6 @@ import 'dart:math';
 /// One linear ring of an event's attendance area, as drawn on the portal map.
 typedef GeofenceRing = List<({double lat, double lng})>;
 
-/// Earth-radius distance helpers for event attendance verification.
 class GeoUtils {
   GeoUtils._();
 
@@ -28,9 +27,8 @@ class GeoUtils {
     return earthRadiusMeters * c;
   }
 
-  /// Even-odd point-in-polygon across every ring, so holes and the separate
-  /// parts of a MultiPolygon are both handled — the same rule the portal map
-  /// and the gps-validator-service apply to the drawn boundary.
+  /// Even-odd across every ring (holes and MultiPolygon parts), the same rule
+  /// as the portal map and gps-validator-service.
   static bool isInsideRings(
     List<GeofenceRing> rings, {
     required double latitude,
@@ -51,8 +49,7 @@ class GeoUtils {
     return inside;
   }
 
-  /// Whether a position is inside an event's attendance area: the drawn
-  /// boundary when there is one, otherwise [radiusMeters] around the venue.
+  /// The drawn boundary when present, else [radiusMeters] around the venue.
   static bool isInsideEventArea({
     required double latitude,
     required double longitude,
@@ -114,8 +111,7 @@ class GeoUtils {
     }
   }
 
-  /// The average of the boundary's points — a stand-in venue when the event
-  /// has an area but no pin.
+  /// A stand-in venue when the event has an area but no pin.
   static ({double lat, double lng}) centroid(List<GeofenceRing> geofence) {
     final points = geofence.expand((ring) => ring).toList();
     final lat = points.fold(0.0, (sum, p) => sum + p.lat) / points.length;
@@ -123,8 +119,7 @@ class GeoUtils {
     return (lat: lat, lng: lng);
   }
 
-  /// Furthest boundary point from the venue — the area's reach, shown as its
-  /// radius wherever one number has to describe the drawn shape.
+  /// Used as the area's radius wherever one number must describe the shape.
   static double reachMeters(
     List<GeofenceRing> geofence, {
     required double fromLatitude,

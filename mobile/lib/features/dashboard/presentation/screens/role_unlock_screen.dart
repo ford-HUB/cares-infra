@@ -18,16 +18,9 @@ import 'package:mobile/features/dashboard/presentation/widgets/verification_flow
 
 enum _UnlockStep { intro, idUpload, faceScan, underReview }
 
-/// Requests a locked role on the signed-in account by repeating the identity
-/// check used at registration: upload the ID, then match a selfie against it.
-///
-/// The ID goes through `POST /auth/upload-id`, so only cards the ucid-service
-/// classifier was trained on (UCLM student IDs, front and back) are accepted;
-/// the selfie goes through `POST /auth/verify-face` against that upload.
-///
-/// Passing both does not open the role. It is marked pending in
-/// [RoleAccountStore] and stays that way until an administrator approves the
-/// request.
+/// Repeats the registration check: `POST /auth/upload-id` (ucid-service accepts
+/// only UCLM student IDs), then `POST /auth/verify-face`. Passing marks the
+/// role pending in [RoleAccountStore] until an administrator approves.
 class RoleUnlockScreen extends StatefulWidget {
   const RoleUnlockScreen({
     super.key,
@@ -37,8 +30,7 @@ class RoleUnlockScreen extends StatefulWidget {
 
   final RoleAccount account;
 
-  /// Start straight on the ID upload — used when the caller has already
-  /// explained the requirements (e.g. the confirm dialog on the Profile tab).
+  /// Used when the caller already explained the requirements.
   final bool skipIntro;
 
   @override
@@ -62,8 +54,7 @@ class _RoleUnlockScreenState extends State<RoleUnlockScreen> {
   XFile? _idBackImage;
   FaceCaptureSet _faceCaptures = const FaceCaptureSet();
 
-  /// Handle for the server-side session created by the ID upload; the face
-  /// check is matched against it.
+  /// Server session from the ID upload; the face check matches against it.
   String? _registrationId;
 
   bool _submitting = false;
@@ -122,9 +113,8 @@ class _RoleUnlockScreenState extends State<RoleUnlockScreen> {
     }
   }
 
-  /// Sends both sides to the server, which runs them through the
-  /// ucid-service classifier. Anything outside the trained UCLM ID set is
-  /// rejected there and the server's message is shown as-is.
+  /// Non-UCLM IDs are rejected by ucid-service; the server message is shown as
+  /// is.
   Future<void> _uploadId() async {
     final front = _idFrontImage;
     final back = _idBackImage;
@@ -168,8 +158,7 @@ class _RoleUnlockScreenState extends State<RoleUnlockScreen> {
     );
   }
 
-  /// Both checks passed — file the request so a director can rule on it. The
-  /// role waits on that approval instead of opening straight away.
+  /// Files the request; the role waits on director approval.
   void _onFaceVerified(FaceCaptureSet captures, double similarity) {
     setState(() => _faceCaptures = captures);
     unawaited(_submitRequest());
@@ -186,8 +175,7 @@ class _RoleUnlockScreenState extends State<RoleUnlockScreen> {
         roleType: _roleType.apiValue,
       );
     } on ApiException catch (e) {
-      // 409 means a request is already with the administrator — that is the
-      // same outcome for the person, so fall through to the review screen.
+      // 409: a request is already pending, the same outcome for the person.
       if (e.statusCode != 409) {
         if (!mounted) return;
         setState(() => _submitting = false);

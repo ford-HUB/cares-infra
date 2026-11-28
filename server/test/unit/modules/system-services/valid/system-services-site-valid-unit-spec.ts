@@ -9,26 +9,14 @@ import {
   useSystemServicesApp,
 } from '../system-services-site-support';
 
-/**
- * System Module · Services — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Run service / Stop run — input validation: every id in the scheduler catalogue must
-   * pass, and the id format is lower-case words separated by single hyphens.
-   */
   const fixtures: LayerFixture<string>[] = [
     ...SCHEDULER_DEFINITIONS.map((definition): LayerFixture<string> => ({
       name: `catalogue id ${definition.id}`,
       input: definition.id,
       expected: 'PASS',
     })),
-    // Well-formed but unknown: the format check passes it and the service answers 404.
+    // Passes the format check; the service answers 404.
     { name: 'well-formed unknown id', input: 'no-such-service', expected: 'PASS' },
   ];
 
@@ -47,12 +35,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Run service / Stop run — normalisation: the service receives the id from the path
-   * unchanged, and nothing else.
-   */
   describe('system services site · run and stop — normalisation', () => {
     const ctx = useSystemServicesApp();
 

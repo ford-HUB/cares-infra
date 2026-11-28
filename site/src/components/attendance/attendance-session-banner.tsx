@@ -17,17 +17,10 @@ import { AttendanceStateSegment } from './ui/attendance-state-segment'
 
 interface AttendanceSessionBannerProps {
   counts: LiveAttendanceCounts
-  /** The table's current filter — the matching segment reads as selected. */
   state: LiveStateFilter
   onStateChange: (value: LiveStateFilter) => void
 }
 
-/**
- * The roster at a glance: how many volunteers the geofence is holding on site right
- * now, and how the rest of the roster splits. The three states are parts of one whole,
- * so they share a single bar instead of four equal-weight tiles — and each part is the
- * table's filter for that state.
- */
 export function AttendanceSessionBanner({
   counts,
   state,

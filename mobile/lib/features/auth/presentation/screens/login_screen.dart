@@ -24,7 +24,6 @@ import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.da
 import 'package:mobile/shared/widgets/brand_wave.dart';
 import 'package:mobile/shared/widgets/staggered_reveal.dart';
 
-/// Sign-in screen — shown after the entry splash completes.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
@@ -33,9 +32,8 @@ class LoginScreen extends StatefulWidget {
     this.onHeaderPullEnd,
   });
 
-  /// Vertical drags on the green header, used by [AppFlow] to pull the leading
-  /// story back down over login. Null when login is pushed on its own (e.g.
-  /// after a session ends), and then the header has no handle.
+  /// Header drags that let [AppFlow] pull the story back down; null when login
+  /// is pushed alone.
   final GestureDragStartCallback? onHeaderPullStart;
   final GestureDragUpdateCallback? onHeaderPullUpdate;
   final GestureDragEndCallback? onHeaderPullEnd;
@@ -59,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen>
   final SocialAuthClient _socialAuthClient = SocialAuthClient();
   final DonorAuthService _donorAuthService = DonorAuthService();
 
-  /// Which provider button is mid-flight, so only that one shows a spinner.
+  /// Only that provider's button shows a spinner.
   SocialAuthProvider? _pendingProvider;
 
   bool get _isBusy => _isSigningIn || _pendingProvider != null;
@@ -157,8 +155,8 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  /// A beneficiary whose sign-up a director has not approved (or refused) gets
-  /// the review screen rather than a passing toast. True when it was shown.
+  /// Unapproved or refused beneficiary sign-ups get the review screen; true
+  /// when shown.
   bool _showRegistrationReview(ApiException error, {required String email}) {
     final state = registrationReviewStateOf(error);
     if (state == null) return false;
@@ -184,10 +182,8 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  /// Right password, unproven email: mail a code and run the same OTP screen as
-  /// sign-up. Once the code is accepted the sign-in is retried from that screen —
-  /// the server stamps the account verified on that retry, since it has both the
-  /// password and the code.
+  /// Right password, unverified email: run the sign-up OTP, then retry sign-in;
+  /// the server marks it verified since it has both.
   Future<void> _verifyEmailThenSignIn({
     required String email,
     required String password,
@@ -226,12 +222,8 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  /// Google / Facebook sign-in for donors who registered through a provider.
-  ///
-  /// The provider token goes to `POST /v1/auth/donor/oauth`. A known donor is
-  /// signed straight in; an account the server has never seen gets a dialog
-  /// explaining that social sign-in is donor-only and, if they agree, is sent
-  /// on to the donor sign-up to finish registering with that same provider.
+  /// Donor-only: known donors sign straight in; unknown accounts get a dialog
+  /// and may continue to donor sign-up.
   Future<void> _signInWithProvider(SocialAuthProvider provider) async {
     if (_isBusy) return;
 
@@ -271,9 +263,8 @@ class _LoginScreenState extends State<LoginScreen>
       }
 
       if (result.needsRegistration) {
-        // The provider vouched for them but there is no CARES account yet. The
-        // cached provider session is dropped so the sign-up's own button can run
-        // the consent flow cleanly and mint a fresh ticket.
+        // No CARES account yet: drop the cached provider session so sign-up
+        // mints a fresh ticket.
         await _socialAuthClient.signOut();
         if (!mounted) return;
 
@@ -310,9 +301,8 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// Runs the whole reset flow: the dialog collects the email and the emailed
-  /// code, and only once it hands back a token do we open the new-password
-  /// screen. The email already typed into the form is carried in as a head start.
+  /// The dialog collects email and code; the new-password screen opens only
+  /// with a token.
   Future<void> _forgotPassword() async {
     if (_isBusy) return;
 
@@ -347,7 +337,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  /// How far the card rides up over the hero's wave.
   static const double _cardOverlap = 40;
   static const double _footerWaveHeight = 92;
 
@@ -393,14 +382,11 @@ class _LoginScreenState extends State<LoginScreen>
                               child: _buildBody(t),
                             ),
                           ),
-                          // Keeps the register prompt clear of the footer wave.
                           const SizedBox(height: _footerWaveHeight - 30),
                         ],
                       ),
-                      // Support inbox, centred on the footer band; opens a
-                      // pre-filled email.
-                      // The side insets keep it clear of the version badge;
-                      // on a narrow phone it scales down rather than overlap.
+                      // Insets keep it clear of the version badge; it scales
+                      // down rather than overlap.
                       Positioned(
                         left: 48,
                         right: 48,
@@ -418,7 +404,6 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ),
                       ),
-                      // Release version on the footer band; opens the notes.
                       Positioned(
                         right: 4,
                         bottom: 2 + MediaQuery.viewPaddingOf(context).bottom,

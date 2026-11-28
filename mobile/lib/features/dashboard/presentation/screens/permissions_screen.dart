@@ -7,16 +7,9 @@ import 'package:mobile/features/dashboard/presentation/widgets/account_security_
 import 'package:mobile/features/dashboard/presentation/widgets/app_permission_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Permissions landing, opened from the Profile tab. Lists the device
-/// capabilities CARES uses and lets the person grant each one from here.
-/// On Android a second group covers what the attendance recorder needs to
-/// keep running with the app closed.
-///
-/// Toggling a permission on triggers the OS prompt. Permissions can't be
-/// revoked from inside an app, so toggling one off (or re-enabling a blocked
-/// one) hands off to the system app settings. Statuses are re-read when the
-/// app comes back to the foreground so the list reflects whatever was changed
-/// there.
+/// Toggling on shows the OS prompt; apps can't revoke, so toggling off (or
+/// re-enabling a blocked one) opens system settings. Statuses are re-read on
+/// resume.
 class PermissionsScreen extends StatefulWidget {
   const PermissionsScreen({super.key});
 
@@ -55,8 +48,8 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     ),
   ];
 
-  /// Android only: what the foreground-service recorder needs to survive the
-  /// app being swiped away, the screen turning off, and a reboot.
+  /// Android only: what the foreground recorder needs to survive swipe-away,
+  /// screen-off and reboot.
   static const List<AppPermissionItem> _backgroundItems = [
     AppPermissionItem(
       permission: Permission.locationAlways,

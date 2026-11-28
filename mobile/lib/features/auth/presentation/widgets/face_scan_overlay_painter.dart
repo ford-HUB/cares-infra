@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/utils/face_guide_geometry.dart';
 
-/// Oval face guide with green alignment, hold arc, and capture state.
 class FaceScanOverlayPainter extends CustomPainter {
   FaceScanOverlayPainter({
     required this.progress,

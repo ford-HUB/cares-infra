@@ -1,14 +1,10 @@
 import type { LandingProcessGlyph } from '../../../constants/landing-bulletin'
 
-/* Solid two-tone glyphs for the Core Processes cards: the main shapes in mid green, the
- * sleeves and stems in deep CARES green, and fine cut lines in the chip's mint. */
 const MAIN = 'fill-green-700'
 const DEEP = 'fill-[var(--cares-primary)]'
 const CUT = 'stroke-[#d8f1db]'
 
-/* Hover motion for each glyph, driven by the card's `group` hover: the people pulse once,
- * the hands shake once, the sprout grows up from its base and holds while hovered.
- * fill-box makes each group turn and scale about its own shape. */
+/* `fill-box` makes each group turn and scale about its own shape. */
 const PIVOT = '[transform-box:fill-box]'
 
 function PeopleGlyph() {
@@ -78,7 +74,7 @@ const GLYPHS: Record<LandingProcessGlyph, () => React.JSX.Element> = {
   sprout: SproutGlyph,
 }
 
-/** A core process's solid icon, drawn on a 64-unit square. */
+/** Drawn on a 64-unit square. */
 export function LandingProcessGlyphIcon({
   glyph,
   className,

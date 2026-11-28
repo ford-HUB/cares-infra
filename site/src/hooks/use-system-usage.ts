@@ -14,14 +14,7 @@ import {
 
 const visible = () => document.visibilityState === 'visible'
 
-/**
- * The admin's Statistics screen, live. Readings come from the endpoints the System
- * Performance, Services and Diagnostics screens already use — read-only, nothing
- * new on the server: a 3 s tick for CPU and memory now, and every 15 s the 24 h
- * snapshot, the service roster and the diagnostics sweep. Polling pauses while the
- * tab is hidden and catches up when it is shown. Each source is only requested when
- * the account holds its right, and is reported on its own when it can't be read.
- */
+/** Reuses existing endpoints; each source is requested only with its right and pauses while hidden. */
 export function useSystemUsage() {
   const canReadPerformance = usePermission(PORTAL_PERMISSION.SYSTEM_PERFORMANCE_VIEW)
   const canReadServices = usePermission(PORTAL_PERMISSION.SYSTEM_SERVICE_MANAGE)
@@ -63,7 +56,6 @@ export function useSystemUsage() {
     const fast = canReadPerformance
       ? window.setInterval(() => visible() && void tick(), LIVE_TICK_MS)
       : undefined
-    // Back from another tab: catch up at once instead of waiting for the next beat.
     const onShow = () => visible() && void refreshLive()
     document.addEventListener('visibilitychange', onShow)
     return () => {
@@ -91,7 +83,6 @@ export function useSystemUsage() {
   )
 
   const performanceSource: LiveSourceState = { allowed: canReadPerformance, ...snapshotStatus }
-  // The table needs the roster and the sweep; it is ready once both have settled.
   const servicesSource: LiveSourceState = {
     allowed: canReadServices,
     initialized: servicesStatus.initialized && diagnosticsStatus.initialized,

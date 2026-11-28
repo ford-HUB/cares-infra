@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { AvailablePaymentMethodsDto } from '../dto/payments-mobile-dto';
 import { PaymentSettingsService } from './payment-settings-service';
 
-/**
- * What the donor app is allowed to offer. The app renders exactly what comes back —
- * a channel the director has not enabled never reaches the method step, and the same
- * config refuses it server-side if it is posted anyway.
- */
+/** The app renders exactly this; the config also refuses disabled channels server-side. */
 @Injectable()
 export class PaymentsMobileService {
   constructor(private readonly paymentSettings: PaymentSettingsService) {}

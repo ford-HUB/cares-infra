@@ -5,14 +5,11 @@ import type {
   AuditLogSeverity,
 } from '../types/audit-log'
 
-/** Fixed row metrics — the grid measures its container against these to fill the viewport. */
 export const AUDIT_ROW_HEIGHT_PX = 44
 export const AUDIT_HEADER_HEIGHT_PX = 36
 
-/** Entries pulled per scroll page — enough to overflow the container so a scroll exists. */
 export const AUDIT_PAGE_SIZE = 25
 
-/** Search narrows on the server, so hold the keystrokes before refetching the trail. */
 export const AUDIT_SEARCH_DEBOUNCE_MS = 300
 
 export const AUDIT_FILTER_ALL = 'all'
@@ -63,7 +60,6 @@ export const AUDIT_RANGE_FILTERS: { value: AuditLogRange; label: string }[] = [
   { value: 'all', label: 'All time' },
 ]
 
-/** Left rail colour on a row — the fastest read of "does this entry need a look". */
 export const AUDIT_SEVERITY_ACCENT: Record<AuditLogSeverity, string> = {
   info: 'bg-transparent',
   notice: 'bg-blue-400',
@@ -81,10 +77,7 @@ export const AUDIT_COLUMNS = [
   { key: 'outcome', label: 'Outcome', width: 'w-[10%]' },
 ] as const
 
-/**
- * Shared cell classes — the grid and its skeleton both read these, so a row and its
- * placeholder cannot drift apart in height or padding.
- */
+/** Shared with the loading skeleton so row heights can't drift. */
 export const AUDIT_CELL_BORDER = 'border-r border-gray-100 last:border-r-0'
 export const AUDIT_CELL_BASE =
   'h-11 truncate border-b border-gray-100 px-3 py-0 text-[13px]'

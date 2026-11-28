@@ -4,7 +4,6 @@ import type { EvaluationForm } from '../../types/evaluation'
 
 interface QuestionnaireToolbarProps {
   form: EvaluationForm | null
-  /** Every questionnaire, for the switcher — the builder edits one at a time. */
   forms: EvaluationForm[]
   initialized: boolean
   dirty: boolean
@@ -13,11 +12,11 @@ interface QuestionnaireToolbarProps {
   onSelectForm: (id: string) => void
   onTogglePreview: () => void
   onSave: () => void
-  /** Saves and makes the questionnaire the one volunteers answer after an event. */
+  /** Saves and makes this the questionnaire volunteers answer after an event. */
   onPublish: () => void
 }
 
-/** The chip's copy per state — unsaved edits win over the stored status. */
+/** Unsaved edits win over the stored status. */
 function statusChip(form: EvaluationForm, dirty: boolean) {
   if (dirty) return { label: 'Unsaved changes', badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' }
   if (form.status === 'published')
@@ -25,7 +24,6 @@ function statusChip(form: EvaluationForm, dirty: boolean) {
   return { label: 'Draft', badge: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' }
 }
 
-/** Page header for the builder — the counts, the publish state, and the save actions. */
 export function QuestionnaireToolbar({
   form,
   forms,
@@ -48,7 +46,6 @@ export function QuestionnaireToolbar({
         <h1 className="text-xl font-semibold text-gray-900">Questionnaire</h1>
         {initialized && form ? (
           <>
-            {/* Which of the library's questionnaires is being edited. */}
             <select
               aria-label="Questionnaire being edited"
               value={form.id}

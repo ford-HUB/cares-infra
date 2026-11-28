@@ -1,5 +1,3 @@
-/// Quick date ranges for the events tab chips. [all] is the resting state;
-/// the rest narrow the list to events whose date falls inside the window.
 enum EventTimeRange {
   all('All'),
   today('Today'),
@@ -14,8 +12,7 @@ enum EventTimeRange {
   static DateTime _dayOf(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 
-  /// True when [date] (any clock time) falls inside this range relative to
-  /// [now]. "This week" is today through the next six days.
+  /// "This week" is today through the next six days.
   bool contains(DateTime date, {DateTime? now}) {
     final today = _dayOf(now ?? DateTime.now());
     final day = _dayOf(date);

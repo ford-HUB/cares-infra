@@ -23,18 +23,11 @@ import { SystemDiagnosticsChecker } from './scheduler-diagnostics';
 import { SCHEDULER_QUEUES, SchedulerRunRecorder } from './scheduler-registry';
 import { SchedulerRepository } from './scheduler-repository';
 
-/**
- * Background work on BullMQ. `jobs/` hold the schedulers — they register the
- * catalogued sweeps on boot and expose `publish`/`enqueue` for features to call.
- * `processors/` hold the workers that do the work. Both share Redis with the rest of
- * the server; the queues are namespaced under `cares:` so their keys stand apart
- * from the session and cache entries.
- */
+/** `jobs/` register sweeps and expose `publish`/`enqueue`; `processors/` do the work. Queues prefixed `cares:` in shared Redis. */
 @Global()
 @Module({
   imports: [
-    // Async so the connection reads the env after ConfigModule has loaded `.env` —
-    // a static `forRoot` would see it empty at decoration time.
+    // Async so env is read after ConfigModule loads `.env`.
     BullModule.forRootAsync({
       useFactory: () => ({
         connection: redisConnectionOptions(),

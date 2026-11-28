@@ -60,7 +60,7 @@ export class ChatSiteService {
     };
   }
 
-  /** A contact with no history yet resolves to a null conversation, not a 404. */
+  /** No history resolves to null, not 404. */
   async getConversation(
     caller: JwtPayload,
     contactId: string,
@@ -115,7 +115,7 @@ export class ChatSiteService {
     );
     const message = this.mapMessage(row);
 
-    // Both sides get the same message; only the "who it is with" differs.
+    // Only "who it is with" differs per side.
     this.chatGateway.emitMessage(contactId, caller.sub, message);
     this.chatGateway.emitMessage(caller.sub, contactId, message);
 
@@ -147,7 +147,7 @@ export class ChatSiteService {
     return receipt;
   }
 
-  /** Attachments are streamed through the API so the bucket stays private. */
+  /** Streamed so the bucket stays private. */
   async getAttachment(
     caller: JwtPayload,
     attachmentId: string,
@@ -221,7 +221,7 @@ export class ChatSiteService {
     return uploaded;
   }
 
-  /** Blocks messaging anyone who is not portal staff, including volunteers. */
+  /** Portal staff only. */
   private async assertContact(
     caller: JwtPayload,
     contactId: string,

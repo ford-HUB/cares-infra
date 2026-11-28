@@ -5,18 +5,15 @@ import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/volunteer_field_rules.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 
-/// When the volunteer details step (and a student beneficiary's review step)
-/// may continue, split by the form's sections so each can be checked on its
-/// own. [isComplete] is what the registration flow gates Continue on.
+/// Split by form section; [isComplete] gates Continue. Also used for a student
+/// beneficiary's review step.
 abstract final class VolunteerDetailsRules {
-  /// Alumni close their details with a Certificate of Graduation and
-  /// partner-barangay volunteers with a supporting document.
+  /// Alumni: Certificate of Graduation; partner barangay: supporting document.
   static bool requiresDocument(VolunteerType? signUpType) =>
       signUpType == VolunteerType.alumni ||
       signUpType == VolunteerType.partnerBarangay;
 
-  /// First and last name are required; the middle name is optional. Each one
-  /// that is filled in must pass [VolunteerFieldRules.nameError].
+  /// Middle name optional.
   static bool namesValid(RegisterOcrSample data) =>
       VolunteerFieldRules.nameError(data.firstname, label: 'First name') ==
           null &&
@@ -29,7 +26,7 @@ abstract final class VolunteerDetailsRules {
           ) ==
           null;
 
-  /// Name and age; a partner-barangay volunteer must also pick a gender.
+  /// Partner-barangay volunteers must also pick a gender.
   static bool personalInfoValid(
     RegisterOcrSample data,
     VolunteerType? signUpType,
@@ -42,8 +39,8 @@ abstract final class VolunteerDetailsRules {
   static bool contactInfoValid(RegisterOcrSample data) =>
       isValidPhilippinePhone(data.phoneNumber);
 
-  /// The form only writes an address once the street, barangay and city are
-  /// complete (`PhAddress.formatted`), so a non-blank one is a complete one.
+  /// The form writes an address only once complete, so non-blank means
+  /// complete.
   static bool homeAddressValid(RegisterOcrSample data) =>
       data.currentAddress.trim().isNotEmpty;
 
@@ -52,12 +49,10 @@ abstract final class VolunteerDetailsRules {
     required bool hasDocument,
   }) => !requiresDocument(signUpType) || hasDocument;
 
-  /// Only the barangays CARES has partnered with are accepted.
   static bool partnerBarangayValid(RegisterOcrSample data) =>
       PartnerBarangays.names.contains(data.partnerBarangay);
 
-  /// ID number, department and the per-type course / year checks. Partner
-  /// barangay volunteers have no school record, so they never need one.
+  /// Partner-barangay volunteers have no school record.
   static bool schoolInfoValid(
     RegisterOcrSample data,
     VolunteerType? signUpType,
@@ -98,8 +93,7 @@ abstract final class VolunteerDetailsRules {
     };
   }
 
-  /// Every section of the details step for a [signUpType] volunteer (null for
-  /// a student beneficiary, whose ID is read like a student's).
+  /// [signUpType] is null for a student beneficiary.
   static bool isComplete(
     RegisterOcrSample data, {
     required VolunteerType? signUpType,

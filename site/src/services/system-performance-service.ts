@@ -11,13 +11,6 @@ import type {
 } from '../types/system-performance'
 import { apiClient, parseApiError } from './api-client'
 
-/**
- * Host and request metrics from the server's own sampler. The snapshot is the
- * whole page in one read; the tick is the newest reading alone, polled every few
- * seconds on the live range. Failures throw with the server's message so the store
- * can turn them into the banner.
- */
-
 interface PerformanceSampleApiResponse {
   at: string
   cpu_user: number
@@ -170,7 +163,6 @@ export async function fetchPerformanceSnapshot(
   }
 }
 
-/** The live tick — the sampler's newest reading and the breakdown it drives. */
 export async function fetchPerformanceTick(): Promise<PerformanceTick> {
   try {
     const { data: body } = await apiClient.get<{
@@ -198,10 +190,7 @@ export interface PageTimingReport {
   interactiveMs: number
 }
 
-/**
- * Fire-and-forget: one screen's load, as measured in this tab. A failed report is
- * dropped silently — it is telemetry, and must never surface to the person browsing.
- */
+/** Telemetry: failures are dropped silently. */
 export async function reportPageTiming(report: PageTimingReport): Promise<void> {
   try {
     await apiClient.post('/api/v1/system-performance/page-timings', {

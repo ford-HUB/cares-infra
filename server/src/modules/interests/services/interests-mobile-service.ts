@@ -26,7 +26,7 @@ export class InterestsMobileService {
   async saveUserInterests(
     userId: string,
     selected: InterestCode[],
-    /** `undefined` keeps the text already on file. */
+    /** `undefined` keeps the saved text. */
     otherInterest: string | null | undefined,
     audit?: { actor: JwtPayload; context: RequestContextDto },
   ) {
@@ -35,10 +35,7 @@ export class InterestsMobileService {
       throw new NotFoundException('User not found');
     }
 
-    // Any mobile account may hold interests — the app's role switcher is
-    // local, so a beneficiary-registered user volunteering keeps their token
-    // role. Directors and coordinators hold them for their Volunteer side;
-    // other portal staff are excluded.
+    // Any mobile role (switcher is local), plus directors/coordinators for their Volunteer side.
     if (!toMobileRole(user.role.type)) {
       throw new ForbiddenException('Only mobile accounts can save interests');
     }
@@ -51,9 +48,7 @@ export class InterestsMobileService {
       );
     }
 
-    // The typed text only describes the "Others" pick — drop it when OTHERS
-    // is not selected so a stale value never outlives the choice. A save
-    // that leaves the field out (code-only saves) keeps what was typed.
+    // Drop the text unless OTHERS is picked; omitting the field keeps it.
     let other: string | null = null;
     if (selected.includes(InterestCode.OTHERS)) {
       other =

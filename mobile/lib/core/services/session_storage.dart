@@ -5,9 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// What the app keeps between launches so a signed-in person reopens straight
-/// onto their dashboard: the token every API call authenticates with, plus the
-/// identity the dashboard was opened with at sign-in.
 @immutable
 class StoredSession {
   const StoredSession({
@@ -41,20 +38,17 @@ class StoredSession {
   final String lastName;
   final bool hasInterests;
 
-  /// Sides of the account open besides [roleType] — a student beneficiary's
-  /// Volunteer side — so a restored session reopens them too.
+  /// Other open sides (e.g. a student beneficiary's Volunteer side), reopened
+  /// on restore.
   final List<String> unlockedRoles;
 
-  /// Missing a token or a role there is nothing to restore onto.
   bool get isUsable => accessToken.isNotEmpty && roleType.isNotEmpty;
 
-  /// The JWT's own `exp`. Null when the token cannot be read, in which case
-  /// the server is left to decide.
+  /// Null when unreadable; the server decides.
   DateTime? get expiresAt => jwtExpiry(accessToken);
 
-  /// True once the token is past `exp`. The server can end a session sooner
-  /// (idle timeout, maximum length, device limit, a revoke from the portal);
-  /// that is caught by the check against the server on launch.
+  /// Server-side ends (idle, revoke, device limit) are caught by the launch
+  /// check.
   bool isExpiredAt(DateTime now) {
     final expiry = expiresAt;
     return expiry != null && !now.isBefore(expiry);
@@ -90,9 +84,7 @@ class StoredSession {
   };
 }
 
-/// Reads `exp` (seconds since epoch) from a JWT's payload. The signature is
-/// not checked — the server does that on every request — this only spares a
-/// network round trip for a token that is plainly out of date.
+/// Signature unchecked; only skips a round trip for a plainly expired token.
 @visibleForTesting
 DateTime? jwtExpiry(String token) {
   final parts = token.split('.');
@@ -113,13 +105,9 @@ DateTime? jwtExpiry(String token) {
   }
 }
 
-/// Keeps the [StoredSession] in the platform's secure store — the Android
-/// Keystore-backed storage and the iOS Keychain — never in plain preferences.
-///
-/// Every call is best-effort: a store that cannot be read or written (no
-/// plugin under test, a keystore reset by the OS) behaves as "no saved
-/// session", which only means the person signs in again. Calls are queued so
-/// a sign-out's delete can never land after the next sign-in's write.
+/// Secure store (Keystore / Keychain). Best-effort: failures read as no saved
+/// session. Calls are queued so a sign-out delete can't land after the next
+/// sign-in write.
 class SessionStorage {
   SessionStorage._();
 
@@ -127,15 +115,14 @@ class SessionStorage {
 
   static const _sessionKey = 'auth.session';
 
-  /// Plain-preferences marker that this install has run before. The iOS
-  /// Keychain outlives an uninstall, so without it a reinstalled app would
-  /// silently sign back in to the previous account.
+  /// The iOS Keychain survives uninstall; without this marker a reinstall would
+  /// sign back in.
   static const _installMarkerKey = 'auth.session.install_marker';
 
   static const _secure = FlutterSecureStorage(
     iOptions: IOSOptions(
-      // Readable after the first unlock since boot (background sync needs
-      // it) and never copied to another device through a backup.
+      // Readable after first unlock (background sync); never restored to
+      // another device.
       accessibility: KeychainAccessibility.first_unlock_this_device,
     ),
   );

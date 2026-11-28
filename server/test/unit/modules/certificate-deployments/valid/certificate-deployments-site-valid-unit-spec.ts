@@ -20,19 +20,7 @@ import {
 import { CertificateDeploymentsSiteService } from '../../../../../src/modules/certificate-deployments/services/certificate-deployments-site-service';
 import { CertificateDeploymentResponseSchema } from '../../../../../src/modules/certificate-deployments/validators/certificate-deployments-site-validator';
 
-/**
- * Certificate Module · Deploy Certificate — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Deploy — input validation: the template id and the event id, each required, plus the
-   * forms an event id legitimately arrives in.
-   */
   const fixtures: LayerFixture[] = [
     { name: 'valid body', input: VALID, expected: 'PASS' },
     { name: 'upper-case template id', input: { ...VALID, certificate_template_id: VALID_TEMPLATE_ID.toUpperCase() }, expected: 'PASS' },
@@ -56,13 +44,7 @@ import { CertificateDeploymentResponseSchema } from '../../../../../src/modules/
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Deploy — normalisation: the schema turns an event id sent as text into a number, the
-   * service receives that with the caller and where the request came from, and only the
-   * response schema's fields leave the server.
-   */
   describe('certificate deployments site · deploy — normalisation', () => {
     const ctx = useDeploymentsApp();
 
@@ -102,10 +84,9 @@ import { CertificateDeploymentResponseSchema } from '../../../../../src/modules/
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   describe('certificate deployments site · deploy — security', () => {
-    // What may be deployed lives in the real service, built per case below.
+    // Deploy rules live in the real service, built per case below.
     describe('deploy (real service)', () => {
       const PAST = new Date('2026-10-30T05:00:00.000Z');
 
@@ -140,7 +121,7 @@ import { CertificateDeploymentResponseSchema } from '../../../../../src/modules/
         status: EventStatus.Completed,
       };
 
-      /** What the row looks like once saved, so the real mapper runs over the real copy. */
+      /** Saved row, so the real mapper runs over the real copy. */
       const savedRow = (reference: string, persisted: any, id = 'new-deployment-id') => ({
         certificate_deployment_id: id,
         reference,

@@ -31,10 +31,7 @@ function Field({ label, value }: { label: string; value?: ReactNode }) {
   )
 }
 
-/**
- * The full record for one entry. Everything shown here is already loaded with the
- * row — an audit trail is append-only, so there is nothing to fetch or edit.
- */
+/** Append-only: everything is already loaded with the row. */
 export function AuditLogDetailsPanel({ entry, onClose }: AuditLogDetailsPanelProps) {
   if (!entry) return null
 

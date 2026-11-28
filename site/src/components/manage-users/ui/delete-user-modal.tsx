@@ -14,12 +14,12 @@ export function DeleteUserModal({
   onClose,
   onConfirm,
 }: DeleteUserModalProps) {
-  // The parent keys this component by user id, so the confirmation starts empty per target.
+  // Keyed by user id upstream, so the confirmation starts empty per target.
   const [confirmation, setConfirmation] = useState('')
 
   if (!user) return null
 
-  // Typing the address back is the guard against deleting the wrong row — there is no undo.
+  // Typing the address back guards against deleting the wrong row; there's no undo.
   const expected = user.email || `${user.firstName} ${user.lastName}`.trim()
   const confirmed = confirmation.trim().toLowerCase() === expected.toLowerCase()
 

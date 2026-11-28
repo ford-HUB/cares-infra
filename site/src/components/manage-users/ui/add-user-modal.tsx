@@ -9,11 +9,7 @@ type AddUserModalProps = ReturnType<typeof useProvisionUserForm> & {
   onClose: () => void
 }
 
-/**
- * Provisions the account behind an approved access request, then shows the credential
- * once. The two steps share a dialog because the second is the only place the password
- * is ever readable — closing the form on success would throw it away.
- */
+/** Provisioning and the one-time credential share a dialog; closing on success would lose the password. */
 export function AddUserModal({ open, onClose, ...provision }: AddUserModalProps) {
   const [scopeOpen, setScopeOpen] = useState(false)
   const { onSubmit, submitting, credentials, delivery, reset } = provision

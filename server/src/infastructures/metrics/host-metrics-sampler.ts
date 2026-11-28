@@ -13,10 +13,9 @@ import { RequestMetricsRecorder } from './request-metrics-recorder';
 
 const execFileAsync = promisify(execFile);
 
-/** One reading of the host, taken on the sampler's tick. */
 export interface HostSample {
   at: string;
-  /** Percentage points of total CPU capacity; the three sum to CPU busy. */
+  /** Percent of total CPU; the three sum to CPU busy. */
   cpuUser: number;
   cpuSystem: number;
   cpuIoWait: number;
@@ -42,7 +41,7 @@ export interface ProcessLoad {
   id: string;
   name: string;
   owner: ProcessOwner;
-  /** Share of total host capacity, so the column sums toward CPU busy. */
+  /** Percent of host capacity, not of one core. */
   cpuPercent: number;
   memoryMb: number;
   /** Null where the platform does not report it. */
@@ -59,7 +58,6 @@ export interface HostInfo {
 
 export type SampleRange = 'live' | 'hour' | 'day';
 
-/** The window each range charts and how the stream behind it is sampled. */
 export const SAMPLE_RANGES: Record<
   SampleRange,
   { points: number; stepSeconds: number }
@@ -69,14 +67,14 @@ export const SAMPLE_RANGES: Record<
   day: { points: 72, stepSeconds: 1_200 },
 };
 
-/** How often the live reading is taken. The portal ticks at the same rate. */
+/** The portal polls at the same rate. */
 export const SAMPLE_TICK_MS = SAMPLE_RANGES.live.stepSeconds * 1000;
 
-/** The process list is a `ps` spawn, so it is refreshed less often than the CPU. */
+/** `ps` spawns are costly, so refreshed less often. */
 const PROCESS_REFRESH_TICKS = 3;
 const PROCESS_ROWS = 8;
 
-/** Throughput and latency are read over the last minute, whatever the tick. */
+/** Fixed one-minute window regardless of tick. */
 const REQUEST_WINDOW_MS = 60_000;
 
 interface CoreTimes {
@@ -86,12 +84,7 @@ interface CoreTimes {
   idle: number;
 }
 
-/**
- * Samples the machine this server runs on and keeps three windows of readings —
- * live, hour and day — for the performance page. The live window is memory only;
- * the two aggregate windows are mirrored to Redis so a restart does not wipe the
- * day's history. Aggregates are means of the finer readings beneath them.
- */
+/** Live window in memory; hour/day aggregates mirrored to Redis to survive restarts. */
 @Injectable()
 export class HostMetricsSampler implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(HostMetricsSampler.name);
@@ -115,7 +108,7 @@ export class HostMetricsSampler implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit(): Promise<void> {
     await this.restore();
-    // Prime the CPU counters so the first real tick has a delta to work from.
+    // Prime counters so the first tick has a delta.
     this.previousTimes = await readCoreTimes();
     this.timer = setInterval(() => void this.tick(), SAMPLE_TICK_MS);
     this.timer.unref();
@@ -135,7 +128,7 @@ export class HostMetricsSampler implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  /** Oldest first; the last entry is "now". */
+  /** Oldest first. */
   samples(range: SampleRange): HostSample[] {
     return this.rings[range];
   }
@@ -157,8 +150,6 @@ export class HostMetricsSampler implements OnModuleInit, OnModuleDestroy {
     const [one, five, fifteen] = os.loadavg();
     return [round2(one), round2(five), round2(fifteen)];
   }
-
-  // -------------------------------------------------------------- sampling
 
   private async tick(): Promise<void> {
     try {
@@ -205,7 +196,6 @@ export class HostMetricsSampler implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /** Closes one aggregate bucket from the finer readings inside it. */
   private async close(
     range: 'hour' | 'day',
     inside: HostSample[],
@@ -234,11 +224,7 @@ export class HostMetricsSampler implements OnModuleInit, OnModuleDestroy {
     return `metrics:samples:${range}`;
   }
 
-  /**
-   * Top processes by CPU. On Linux this is what `ps` sees from inside the container
-   * — the API and whatever shares its namespace. Elsewhere only this process is
-   * measured, from its own CPU counters, because there is no portable process table.
-   */
+  /** Linux: `ps` inside the container; elsewhere only this process. */
   private async readProcesses(): Promise<ProcessLoad[]> {
     if (os.platform() === 'linux') {
       try {
@@ -270,8 +256,6 @@ export class HostMetricsSampler implements OnModuleInit, OnModuleDestroy {
   }
 }
 
-// -------------------------------------------------------------------- helpers
-
 function push<T>(ring: T[], value: T, max: number): void {
   ring.push(value);
   if (ring.length > max) ring.splice(0, ring.length - max);
@@ -285,7 +269,7 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/** Mean of every field; `at` is the bucket's close, the last reading's time. */
+/** `at` is the last reading's time. */
 function mean(samples: HostSample[]): HostSample {
   const average = (pick: (sample: HostSample) => number) =>
     round1(samples.reduce((sum, one) => sum + pick(one), 0) / samples.length);
@@ -301,10 +285,7 @@ function mean(samples: HostSample[]): HostSample {
   };
 }
 
-/**
- * Cumulative CPU time per core. Linux is read from `/proc/stat`, the only source
- * that reports I/O wait; everywhere else `os.cpus()` is used and I/O wait is zero.
- */
+/** Linux reads `/proc/stat` (only source of I/O wait); elsewhere `os.cpus()` with I/O wait 0. */
 async function readCoreTimes(): Promise<CoreTimes[]> {
   if (os.platform() === 'linux') {
     try {
@@ -338,7 +319,6 @@ async function readCoreTimes(): Promise<CoreTimes[]> {
   }));
 }
 
-/** Percentage of each core, and of the host, spent in each band since the last read. */
 function diffTimes(
   previous: CoreTimes[] | null,
   current: CoreTimes[],

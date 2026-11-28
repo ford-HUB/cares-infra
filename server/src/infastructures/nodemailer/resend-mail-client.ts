@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { SendEmailOptions } from './mail-types';
 
-/** Resend's HTTPS endpoint — the production sender. */
 const RESEND_API_URL = 'https://api.resend.com/emails';
 const RESEND_TIMEOUT_MS = 15_000;
 
-/** Production mail: sends from SMTP_RESEND_AUTHOR_ORIGIN with SMTP_RESEND_APIKEY. */
+/** Production sender (SMTP_RESEND_AUTHOR_ORIGIN, SMTP_RESEND_APIKEY). */
 @Injectable()
 export class ResendMailClient {
   async send(

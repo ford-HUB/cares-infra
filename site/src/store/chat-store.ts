@@ -22,11 +22,9 @@ import { playNotificationSound } from '../utils/notification-sound'
 interface ChatState {
   contacts: ChatContact[]
   threads: ChatThreadSummary[]
-  /** Loaded lazily per contact; a missing key means "not fetched yet". */
+  /** Missing key means not fetched yet. */
   messages: Record<string, ChatMessage[]>
-  /** User ids the gateway reports as connected. */
   onlineIds: string[]
-  /** `null` until the admin picks who to contact — the page's default state. */
   activeContactId: string | null
   loading: boolean
   messagesLoading: boolean
@@ -110,7 +108,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return false
     }
 
-    // The socket echoes this back too; appending by id keeps it from doubling.
+    // The socket echoes it too; appending by id avoids doubling.
     const message = res.data
     set((state) => {
       const existing = state.messages[contactId] ?? []
@@ -165,7 +163,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         if (incoming && isOpen) void markConversationRead(contact_id)
 
-        // Directors and coordinators are the escalation paths — they chime.
         if (incoming && CHAT_SOUND_ROLES.includes(message.senderRoleType)) {
           playNotificationSound()
         }

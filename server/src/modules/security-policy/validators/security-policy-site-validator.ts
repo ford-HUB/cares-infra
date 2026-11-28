@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const MINUTES_IN_DAY = 1440;
 
-/** Bounds the portal's number inputs and stops a typo from locking everyone out. */
+/** Stops a typo from locking everyone out. */
 export const PASSWORD_MIN_LENGTH_FLOOR = 8;
 export const PASSWORD_MIN_LENGTH_CEILING = 64;
 
@@ -24,14 +24,14 @@ export const SecurityPolicySchema = z.object({
   lockout_enabled: z.boolean(),
   lockout_max_attempts: z.number().int().min(3).max(20),
   lockout_window_minutes: z.number().int().min(1).max(MINUTES_IN_DAY),
-  /** 0 keeps the lock until an administrator lifts it. */
+  /** 0 = until an admin lifts it. */
   lockout_duration_minutes: z.number().int().min(0).max(MINUTES_IN_DAY),
 
-  /** 0 disables the idle check. */
+  /** 0 disables. */
   session_idle_timeout_minutes: z.number().int().min(0).max(MINUTES_IN_DAY),
-  /** 0 leaves session length to the token's own expiry. */
+  /** 0 defers to token expiry. */
   session_max_duration_hours: z.number().int().min(0).max(720),
-  /** 0 means unlimited devices per account. */
+  /** 0 = unlimited. */
   max_concurrent_sessions: z.number().int().min(0).max(20),
 
   login_hours_enabled: z.boolean(),
@@ -41,10 +41,7 @@ export const SecurityPolicySchema = z.object({
   ip_allowlist: z.array(ipAddress).max(100),
 });
 
-/**
- * The whole policy is submitted at once — it is a single settings form, and a partial
- * update would make "unchecked" indistinguishable from "not sent".
- */
+/** Whole policy at once so "unchecked" ≠ "not sent". */
 export const UpdateSecurityPolicySchema = SecurityPolicySchema.strict().refine(
   (policy) =>
     !policy.login_hours_enabled ||

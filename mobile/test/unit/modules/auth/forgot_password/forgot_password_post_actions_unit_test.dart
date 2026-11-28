@@ -1,12 +1,9 @@
-// Unit tests for every POST the forgot-password flow sends:
+// Unit tests for every POST the forgot-password flow sends (MockClient, no real
+// server):
 //
 //   POST /v1/auth/forgot-password    PasswordResetService.requestCode
 //   POST /v1/auth/verify-reset-otp   PasswordResetService.verifyCode
 //   POST /v1/auth/reset-password     PasswordResetService.resetPassword
-//
-// The network is replaced with package:http's MockClient, so nothing here
-// reaches a real server. Each test records the request it captured and
-// replies with a mock `{ ok, message, data }` envelope.
 
 import 'dart:convert';
 import 'dart:io';

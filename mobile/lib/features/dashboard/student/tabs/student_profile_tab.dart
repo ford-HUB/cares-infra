@@ -74,13 +74,11 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
     return verified * 25;
   }
 
-  /// The prototype has no ledger behind it; the real donor dashboard reads
-  /// `GET /donations/me`.
+  /// Prototype: no ledger (the real dashboard reads `GET /donations/me`).
   int get _totalDonated => 0;
 
   int get _donationsMade => 0;
 
-  /// Certificates the volunteer has received so far.
   int get _certsEarned => _certificateStore.count;
 
   void _logout(BuildContext context) {

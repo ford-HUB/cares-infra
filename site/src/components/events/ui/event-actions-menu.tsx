@@ -6,30 +6,24 @@ import { LockedMenuItem } from '../../portal/ui/locked-action'
 
 interface EventActionsMenuProps {
   event: EventTableRow
-  /** Rect of the row trigger the menu is anchored to. */
   anchor: DOMRect
   onClose: () => void
   onView: (event: EventTableRow) => void
-  /** Each write is optional: a handler the account has no right to is left out of the menu. */
+  /** Write handlers are optional; ones the account lacks are left out of the menu. */
   onEdit?: (event: EventTableRow) => void
   onCancel?: (event: EventTableRow) => void
   onDelete?: (event: EventTableRow) => void
-  /** Suspended rights — the matching entries are kept, locked and red, not left out. */
+  /** Suspended rights keep their entries, locked and red. */
   updateSuspension?: SessionSuspension
   deleteSuspension?: SessionSuspension
 }
 
 const MENU_WIDTH_PX = 200
 const MENU_GAP_PX = 6
-/** Rough menu height used only to decide whether to open upward. */
+/** Only used to decide whether to open upward. */
 const MENU_ESTIMATED_HEIGHT_PX = 180
 
-/**
- * Row-level actions for an event. Rendered fixed-positioned against the trigger's rect so
- * the table's scroll container can't clip it, and flipped above the trigger when there is
- * no room below. Items are labelled — the previous icon-only strip gave no hint of what
- * each button did, and "Cancel event" reads as destructive enough to need words.
- */
+/** Fixed-positioned against the trigger so the table's scroll container can't clip it; flips up when needed. */
 export function EventActionsMenu({
   event,
   anchor,
@@ -60,7 +54,6 @@ export function EventActionsMenu({
     })
   }, [anchor])
 
-  // Focus the first item so the menu is usable from the keyboard right away.
   useEffect(() => {
     if (!position) return
     menuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus()
@@ -70,7 +63,7 @@ export function EventActionsMenu({
     const onPointerDown = (pointerEvent: MouseEvent) => {
       const target = pointerEvent.target as HTMLElement
       if (menuRef.current?.contains(target)) return
-      // The row trigger toggles the menu itself; closing here first would reopen it.
+      // The trigger toggles the menu itself; closing here first would reopen it.
       if (target.closest('[data-event-actions-trigger]')) return
       onClose()
     }

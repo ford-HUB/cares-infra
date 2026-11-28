@@ -14,11 +14,7 @@ import { AuthenticatedRequest } from '../types/authenticated-request';
 
 const LABELS = new Map(PERMISSION_CATALOG.map((entry) => [entry.key, entry]));
 
-/**
- * Runs after `RolesGuard`: the role says which portal a person belongs to, the
- * rights say what they may do in it. A route with no `@RequirePermission` is left
- * to the role check alone.
- */
+/** After `RolesGuard`; routes without `@RequirePermission` rely on the role alone. */
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(

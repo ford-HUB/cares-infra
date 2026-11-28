@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 
-/// First step of the school-record re-verification: what is about to happen
-/// and why nothing is typed in.
 class SchoolRecordReverifyIntro extends StatelessWidget {
   const SchoolRecordReverifyIntro({super.key});
 
@@ -147,8 +145,6 @@ class _RequirementRow extends StatelessWidget {
   }
 }
 
-/// OCR + apply step: a spinner while the ID is being read, or the failure
-/// with a retry and a way back to new photos.
 class SchoolRecordExtracting extends StatelessWidget {
   const SchoolRecordExtracting({
     super.key,
@@ -252,7 +248,6 @@ class SchoolRecordExtracting extends StatelessWidget {
   }
 }
 
-/// Final step: what OCR read and the server stored.
 class SchoolRecordReverifyResult extends StatelessWidget {
   const SchoolRecordReverifyResult({super.key, required this.school});
 

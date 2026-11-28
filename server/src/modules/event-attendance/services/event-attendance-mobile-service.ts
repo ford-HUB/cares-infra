@@ -22,7 +22,6 @@ export class EventAttendanceMobileService {
     private readonly eventAttendanceValidationService: EventAttendanceValidationService,
   ) {}
 
-  /** One reading straight from a connected device. */
   async recordLive(
     userId: string,
     reading: LiveCoordinateDto,
@@ -44,11 +43,7 @@ export class EventAttendanceMobileService {
     return { accepted };
   }
 
-  /**
-   * A batch the device buffered while offline, as the CSV it generates from its
-   * pending rows. Unreadable lines are counted and dropped rather than failing the
-   * whole upload — the device would otherwise retry the same file forever.
-   */
+  /** Bad CSV lines are dropped, not fatal, or the device retries forever. */
   async recordSync(
     userId: string,
     fields: SyncCoordinatesFieldsDto,
@@ -72,11 +67,7 @@ export class EventAttendanceMobileService {
     return { accepted, skipped };
   }
 
-  /**
-   * The device is waiting on a 200 and must not be held up by the validator, so
-   * the ruling runs after the response. It is a no-op while the event is still on;
-   * once the event is over, a late offline batch is judged the moment it lands.
-   */
+  /** Runs after the 200; no-op while the event is on. */
   private validateInBackground(eventId: number | null, userId: string): void {
     if (eventId == null) return;
     void this.eventAttendanceValidationService
@@ -89,7 +80,7 @@ export class EventAttendanceMobileService {
       });
   }
 
-  /** A numeric id that names a real event; otherwise a null hint. */
+  /** Null unless a real event id. */
   private async resolveEventId(raw: string): Promise<number | null> {
     const parsed = Number(raw);
     if (!Number.isInteger(parsed) || parsed <= 0) return null;

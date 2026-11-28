@@ -2,15 +2,14 @@ import { ScrollText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface CertificateTemplatesEmptyProps {
-  /** True when the library is filtered down to nothing rather than genuinely empty. */
+  /** Filtered to nothing, as opposed to genuinely empty. */
   filtered: boolean
   errored: boolean
   onClearFilters: () => void
-  /** Omitted when the account lacks the manage right — the zero state only explains. */
+  /** Omitted without the manage right; the zero state only explains. */
   onCreate?: () => void
 }
 
-/** Designed zero state — the screen never renders a bare empty grid. */
 export function CertificateTemplatesEmpty({
   filtered,
   errored,

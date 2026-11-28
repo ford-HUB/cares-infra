@@ -6,8 +6,6 @@ import { usePlayWhenVisible } from '../../hooks/use-play-when-visible'
 import { useReveal } from '../../hooks/use-reveal'
 import { LandingReveal } from './ui/landing-reveal'
 
-/** The heading, word by word: once it scrolls into view each word bounces in, one after
- *  another. Under reduced motion the words are simply shown. */
 function BouncingHeading() {
   const { heading } = LANDING_VIDEO
   const { ref, visible } = useReveal<HTMLHeadingElement>(0.6)
@@ -44,9 +42,6 @@ function BouncingHeading() {
   )
 }
 
-/** Rule, outlined play badge, rule. On first view the frame falls from above and lands
- *  with a squash, the play triangle drops into it, and the rules spread outward from the
- *  badge. Under reduced motion it is simply shown. */
 function DroppingPlayBadge() {
   const { ref, visible } = useReveal<HTMLDivElement>(0.6)
   const hidden = 'motion-safe:opacity-0'
@@ -88,9 +83,7 @@ function DroppingPlayBadge() {
   )
 }
 
-/** Home-page video: the heading on top, then the video at full width, edge to edge
- *  with no outer margin. The video keeps its own height. Shows a poster until
- *  `LANDING_VIDEO.src` is set. */
+/** Shows a poster until `LANDING_VIDEO.src` is set. */
 export function LandingVideo() {
   const { src, poster, title, placeholder, description, visibleRatio } = LANDING_VIDEO
   const videoRef = usePlayWhenVisible(visibleRatio)

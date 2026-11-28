@@ -5,7 +5,6 @@ import { NeedsDataGate } from '../../components/residential-needs/ui/needs-data-
 import { CLUSTER_K_DEFAULT } from '../../constants/residential-needs'
 import { useResidentialNeeds } from '../../hooks/use-residential-needs'
 
-/** Residential Needs › Clusters — the K-Means grouping of the submitted surveys. */
 export function NeedsClustersPage() {
   const { households, loaded, error, reload } = useResidentialNeeds()
   return (

@@ -7,7 +7,6 @@ const statusStyles: Record<ManagedUser['status'], { badge: string; dot: string }
   expired: { badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
 }
 
-/** Dense badge sized for the users grid — the roomier `StatusPill` is for detail views. */
 export function UserStatusBadge({ status }: { status: ManagedUser['status'] }) {
   const style = statusStyles[status] ?? statusStyles.restricted
 

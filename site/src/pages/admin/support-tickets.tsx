@@ -65,8 +65,7 @@ export function SupportTicketsPage() {
     [tickets],
   )
 
-  // Counted over every ticket, not the filtered view — the board is the overview the
-  // filters act on, so its numbers must not move when a filter is applied.
+  // Over every ticket so the board doesn't move with a filter.
   const buckets = useMemo<SupportTicketBucketCount[]>(
     () =>
       TICKET_PRIORITY_ORDER.map((priority) => {
@@ -103,7 +102,6 @@ export function SupportTicketsPage() {
         return matchesSearch && matchesStatus && matchesType && matchesPriority
       })
       .sort((a, b) => {
-        // Triage order: issues first, then whatever moved most recently.
         const byPriority =
           TICKET_PRIORITY_RANK[a.priority] - TICKET_PRIORITY_RANK[b.priority]
         if (byPriority !== 0) return byPriority
@@ -111,9 +109,7 @@ export function SupportTicketsPage() {
       })
   }, [tickets, search, statusFilter, typeFilter, priorityFilter])
 
-  // Read from the store rather than holding a copy, so the detail view reflects a
-  // reply or status change the moment it lands. Falling back to the first row keeps
-  // the right column filled — including after a filter hides the previous selection.
+  // Read from the store so updates show immediately; falls back to the first row.
   const selected =
     filtered.find((ticket) => ticket.id === selectedId) ?? filtered[0] ?? null
 
@@ -167,10 +163,7 @@ export function SupportTicketsPage() {
         onTypeChange={setTypeFilter}
       />
 
-      {/*
-        A failed fetch leaves the list empty, which would otherwise read as "no tickets
-        match the current filters" — a filter problem, not the outage it actually is.
-      */}
+      {/* Distinguish a failed fetch from an empty filter result. */}
       {error && (
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>
@@ -216,7 +209,7 @@ export function SupportTicketsPage() {
 
       {updateOpen && (
         <TicketUpdateModal
-          // Keyed by ticket so the dialog's draft never carries over to another one.
+          // Keyed by ticket so the draft never carries over.
           key={selected?.id}
           ticket={selected}
           saving={saving}

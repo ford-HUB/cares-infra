@@ -1,15 +1,13 @@
 import 'package:mobile/core/models/password_policy.dart';
 import 'package:mobile/core/services/api_client.dart';
 
-/// Reads the password rules the administrator set in the portal. The endpoint is
-/// public because the sign-up form has to state the rules before anyone is signed in.
+/// Public endpoint: sign-up must state the rules before sign-in.
 class PasswordPolicyApi {
   PasswordPolicyApi({ApiClient? client}) : _client = client ?? ApiClient();
 
   final ApiClient _client;
 
-  /// Never throws: a form that cannot reach the API still needs rules to show, so a
-  /// failed fetch falls back to the same defaults the server ships with.
+  /// Never throws; falls back to the server's shipped defaults.
   Future<PasswordPolicy> fetchPolicy() async {
     try {
       final response = await _client.getJson(

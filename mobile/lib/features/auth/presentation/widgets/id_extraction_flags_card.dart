@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/id_extraction_review.dart';
 
-/// Lists the extracted fields that are missing or doubtful, so they get
-/// checked before the details are submitted.
 class IdExtractionFlagsCard extends StatelessWidget {
   const IdExtractionFlagsCard({super.key, required this.flags});
 

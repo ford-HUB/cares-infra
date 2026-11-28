@@ -6,10 +6,8 @@ import 'package:mobile/features/dashboard/presentation/providers/leaderboard_pro
 import 'package:mobile/features/dashboard/presentation/widgets/ranks_tab_widgets.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
-/// The volunteer leaderboard. Scored on the server from ruled attendance —
-/// points per event attended, an escalating penalty per registered event
-/// skipped — and cut into the tier ladder the portal customises. The same
-/// fetch feeds the home header's rank badge.
+/// Server-scored from ruled attendance; the same fetch feeds the home header's
+/// badge.
 class RanksTabScreen extends ConsumerWidget {
   const RanksTabScreen({super.key, this.displayName = 'You'});
 

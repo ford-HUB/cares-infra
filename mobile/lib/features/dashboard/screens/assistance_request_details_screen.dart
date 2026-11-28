@@ -7,9 +7,7 @@ import '../widgets/assistance_location_widgets.dart';
 import '../widgets/assistance_request_widgets.dart';
 import 'assistance_request_form_screen.dart';
 
-/// Full details of one assistance request: status, progress trail, needs
-/// assessment, where it is needed, and what was requested. While the server
-/// allows it, the beneficiary can edit or cancel it from here.
+/// The beneficiary can edit or cancel while the server allows.
 class AssistanceRequestDetailsScreen extends StatefulWidget {
   const AssistanceRequestDetailsScreen({super.key, required this.request});
 
@@ -409,8 +407,7 @@ class _AssistanceRequestDetailsScreenState
   }
 }
 
-/// Edit / Cancel bar under the details. Editing is only offered until the
-/// relief desk starts screening; cancelling until the request is completed.
+/// Edit until the relief desk starts screening; cancel until completed.
 class _RequestActions extends StatelessWidget {
   const _RequestActions({
     required this.canEdit,
@@ -480,8 +477,7 @@ class _RequestActions extends StatelessWidget {
   }
 }
 
-/// Confirms a cancellation. Returns the optional reason (possibly empty)
-/// when confirmed, or null when the beneficiary keeps the request.
+/// Returns the optional reason (maybe empty) when confirmed, null otherwise.
 Future<String?> showCancelRequestSheet(
   BuildContext context,
   AssistanceRequest request,

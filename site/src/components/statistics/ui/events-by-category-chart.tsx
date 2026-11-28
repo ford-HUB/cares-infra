@@ -22,7 +22,6 @@ const config: ChartConfig = {
   events: { label: 'Events', color: STATISTICS_SERIES_COLOR.single },
 }
 
-/** Which kinds of events the department runs — sorted so the biggest reads first. */
 export function EventsByCategoryChart({ categories }: EventsByCategoryChartProps) {
   const rows = [...categories].sort((a, b) => b.events - a.events)
   const leader = rows[0]

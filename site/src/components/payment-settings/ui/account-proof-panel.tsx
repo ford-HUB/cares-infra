@@ -9,19 +9,14 @@ import { SandboxAmountHint } from './sandbox-amount-hint'
 
 interface AccountProofPanelProps {
   meta?: PaymentMethodMeta
-  /** The number the proof would be sent to, so the director can check it first. */
+  /** Shown so the director can check it before the proof is sent. */
   accountNumber: string
   busy: boolean
   onSend: () => void
   onConfirm: (amount: number) => void
 }
 
-/**
- * Proof that CARES holds the account this channel pays into. No gateway will confirm
- * who owns a GCash number, so CARES sends a small payout of an amount nobody can guess
- * and the director reports what arrived — the same trick a bank uses to verify an
- * account, and the only honest answer available.
- */
+/** No gateway confirms GCash ownership, so CARES sends an unguessable micro-payout and the director reports it. */
 export function AccountProofPanel({
   meta,
   accountNumber,

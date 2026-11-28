@@ -40,8 +40,7 @@ export function AccessControlPage() {
     saveRoleBaseline,
   } = useAccessControlStore()
 
-  // "View rights" opens this screen; "Manage rights" is what lets the admin change
-  // anything on it. An admin whose manage right is suspended gets a read-only page.
+  // Without the manage right (or with it suspended) the page is read-only.
   const canManage = usePermission(PORTAL_PERMISSION.ACCESS_CONTROL_MANAGE)
   const manageSuspension = useSuspension(PORTAL_PERMISSION.ACCESS_CONTROL_MANAGE)
 
@@ -61,10 +60,7 @@ export function AccessControlPage() {
     void fetchCatalog()
   }, [fetchCatalog])
 
-  /**
-   * The rights filter narrows on the server — it needs the whole result set, not just
-   * the loaded page. This also covers the initial load, so there is no second fetch.
-   */
+  /** The rights filter narrows server-side; also covers the initial load. */
   useEffect(() => {
     void fetchUsers({ rights: rightsFilter })
   }, [fetchUsers, rightsFilter])
@@ -169,11 +165,7 @@ export function AccessControlPage() {
         editBaselinesSuspension={manageSuspension}
       />
 
-      {/*
-        A failed fetch leaves `users` empty, which the table would otherwise render as
-        "no accounts match the current filters" — a filter problem, not the outage it
-        actually is. Say which one it is.
-      */}
+      {/* Distinguish a failed fetch from an empty filter result. */}
       {error && (
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

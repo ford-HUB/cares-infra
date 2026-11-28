@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react'
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-/** Counts from 0 to `target` with an ease-out curve once `start` is true. Reduced
- *  motion (or a non-positive target) shows the final value immediately. */
 export function useCountUp(target: number, start: boolean, durationMs: number) {
   const [value, setValue] = useState(0)
   const skip = target <= 0 || prefersReducedMotion()

@@ -12,7 +12,6 @@ import type {
 } from '../types/login-activity'
 import { apiClient, parseApiError } from './api-client'
 
-/** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is kebab-case. */
 const OUTCOME_FROM_API: Record<string, LoginOutcome> = {
   SUCCESS: 'success',
   INVALID_CREDENTIALS: 'invalid-credentials',
@@ -77,10 +76,6 @@ function mapApiEntry(data: LoginActivityApiResponse): LoginActivityEntry {
   }
 }
 
-/**
- * One keyset page of the sign-in trail. Every filter narrows on the server, so the
- * grid never has to hold more than the pages actually scrolled.
- */
 export async function listLoginActivity(
   query: LoginActivityQuery = {},
 ): Promise<LoginActivityPage> {

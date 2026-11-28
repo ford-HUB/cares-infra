@@ -1,10 +1,10 @@
 import type { Prisma } from '../../infastructures/prisma/common/client';
 import { resolveDepartmentScope } from '../constants/departments';
 
-/** The one category whose events a director can narrow to a single department. */
+/** The only category that can be narrowed to one department. */
 export const SCHOOL_EVENT_CATEGORY = 'School';
 
-/** What the portal's events form stores when a School event is for everyone. */
+/** Stored when a School event is for everyone. */
 export const ALL_DEPARTMENTS = 'All Departments';
 
 interface AudienceEvent {
@@ -12,10 +12,7 @@ interface AudienceEvent {
   department: string | null;
 }
 
-/**
- * Every spelling the user's department goes by. Empty when they have no school
- * record (a beneficiary or donor account, or a volunteer who never filled it in).
- */
+/** Empty without a school record. */
 export function departmentAliases(
   department: string | null | undefined,
 ): string[] {
@@ -24,7 +21,6 @@ export function departmentAliases(
   return resolveDepartmentScope(trimmed).aliases;
 }
 
-/** A School event aimed at one department, rather than at every department. */
 export function isDepartmentScoped(event: AudienceEvent): boolean {
   if (
     event.category.trim().toLowerCase() !== SCHOOL_EVENT_CATEGORY.toLowerCase()
@@ -35,11 +31,7 @@ export function isDepartmentScoped(event: AudienceEvent): boolean {
   return Boolean(department) && department !== ALL_DEPARTMENTS.toLowerCase();
 }
 
-/**
- * Whether a mobile user may see and join the event. Anything that is not a
- * department-scoped School event is open to all; a scoped one only to users whose
- * school record names that department (under any of its spellings).
- */
+/** Department-scoped School events only for matching users (any spelling). */
 export function isEventVisibleTo(
   event: AudienceEvent,
   userDepartment: string | null | undefined,
@@ -51,7 +43,7 @@ export function isEventVisibleTo(
   );
 }
 
-/** The same rule as {@link isEventVisibleTo}, as a filter for event queries. */
+/** {@link isEventVisibleTo} as a query filter. */
 export function eventAudienceWhere(
   userDepartment: string | null | undefined,
 ): Prisma.EventWhereInput {

@@ -14,12 +14,6 @@ import 'package:mobile/features/dashboard/screens/needs_assessment_screen.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// Beneficiary home tab — the "assistance hub". Same deep-green family as
-/// the volunteer and donor homes, with its own layout built around
-/// requests: greeting + request-status panel on the deep ground, then a
-/// sideways strip of the open events flagged for beneficiaries
-/// ([beneficiaryEventsProvider]), then a timeline of the beneficiary's
-/// assistance requests and needs assessment.
 class BeneficiaryHomeTab extends ConsumerStatefulWidget {
   const BeneficiaryHomeTab({
     super.key,
@@ -40,8 +34,6 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
 
   static const double _gutter = BeneficiaryHomeHero.gutter;
 
-  /// Space below the hero so the ground's curved bottom edge clears the
-  /// request-status panel.
   static const double _curveClearance = 16;
 
   static const _eventLimit = 6;

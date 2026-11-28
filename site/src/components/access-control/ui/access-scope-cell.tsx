@@ -3,10 +3,6 @@ interface AccessScopeCellProps {
   total: number
 }
 
-/**
- * How much of the portal an account can reach, as a proportion of every gated action.
- * The bar makes "narrow scope" legible at a glance when scanning the column.
- */
 export function AccessScopeCell({ effective, total }: AccessScopeCellProps) {
   const ratio = total === 0 ? 0 : effective / total
   const percent = Math.round(ratio * 100)

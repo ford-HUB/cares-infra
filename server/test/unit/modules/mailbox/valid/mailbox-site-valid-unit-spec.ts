@@ -21,19 +21,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Mail Inbox Module · Connect / Send Mail — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Mail Inbox — input validation: recipient lists, length boundaries, optional
-   * reply fields, and legitimate inputs that must still pass.
-   */
   const emails = (count: number) => Array.from({ length: count }, (_, i) => `user${i}@cares.ph`);
 
   const recipientFixtures = (field: 'cc' | 'bcc'): LayerFixture[] => [
@@ -41,8 +29,7 @@ import {
     { name: `${field} at max`, input: { ...VALID_MAIL, [field]: emails(50) }, expected: 'PASS' },
   ];
 
-  // The Gmail message envelope needs only a recipient: the composer enforces a
-  // non-empty body, the API lets subject and body default to empty.
+  // Only a recipient is required; subject and body default to empty (the composer enforces a body).
   const fixtures: LayerFixture[] = [
     { name: 'minimal body', input: { to: VALID_MAIL.to }, expected: 'PASS' },
     {
@@ -62,23 +49,19 @@ import {
     ...recipientFixtures('cc'),
     ...recipientFixtures('bcc'),
 
-    // subject
     { name: 'subject empty', input: { ...VALID_MAIL, subject: '' }, expected: 'PASS' },
     { name: 'subject at max', input: { ...VALID_MAIL, subject: 'a'.repeat(500) }, expected: 'PASS' },
     { name: 'subject at max once trimmed', input: { ...VALID_MAIL, subject: `  ${'a'.repeat(500)}  ` }, expected: 'PASS' },
     { name: 'subject of a typical reply', input: { ...VALID_MAIL, subject: "Re: [Event] 50% slots left — what's next?!" }, expected: 'PASS' },
     { name: 'subject with accents and emoji', input: { ...VALID_MAIL, subject: 'Salamat, Señora! 🙏' }, expected: 'PASS' },
 
-    // body
     { name: 'body empty', input: { ...VALID_MAIL, body: '' }, expected: 'PASS' },
     { name: 'body at max', input: { ...VALID_MAIL, body: 'a'.repeat(100_000) }, expected: 'PASS' },
     { name: 'body with line breaks', input: { ...VALID_MAIL, body: 'Line one\r\nLine two\nLine three' }, expected: 'PASS' },
 
-    // thread_id
     { name: 'thread_id valid', input: { ...VALID_MAIL, thread_id: VALID_THREAD_ID }, expected: 'PASS' },
     { name: 'thread_id at max', input: { ...VALID_MAIL, thread_id: 'a'.repeat(200) }, expected: 'PASS' },
 
-    // in_reply_to
     { name: 'in_reply_to valid', input: { ...VALID_MAIL, in_reply_to: VALID_IN_REPLY_TO }, expected: 'PASS' },
     { name: 'in_reply_to at max', input: { ...VALID_MAIL, in_reply_to: `<${'a'.repeat(483)}@mail.gmail.com>` }, expected: 'PASS' },
   ];
@@ -105,13 +88,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Mail Inbox — normalisation: what `sendMail` hands the service. Subject and
-   * reply fields are trimmed, subject and body default to empty, and the body is
-   * kept exactly as written.
-   */
   describe('mailbox site — normalisation', () => {
     const ctx = useMailboxApp();
 
@@ -148,17 +125,11 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   /**
-   * Mail Inbox — security, per field class:
-   *   to / cc / bcc        constrained: every hostile string FAILs
-   *   thread_id            constrained (Gmail id): every hostile string FAILs
-   *   in_reply_to          constrained (Message-ID, written raw into mail headers): every hostile string FAILs
-   *   subject              free text (replies carry any punctuation), but written into
-   *                        the Subject header: control characters and CRLF FAIL
-   *   body                 free text, not trimmed, base64-encoded when sent: everything PASSes
-   * plus type confusion, mass assignment and prototype pollution.
+   * to/cc/bcc, thread_id, in_reply_to (raw into mail headers): every hostile string FAILs.
+   * subject: free text but goes into the Subject header, so control chars and CRLF FAIL.
+   * body: not trimmed, base64-encoded on send, so everything PASSes.
    */
   const hostileFixtures = (
     field: string,

@@ -1,10 +1,6 @@
 import { z } from 'zod'
 import { TEMPLATE_CATEGORY_ORDER } from '../constants/certificate-templates'
 
-/**
- * A new template only needs enough to file it: the wording, artwork and signatories
- * are settled afterwards in the customizer, which is the one screen that owns them.
- */
 export const newCertificateTemplateSchema = z.object({
   name: z
     .string()

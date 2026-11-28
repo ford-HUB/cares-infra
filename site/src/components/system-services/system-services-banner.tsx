@@ -13,16 +13,10 @@ import { ServiceStateSegment } from './ui/service-state-segment'
 
 interface SystemServicesBannerProps {
   counts: SystemServiceCounts
-  /** The list's current filter — the matching segment reads as selected. */
   state: ServiceStateFilter
   onStateChange: (value: ServiceStateFilter) => void
 }
 
-/**
- * The one question this page answers: how many schedulers are still on duty. The four
- * states are parts of one roster, so they share a single bar rather than four tiles —
- * and each part filters the list below it.
- */
 export function SystemServicesBanner({
   counts,
   state,
@@ -35,7 +29,7 @@ export function SystemServicesBanner({
     failing: counts.failing,
   }
 
-  // Running and scheduled are both "on duty" — a job mid-run has not left its post.
+  // Running and scheduled both count as on duty.
   const onDuty = counts.running + counts.scheduled
   const share = (value: number) => (counts.total > 0 ? value / counts.total : 0)
 

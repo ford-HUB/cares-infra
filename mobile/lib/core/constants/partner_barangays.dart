@@ -1,6 +1,5 @@
-/// The barangays UCLM CARES has adopted as partner communities. A volunteer who
-/// signs up through a partner barangay picks theirs from this list; the server
-/// accepts only these names (see `PARTNER_BARANGAYS` in the server's auth module).
+/// The server accepts only these names (`PARTNER_BARANGAYS` in its auth
+/// module).
 abstract final class PartnerBarangays {
   static const names = [
     'Barangay Looc',

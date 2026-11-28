@@ -64,7 +64,6 @@ function mapFromApi(data: PaymentSettingsApiResponse): PaymentSettingsDetail {
     statementName: data.statement_name ?? '',
     supportEmail: data.support_email ?? '',
     supportContact: data.support_contact ?? '',
-    // The form's inputs are never undefined, so every nullable string lands as ''.
     methods: data.methods.map((method) => ({
       method: method.method,
       enabled: method.enabled,
@@ -108,11 +107,7 @@ function mapFromApi(data: PaymentSettingsApiResponse): PaymentSettingsDetail {
   }
 }
 
-/**
- * The server rejects unknown keys, so the payload carries the settings and nothing
- * else. A secret is sent only when the director typed one: omitted keeps what is
- * stored, and an explicit `null` clears it — which is what the "Remove" action sends.
- */
+/** Server rejects unknown keys. Secrets: omitted keeps, `null` clears. */
 function mapToApi(settings: PaymentSettings, secrets: PaymentSecretsInput) {
   const body: Record<string, unknown> = {
     mode: settings.mode,
@@ -175,11 +170,7 @@ export async function updatePaymentSettings(
   }
 }
 
-/**
- * Re-runs the gateway's activation check for one channel: is it switched on for the
- * CARES account, and are its callbacks pointed at us. Answers 200 either way — the
- * verdict comes back on the method's `verification`.
- */
+/** Answers 200 either way; the verdict is on `verification`. */
 export async function verifyPaymentMethod(
   method: PaymentMethodKey,
 ): Promise<PaymentSettingsResult> {
@@ -195,10 +186,7 @@ export async function verifyPaymentMethod(
   }
 }
 
-/**
- * Sends the token payout that proves CARES holds the account this channel pays into.
- * The amount is picked server-side and never returned — reporting it back is the proof.
- */
+/** Amount is chosen server-side and never returned; reporting it back is the proof. */
 export async function startAccountProof(
   method: PaymentMethodKey,
 ): Promise<PaymentSettingsResult> {
@@ -214,7 +202,6 @@ export async function startAccountProof(
   }
 }
 
-/** Reports the amount that arrived; a match verifies the account. */
 export async function confirmAccountProof(
   method: PaymentMethodKey,
   amount: number,

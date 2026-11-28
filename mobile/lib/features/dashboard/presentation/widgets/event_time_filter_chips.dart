@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/domain/event_time_range.dart';
 
-/// Horizontal pill row under the search bar — All / Today / Tomorrow /
-/// This Week / This Month. The active pill fills in the brand green; the
-/// others sit on the surface with a light border. Bleeds to the screen edge
-/// but starts on [gutter] like every other block on the tab.
+/// Bleeds to the screen edge but starts on [gutter].
 class EventTimeFilterChips extends StatelessWidget {
   const EventTimeFilterChips({
     super.key,

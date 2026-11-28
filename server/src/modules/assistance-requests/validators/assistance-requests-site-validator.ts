@@ -16,7 +16,7 @@ export const AssistanceAttachmentIdParamSchema = z.uuid(
   'A valid attachment id is required',
 );
 
-/** Approving may carry a note the beneficiary reads under the status. */
+/** Optional note shown to the beneficiary. */
 export const ApproveAssistanceRequestSchema = withoutPrototypeKeys(
   z
     .object({
@@ -32,7 +32,7 @@ export const ApproveAssistanceRequestSchema = withoutPrototypeKeys(
     .strict(),
 );
 
-/** A decline must say why — the beneficiary reads it in the app. */
+/** Reason required; shown to the beneficiary. */
 export const DeclineAssistanceRequestSchema = withoutPrototypeKeys(
   z
     .object({
@@ -58,7 +58,7 @@ export const SiteAssistanceAttachmentSchema = z.object({
 export const SiteAssistanceRequestSchema = z.object({
   assistance_request_id: z.string(),
   reference_number: z.number(),
-  /** `CARES-AR-2026-0007`, the same label the beneficiary sees. */
+  /** e.g. `CARES-AR-2026-0007`. */
   reference_label: z.string(),
   requester_id: z.string(),
   requester_firstname: z.string(),
@@ -77,7 +77,7 @@ export const SiteAssistanceRequestSchema = z.object({
   status: z.enum(AssistanceRequestStatus),
   assessment_status: z.enum(AssistanceAssessmentStatus),
   assessment_date: z.iso.datetime().nullable(),
-  /** Staff note — the approval note or the decline reason. */
+  /** Approval note or decline reason. */
   status_note: z.string().nullable(),
   attachments: z.array(SiteAssistanceAttachmentSchema),
   screened_at: z.iso.datetime().nullable(),

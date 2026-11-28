@@ -69,7 +69,6 @@ class StartSessionResponse {
   final String step;
 }
 
-/// The supporting document now riding on a beneficiary's registration session.
 class RegistrationDocumentResponse {
   const RegistrationDocumentResponse({
     required this.registrationId,
@@ -177,11 +176,8 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
     ).enrichFromRawText();
   }
 
-  /// The ID number as it is sent and stored. A UCLM student ID is digits only, so
-  /// OCR noise is stripped; an alumni ID may carry letters or dashes, so it is
-  /// kept as typed (trimmed, upper-cased).
-  ///
-  /// A partner-barangay volunteer has no school ID, so there is no ID number.
+  /// Student IDs are digits only (OCR noise stripped); alumni IDs keep
+  /// letters/dashes; partner-barangay volunteers have none.
   String get registrationIdNumber => switch (_normalizedVolunteerType) {
     'ALUMNI' => idNumber.trim().toUpperCase(),
     'PARTNER_BARANGAY' => '',
@@ -202,14 +198,13 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
     final normalizedId = registrationIdNumber;
     final isBeneficiary = roleType == 'BENEFICIARY';
     final isPartnerBarangay = !isBeneficiary && _isPartnerBarangay;
-    // A student beneficiary's UC school ID was read like a student
-    // volunteer's, so their real school record goes up.
+    // A student beneficiary's school ID was read like a volunteer's, so the
+    // real record is sent.
     final isStudentBeneficiary = isBeneficiary && studentBeneficiary;
     final usesPlaceholderSchool =
         (isBeneficiary && !isStudentBeneficiary) || isPartnerBarangay;
-    // Regular beneficiaries and partner-barangay volunteers have no school ID,
-    // so there is no ID number to send. The registration id keeps the
-    // server's unique school-info key unique.
+    // No school ID: the registration id keeps the server's unique school-info
+    // key unique.
     final placeholderId = normalizedId.isNotEmpty
         ? normalizedId
         : '${isPartnerBarangay ? 'BRGY' : 'BEN'}-$registrationId';
@@ -266,9 +261,7 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
   }
 }
 
-/// Which registration input clashed with an existing account. The server sends a
-/// 409 whose `errors` names the field, so the flow can send the user straight
-/// back to that input instead of leaving them on the OTP screen.
+/// A 409's `errors` names the field so the flow can return the user to it.
 enum RegistrationConflictField {
   email('email'),
   phoneNumber('phone_number'),

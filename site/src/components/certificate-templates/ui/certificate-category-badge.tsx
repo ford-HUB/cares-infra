@@ -4,7 +4,6 @@ import {
 } from '../../../constants/certificate-templates'
 import type { CertificateTemplateCategory } from '../../../types/certificate-template'
 
-/** Category is identity, not state — it only ever carries its own accent tint. */
 export function CertificateCategoryBadge({
   category,
 }: {

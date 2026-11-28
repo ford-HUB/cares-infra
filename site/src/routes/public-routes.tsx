@@ -20,14 +20,12 @@ import RegistrationStatusPage from "../pages/public/registration-status-page";
 import TermsOfServicePage from "../pages/public/terms-of-service-page";
 import { authRoutes } from "./auth-routes";
 
-/** The public site: a single scrolling page, with the old page paths pointing at its sections. */
 export const publicRoutes: RouteObject[] = [
     {
         element: <LandingScrollRoot />,
         children: [
-            // Outside the layout: a scanned page takes the whole screen, no header or footer.
+            // Outside the layout: full-screen scan.
             { path: PROGRAM_BULLETIN_PAGE_PATH, element: <ProgramBulletinPage /> },
-            // Standalone too: the email's "Check status" link opens straight onto the card.
             { path: REGISTRATION_STATUS_PATH, element: <RegistrationStatusPage /> },
             { path: ABOUT_PATH, element: <LandingSectionRedirect sectionId={LANDING_SECTION_IDS.about} /> },
             { path: PROGRAMS_PATH, element: <LandingSectionRedirect sectionId={LANDING_SECTION_IDS.programs} /> },
@@ -35,13 +33,11 @@ export const publicRoutes: RouteObject[] = [
             {
                 element: <LandingLayout />,
                 children: [
-                    // One pathless route holds the page, so moving between /, /login and
-                    // /request-access never remounts it; the auth paths only open a modal.
+                    // Pathless so /, /login and /request-access never remount the page.
                     {
                         element: <Home />,
                         children: [{ path: HOME_PATH, element: null }, ...authRoutes],
                     },
-                    // Own pages inside the site shell: the legal text is real, indexable content.
                     { path: PRIVACY_POLICY_PATH, element: <PrivacyPolicyPage /> },
                     { path: TERMS_OF_SERVICE_PATH, element: <TermsOfServicePage /> },
                 ],

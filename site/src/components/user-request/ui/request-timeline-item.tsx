@@ -31,12 +31,11 @@ import { RequestKindChip, RequestStatusPill } from './request-type-chip'
 
 interface RequestTimelineItemProps {
   request: UserRequest
-  /** True while this row's own accept/delete call is in flight. */
   busy: boolean
-  /** Any decision in flight — keeps a second click from racing the first. */
+  /** Any decision in flight; stops a second click racing the first. */
   disabled: boolean
   onAccept: (request: UserRequest) => void
-  /** Opens the reason prompt; event applications, event roles and registrations can be rejected. */
+  /** Event applications, event roles and registrations can be rejected. */
   onReject: (request: UserRequest) => void
   onDelete: (request: UserRequest) => void
 }
@@ -93,9 +92,7 @@ export function RequestTimelineItem({
           )}
         </p>
 
-        {/* A registration is a whole account being let in, so the director sees the
-            contact details it was registered with — the other kinds come from an
-            account the portal already knows. */}
+        {/* Registrations show contact details; other kinds come from known accounts. */}
         {registration && (
           <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
             <div className="inline-flex items-center gap-1">
@@ -113,9 +110,7 @@ export function RequestTimelineItem({
 
         <p className="mt-2 text-sm text-gray-700">{request.summary}</p>
 
-        {/* What the decision is about: the event for a join or a role, the proof
-            for an unlock. An event role carries no proof — the reviewer decides
-            on what they know of the volunteer. */}
+        {/* An event role carries no proof; the reviewer decides on what they know. */}
         {request.participationRole && (
           <div className="mt-3 mr-2 inline-flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-1.5">
             <UserCog className="h-3.5 w-3.5 text-amber-600" />
@@ -180,8 +175,6 @@ export function RequestTimelineItem({
           </div>
         )}
 
-        {/* The trail is what makes the row readable after a decision — it says who
-            acted and when, which the status pill alone can't. */}
         <ol className="mt-3 space-y-1 border-t border-gray-100 pt-3">
           {request.trail.map((entry) => (
             <li key={entry.id} className="text-xs text-gray-500">
@@ -194,8 +187,7 @@ export function RequestTimelineItem({
 
         {pending && (
           <div className="mt-4 flex justify-end gap-2">
-            {/* A registration is approved or rejected, never binned — a removed one
-                would leave the account shut with no decision on record. */}
+            {/* Registrations are never binned; a removed one would leave the account shut with no decision. */}
             {!registration && (
               <button
                 type="button"

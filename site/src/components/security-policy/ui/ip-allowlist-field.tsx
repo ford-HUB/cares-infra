@@ -7,10 +7,7 @@ interface IpAllowlistFieldProps {
   onChange: (addresses: string[]) => void
 }
 
-/**
- * An empty list means "no allowlist", not "allow nobody" — the copy says so, because
- * the alternative reading is how an administrator locks themselves out.
- */
+/** Empty means "no allowlist", not "allow nobody"; the copy says so to prevent self-lockout. */
 export function IpAllowlistField({ addresses, onChange }: IpAllowlistFieldProps) {
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)

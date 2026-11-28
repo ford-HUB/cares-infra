@@ -1,19 +1,17 @@
 import { resolveDepartmentScope } from '../../../shared/constants/departments';
 
-/** The share of the score each criterion carries — hours and pesos weigh equally. */
+/** Hours and pesos weigh equally. */
 const HOURS_WEIGHT = 50;
 const DONATIONS_WEIGHT = 50;
 
-/** What the department board needs from one ranked volunteer. */
 export interface DepartmentVolunteerInput {
   department: string | null;
   hours: number;
   eventsAttended: number;
 }
 
-/** What the department board needs from one confirmed donation. */
 export interface DepartmentDonationInput {
-  /** The college of the event the gift went to; null for a school-wide event. */
+  /** The event's college; null for school-wide events. */
   department: string | null;
   amount: number;
 }
@@ -42,10 +40,7 @@ export interface DepartmentBoard {
   unattributed: { hours: number; donationAmount: number };
 }
 
-/**
- * One college goes by many spellings (see `DEPARTMENT_ALIASES`), so rows are
- * grouped on the college code when the text maps to one, else on the text itself.
- */
+/** Groups by college code when the text maps to one (`DEPARTMENT_ALIASES`), else the text. */
 function departmentKey(name: string): { key: string; code: string | null } {
   const { code } = resolveDepartmentScope(name);
   return code
@@ -59,14 +54,8 @@ function round(value: number, places = 2): number {
 }
 
 /**
- * Ranks every college on volunteer hours and on confirmed pesos, then on a
- * combined score. The two are on different scales — hours and pesos — so the
- * combined score adds up each college's *share* of the school's total of each,
- * which makes neither criterion drown the other out.
- *
- * Volunteers count toward the college on their school record; a donation counts
- * toward the college that ran the event it was given to. Anything with no college
- * is reported as unattributed rather than silently dropped.
+ * Combined score sums each college's share of total hours and pesos, so neither scale dominates.
+ * Volunteers count by school record, donations by the event's college; the rest is unattributed.
  */
 export function rankDepartments(
   departmentNames: string[],
@@ -96,8 +85,7 @@ export function rankDepartments(
     return bucket;
   };
 
-  // The school's own list goes in first, so a college with nothing yet still
-  // shows — and its registered spelling is the one displayed.
+  // Seed the official list so empty colleges show with their registered spelling.
   for (const name of departmentNames) bucketFor(name);
 
   for (const volunteer of volunteers) {

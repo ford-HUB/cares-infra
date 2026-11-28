@@ -17,11 +17,6 @@ interface UploadFilesStepProps {
   onRemove: (id: string) => void
 }
 
-/**
- * The upload page: a cloud, a dashed drop area with a browse link, and one row per
- * file with its read progress and an × to take it back out. The look follows the
- * portal's upload reference — centred, quiet, the list doing the talking.
- */
 export function UploadFilesStep({
   attachments,
   disabled,
@@ -130,8 +125,7 @@ export function UploadFilesStep({
                 )}
               </span>
 
-              {/* The bar only shows while there is something to show — a file that
-                  has finished reading just sits ready, like the last row in the reference. */}
+              {/* Progress shows only while reading; finished files just sit ready. */}
               {!attachment.error && attachment.progress < 100 ? (
                 <>
                   <span

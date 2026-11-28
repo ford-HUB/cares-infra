@@ -432,7 +432,6 @@ class DonationSmartSearchBar extends StatelessWidget {
   final bool showSuggestions;
   final List<String> suggestions;
 
-  /// Sitting on a deep header band — translucent field, white text.
   final bool onDark;
 
   @override

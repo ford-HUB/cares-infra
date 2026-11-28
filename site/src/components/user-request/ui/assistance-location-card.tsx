@@ -6,10 +6,7 @@ import {
 } from '../../../constants/assistance-requests'
 import type { AssistanceRequestLocation } from '../../../types/assistance-request'
 
-/**
- * Where the beneficiary pinned the need. A static map when a Mapbox token is set,
- * always a link out for directions — the field officer plans the visit from it.
- */
+/** Static map only when a Mapbox token is set; the directions link is always there. */
 export function AssistanceLocationCard({ location }: { location: AssistanceRequestLocation }) {
   const { latitude, longitude, details } = location
   const mapUrl = assistanceStaticMapUrl(latitude, longitude)

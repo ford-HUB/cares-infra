@@ -8,15 +8,11 @@ import type { ProcessLoad } from '../../../types/system-performance'
 
 interface ProcessLoadListProps {
   processes: ProcessLoad[]
-  /** Total busy CPU, so each row can say what share of the work it is doing. */
+  /** So each row can show its share of the work. */
   busyPercent: number
 }
 
-/**
- * Who is spending the CPU. Each row is drawn as a share of busy time rather than an
- * absolute number, because "24 % of the host" only means something once you know the
- * host is 62 % busy — the bar answers both at once.
- */
+/** Rows are shares of busy time, so the bar also conveys how busy the host is. */
 export function ProcessLoadList({ processes, busyPercent }: ProcessLoadListProps) {
   const ranked = [...processes].sort((a, b) => b.cpuPercent - a.cpuPercent)
 

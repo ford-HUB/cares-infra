@@ -52,12 +52,7 @@ export class OcrServiceClient {
     return payload.data;
   }
 
-  /**
-   * Reads the residential address off a barangay certificate or similar
-   * proof of residency — a photo or a PDF. A 422 from the service means the
-   * file was readable but carried no address, which the caller surfaces to
-   * the person as-is.
-   */
+  /** 422: readable file with no address; surfaced as-is. */
   async extractResidencyAddress(
     document: Buffer,
     filename: string,

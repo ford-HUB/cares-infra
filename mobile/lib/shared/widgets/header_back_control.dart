@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// iOS-style back affordance for green header bands: chevron + "Back", flush
-/// on the header's content margin (only vertical/trailing padding).
+/// Flush on the header's content margin (only vertical/trailing padding).
 class HeaderBackControl extends StatelessWidget {
   const HeaderBackControl({super.key, this.onTap, this.label = 'Back'});
 
-  /// Defaults to `Navigator.maybePop`. Null-safe: pass a callback to override.
+  /// Defaults to `Navigator.maybePop`.
   final VoidCallback? onTap;
   final String label;
 

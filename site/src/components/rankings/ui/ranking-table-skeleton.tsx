@@ -6,10 +6,7 @@ interface RankingTableSkeletonProps {
   columns: number
 }
 
-/**
- * Renders into the table's existing `<tbody>`, so the header and column widths stay
- * put while the standings load.
- */
+/** Renders rows only, into the table's existing `<tbody>`. */
 export function RankingTableSkeleton({ rows, columns }: RankingTableSkeletonProps) {
   return (
     <>

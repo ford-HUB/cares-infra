@@ -17,7 +17,6 @@ import { useProfileStore } from '../store/profile-store'
 import { useSupportTicketStore } from '../store/support-ticket-store'
 import type { PortalSearchEntry } from '../types/portal-search'
 
-/** Module name shown beside a record ("Bea Cruz in Manage Users"). */
 const MODULE_LABELS = {
   [ADMIN_MANAGE_USERS_PATH]: 'Manage Users',
   [ADMIN_EVENT_ATTENDEES_PATH]: 'Attendees',
@@ -28,7 +27,6 @@ const MODULE_LABELS = {
 
 const fullName = (first: string, last: string) => `${first} ${last}`.trim()
 
-/** One row per distinct key — an attendee on five events is one person to find. */
 function distinctBy<T>(rows: T[], key: (row: T) => string): T[] {
   const seen = new Set<string>()
   return rows.filter((row) => {
@@ -39,15 +37,7 @@ function distinctBy<T>(rows: T[], key: (row: T) => string): T[] {
   })
 }
 
-/**
- * The records the header search can find: people, events, tickets and donors from
- * the lists the portal already loads for each module — no endpoint of its own.
- *
- * A module only contributes when the account may open it (`allowedRoutes` comes
- * from the same gate as the sidebar), and a coordinator's attendees and events are
- * cut to their department exactly as those screens cut them, so search never shows
- * a name the module itself would hide.
- */
+/** No endpoint of its own; gated like the sidebar and department-scoped like each module. */
 export function usePortalRecords(allowedRoutes: ReadonlySet<string>) {
   const isCoordinator = useAuthStore((s) => s.user?.role) === 'coordinator'
   const department = useProfileStore((s) => s.profile?.department)
@@ -62,7 +52,6 @@ export function usePortalRecords(allowedRoutes: ReadonlySet<string>) {
   const loadingTickets = useSupportTicketStore((s) => s.loading)
   const loadingDonations = useInternalDonationStore((s) => s.loading)
 
-  /** A permitted list is still on its way, so "no matches" may not be final yet. */
   const loading =
     (loadingUsers && allowedRoutes.has(ADMIN_MANAGE_USERS_PATH)) ||
     (loadingAttendees && allowedRoutes.has(ADMIN_EVENT_ATTENDEES_PATH)) ||
@@ -160,10 +149,7 @@ export function usePortalRecords(allowedRoutes: ReadonlySet<string>) {
     return out
   }, [allowedRoutes, isCoordinator, department, users, attendees, events, tickets, donations])
 
-  /**
-   * Loads each permitted module's list the first time someone searches. A list a
-   * screen has already loaded (or is loading) is reused, never fetched twice.
-   */
+  /** Reuses lists a screen already loaded or is loading. */
   const ensureLoaded = useCallback(() => {
     const load = (to: string, store: { initialized: boolean; loading: boolean }, fetch: () => Promise<void>) => {
       if (allowedRoutes.has(to) && !store.initialized && !store.loading) void fetch()

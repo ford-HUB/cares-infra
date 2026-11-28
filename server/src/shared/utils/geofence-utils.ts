@@ -1,14 +1,7 @@
-/** One linear ring of a geofence: `[lng, lat]` pairs, GeoJSON axis order. */
+/** `[lng, lat]` pairs (GeoJSON order). */
 export type GeofenceRing = [number, number][];
 
-/**
- * Flatten an event's stored `geojson` into its linear rings — every ring of
- * every polygon, holes included — so a client can run an even-odd
- * point-in-polygon test without a GeoJSON parser. Accepts the same shapes the
- * gps-validator-service does: a bare Polygon / MultiPolygon geometry, a
- * Feature wrapping one, or a FeatureCollection whose first polygon feature is
- * the fence. Returns null when there is no usable boundary.
- */
+/** Every ring incl. holes, for client-side even-odd tests. Accepts the same shapes as gps-validator-service; null when unusable. */
 export function geofenceRings(geojson: unknown): GeofenceRing[] | null {
   const geometry = polygonGeometry(geojson);
   if (!geometry) return null;

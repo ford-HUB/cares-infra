@@ -26,7 +26,7 @@ import {
 
 const TicketIdParamSchema = z.uuid('A valid support ticket id is required');
 
-/** The queue is worked by the whole portal staff, not admins alone. */
+/** All portal staff, not admins alone. */
 @Controller('v1/support-tickets')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.SUPPORT_TICKET_MANAGE)

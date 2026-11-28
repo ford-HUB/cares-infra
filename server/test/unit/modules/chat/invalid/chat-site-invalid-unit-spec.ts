@@ -23,15 +23,6 @@ import {
   useChatApp,
 } from '../chat-site-support';
 
-/**
- * Chat Module · Send Message / Mark Read — invalid inputs (field validation).
- *
- * Every case here is an intentionally wrong value for a field of the two chat
- * POSTs. A case Passes when the system refuses it exactly as stated — a refusal
- * as expected is the correct result. The valid cases live in ../valid/.
- */
-
-/** Malformed contact ids, shared by both routes. */
 const contactIdFixtures = (subject: string): LayerFixture<string>[] => [
   { name: `Staff ${subject} a contact id that is not a uuid`, input: 'contact-1', expected: 'FAIL' },
   { name: `Staff ${subject} a contact id that is a plain number`, input: '42', expected: 'FAIL' },
@@ -43,7 +34,6 @@ const contactIdFixtures = (subject: string): LayerFixture<string>[] => [
   { name: `Staff ${subject} a blank contact id`, input: ' ', expected: 'FAIL' },
 ];
 
-/* ── Send Message ────────────────────────────────────────────────────────── */
 {
   // Every fixture is sent with one PDF attached, so only the body's own rules can fail it.
   const bodyFixtures: LayerFixture<Record<string, string>>[] = [
@@ -232,7 +222,6 @@ const contactIdFixtures = (subject: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── Mark Read ───────────────────────────────────────────────────────────── */
 {
   describe('chat site — Mark Read field validation', () => {
     const ctx = useChatApp();

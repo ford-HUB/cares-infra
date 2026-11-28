@@ -40,9 +40,8 @@ class ActivityLogsState {
   }
 }
 
-/// First page on build; [loadMore] appends the next one. Rows are appended,
-/// never re-sorted — the server already orders newest-first and the cursor
-/// keeps a page stable while the person scrolls.
+/// Appended, never re-sorted: the server orders newest-first and the cursor
+/// keeps pages stable.
 class ActivityLogsNotifier extends AutoDisposeAsyncNotifier<ActivityLogsState> {
   @override
   Future<ActivityLogsState> build() async {

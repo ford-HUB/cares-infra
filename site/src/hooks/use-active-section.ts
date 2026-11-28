@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 
-/** The id of the section currently crossing the band that `rootMargin` leaves in the
- *  viewport. Keeps the last match when none crosses it, such as over the footer.
- *  `sectionIds` must be a stable reference. */
+/** Keeps the last match when nothing crosses the band; `sectionIds` must be stable. */
 export function useActiveSection(sectionIds: readonly string[], rootMargin: string) {
   const [activeId, setActiveId] = useState(sectionIds[0])
 

@@ -22,7 +22,6 @@ const config: ChartConfig = {
   eventsHeld: { label: 'Events held', color: STATISTICS_SERIES_COLOR.single },
 }
 
-/** How many events the department ran each month — one series, so one hue and direct labels. */
 export function EventsPerMonthChart({ monthly }: EventsPerMonthChartProps) {
   const total = monthly.reduce((sum, row) => sum + row.eventsHeld, 0)
   const perMonth = monthly.length > 0 ? total / monthly.length : 0

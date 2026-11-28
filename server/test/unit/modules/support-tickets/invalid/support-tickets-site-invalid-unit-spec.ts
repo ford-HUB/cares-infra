@@ -18,16 +18,6 @@ import {
   useSupportTicketsApp,
 } from '../support-tickets-site-support';
 
-/**
- * Support Tickets Module · List / Update / Reply to Ticket — invalid inputs (field
- * validation).
- *
- * Every case here is an intentionally wrong value for a field of the three portal
- * ticket endpoints. A case Passes when the system refuses it exactly as stated — a
- * refusal as expected is the correct result. The valid cases live in ../valid/.
- */
-
-/** Malformed ticket ids, shared by Update and Reply. */
 const ticketIdFixtures = (action: string): LayerFixture<string>[] => [
   { name: `Staff ${action} a ticket id that is not a uuid`, input: 'ticket-10', expected: 'FAIL' },
   { name: `Staff ${action} the reference number instead of the ticket id`, input: '10', expected: 'FAIL' },
@@ -39,7 +29,6 @@ const ticketIdFixtures = (action: string): LayerFixture<string>[] => [
   { name: `Staff ${action} a blank ticket id`, input: ' ', expected: 'FAIL' },
 ];
 
-/* ── List tickets ────────────────────────────────────────────────────────── */
 {
   const queryFixtures: LayerFixture<Record<string, string>>[] = [
     { name: 'Staff filters by a status in lower case (open)', input: { status: 'open' }, expected: 'FAIL', field: 'status' },
@@ -75,7 +64,6 @@ const ticketIdFixtures = (action: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── Update ticket ───────────────────────────────────────────────────────── */
 {
   const bodyFixtures: LayerFixture[] = [
     { name: 'Staff saves without changing anything', input: {}, expected: 'FAIL', field: '', message: MESSAGES.nothingToUpdate },
@@ -92,7 +80,7 @@ const ticketIdFixtures = (action: string): LayerFixture<string>[] => [
     { name: 'Staff tries to change the priority, which Update does not take', input: { priority: 'HIGH' }, expected: 'FAIL' },
     { name: 'Staff tries to edit the subject, which Update does not take', input: { status: 'IN_PROGRESS', subject: 'Renamed' }, expected: 'FAIL' },
     { name: 'Staff sends a valid status alongside an invalid note', input: { status: 'RESOLVED', note: '' }, expected: 'FAIL', field: 'note' },
-    // A note is stored and shown to the requester exactly like a reply, so it is held to the reply's rule.
+    // A note reaches the requester like a reply, so it follows the reply's rule.
     {
       name: 'Staff pastes a non-printing character (bell) into the note',
       input: { note: `${VALID_NOTE}\u0007` },
@@ -123,7 +111,6 @@ const ticketIdFixtures = (action: string): LayerFixture<string>[] => [
   });
 }
 
-/* ── Reply to ticket ─────────────────────────────────────────────────────── */
 {
   const bodyFixtures: LayerFixture[] = [
     { name: 'Staff sends a reply with the body left out', input: {}, expected: 'FAIL', field: 'body' },

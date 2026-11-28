@@ -1,18 +1,10 @@
 import { useEffect, type RefObject } from 'react'
 import { MIN_FIT_SCALE } from '../constants/certificate-typography'
 
-/**
- * Keeps a block's text inside a box it was resized to: when the copy is taller than
- * the height the director dragged, the `--fit` custom property shrinks every line in
- * step until it fits, and returns to 1 as soon as there is room again.
- *
- * The scale is written straight to the node rather than held in state — it is a
- * measurement of the DOM, and a render pass per pixel of drag would fight the drag.
- */
+/** Scale is written to the node, not state, so drag doesn't re-render per pixel. */
 export function useFitToBox(
   box: RefObject<HTMLElement | null>,
   content: RefObject<HTMLElement | null>,
-  /** Off while the block still sizes itself to its text — nothing can overflow. */
   enabled: boolean,
 ) {
   useEffect(() => {
@@ -25,8 +17,7 @@ export function useFitToBox(
       return
     }
 
-    // Measuring resizes the node, which wakes the observer again; the flag keeps that
-    // second pass from re-measuring a size this callback just set.
+    // Guards against re-measuring the size this callback just set.
     let measuring = false
 
     const fit = () => {

@@ -9,23 +9,19 @@ import { MetricSparkline } from './metric-sparkline'
 interface PerformanceStatTileProps {
   label: string
   value: string
-  /** The denominator or unit — a reading without one is not comparable. */
+  /** The denominator or unit. */
   meta: string
   icon: LucideIcon
-  /** Tints the value only; the tile's chrome stays neutral. */
+  /** Tints the value only. */
   health?: HealthState
   /** Change across the charted window, as a signed ratio. */
   delta: number
-  /** True when a rise is bad — response time rising is not the same news as traffic. */
+  /** E.g. response time rising is bad, traffic rising isn't. */
   riseIsBad?: boolean
   history: number[]
   sparkColor: string
 }
 
-/**
- * One independent metric. These do not sum to anything, so they sit as separate tiles
- * — unlike the CPU bands above, which are parts of one capacity and share a bar.
- */
 export function PerformanceStatTile({
   label,
   value,
@@ -37,7 +33,7 @@ export function PerformanceStatTile({
   history,
   sparkColor,
 }: PerformanceStatTileProps) {
-  // Under 2% is noise on a stream this jumpy; calling it a trend would be a lie.
+  // Under 2% is noise on this stream, not a trend.
   const flat = Math.abs(delta) < 0.02
   const bad = riseIsBad ? delta > 0 : delta < 0
   const DeltaIcon = flat ? Minus : delta > 0 ? ArrowUpRight : ArrowDownRight

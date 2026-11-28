@@ -1,9 +1,8 @@
 import '../utils/geo_utils.dart';
 import 'cares_event.dart';
 
-/// The slice of a joined [CaresEvent] the geofence recorder needs — small
-/// enough to persist in SQLite and read back from the background service,
-/// which has no access to the app's in-memory event list.
+/// Small enough to persist in SQLite for the background service, which can't
+/// see the in-memory event list.
 class TrackedEvent {
   const TrackedEvent({
     required this.id,
@@ -41,13 +40,11 @@ class TrackedEvent {
   final DateTime endsAt;
   final bool isCompleted;
 
-  /// The portal-drawn attendance area; null falls back to the radius.
+  /// Null falls back to the radius.
   final List<GeofenceRing>? geofence;
 
-  /// Not over yet, as of [now].
   bool isUpcoming(DateTime now) => !isCompleted && now.isBefore(endsAt);
 
-  /// Whether a position is inside this event's attendance area.
   bool containsPoint({required double latitude, required double longitude}) =>
       GeoUtils.isInsideEventArea(
         latitude: latitude,

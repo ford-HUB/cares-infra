@@ -22,7 +22,6 @@ import {
   SiteDonationResponseSchema,
 } from '../validators/donations-site-validator';
 
-/** The portal's Donation Tracking: read the ledger, move a donation along. */
 @Controller('v1/donations')
 @Roles(...PORTAL_ROLE_TYPES)
 export class DonationsSiteController {

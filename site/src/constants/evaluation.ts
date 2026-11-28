@@ -18,7 +18,6 @@ import type {
   EvaluationTypography,
 } from '../types/evaluation'
 
-/** Order of the "add question" rail and the type picker — the familiar Forms order. */
 export const QUESTION_TYPE_ORDER: EvaluationQuestionType[] = [
   'short_answer',
   'paragraph',
@@ -46,7 +45,6 @@ export const QUESTION_TYPE_META: Record<
   image_upload: { label: 'Image upload', icon: ImageUp, hasOptions: false, hasScale: false },
 }
 
-/** Faces already loaded by the `@import` lines at the top of `index.css`. */
 export const EVALUATION_FONT_ORDER: EvaluationFontFamily[] = [
   'inter',
   'lato',
@@ -72,7 +70,6 @@ export const EVALUATION_FONT_META: Record<
 
 export const EVALUATION_FONT_SIZE_ORDER: EvaluationFontSize[] = ['sm', 'md', 'lg', 'xl']
 
-/** Pixel size per step — the title uses it directly, helper text one step smaller. */
 export const EVALUATION_FONT_SIZE_META: Record<
   EvaluationFontSize,
   { label: string; titlePx: number; bodyPx: number }
@@ -93,7 +90,7 @@ export const DEFAULT_HEADER_TYPOGRAPHY: EvaluationTypography = {
   fontSize: 'xl',
 }
 
-/** Mirrors Forms' scale bounds — 2..10 steps for a linear scale, 3..10 stars. */
+/** Mirrors Forms: 2..10 linear-scale steps, 3..10 stars. */
 export const LINEAR_SCALE_MIN = 2
 export const LINEAR_SCALE_MAX = 10
 export const STAR_RATING_MIN = 3
@@ -102,13 +99,11 @@ export const DEFAULT_SCALE_MAX = 5
 
 export const QUESTION_MAX_OPTIONS = 10
 
-/** Mirrors the server's cap on photos per image-upload question. */
+/** Matches the server's per-question photo cap. */
 export const IMAGE_UPLOAD_MAX_FILES = 5
 export const DEFAULT_IMAGE_UPLOAD_FILES = 1
 export const QUESTION_TITLE_PLACEHOLDER = 'Untitled question'
 export const QUESTION_DESCRIPTION_PLACEHOLDER = 'Description (optional)'
-
-/* ---------- Answers table ---------- */
 
 export const ANSWER_ROW_HEIGHT_PX = 44
 export const ANSWER_HEADER_HEIGHT_PX = 36
@@ -145,7 +140,7 @@ export const ANSWER_COLUMNS = [
   { key: 'actions', label: '', width: 'w-14' },
 ] as const
 
-/** Shared with the skeleton so the swap causes no jump — same rule as manage-users. */
+/** Shared with the loading skeleton so row heights can't drift. */
 export const ANSWER_CELL_BORDER = 'border-r border-gray-100 last:border-r-0'
 export const ANSWER_CELL_BASE =
   'h-11 truncate border-b border-gray-100 px-3 py-0 text-[13px]'

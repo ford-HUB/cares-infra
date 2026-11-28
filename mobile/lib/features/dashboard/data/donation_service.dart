@@ -5,9 +5,8 @@ import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
-/// What a goods pledge carries — the same fields for a new pledge and an edit.
-/// Goods are handed in at the CARES Office, so there is no address or time to
-/// collect: just the day the donor plans to deliver and a number to reach them.
+/// Goods are handed in at the CARES Office: just a delivery day and a contact
+/// number.
 class GoodsPledgeInput {
   const GoodsPledgeInput({
     required this.goodsType,
@@ -33,10 +32,8 @@ class GoodsPledgeInput {
   };
 }
 
-/// The donor's ledger and campaign feed: `/events/donations` for what can be
-/// given to, `/donations/*` for what was given. Money checkouts stay in
-/// `DonationPaymentService`; the ledger row they open comes back through
-/// [fetchDonation].
+/// Money checkouts live in `DonationPaymentService`; their ledger row comes
+/// back via [fetchDonation].
 class DonationService {
   DonationService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
@@ -55,7 +52,6 @@ class DonationService {
         .toList();
   }
 
-  /// Every donation the caller made, latest first.
   Future<List<Donation>> fetchMine() async {
     final response = await _api.getJson('/donations/me');
     final data = response['data'] as Map<String, dynamic>;

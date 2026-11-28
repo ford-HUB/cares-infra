@@ -7,12 +7,11 @@ interface RankingsDashboardProps {
   tiles: { label: string; value: string; hint: string }[]
   leaders: RankingLeader[]
   tiers: RankingTier[]
-  /** Absent for a board with no race over time — the department board. */
+  /** Absent for the department board (no race over time). */
   trend?: RankingTrend
   loading: boolean
 }
 
-/** The Dashboard tab: headline figures for the active board, then its podium. */
 export function RankingsDashboard({
   tiles,
   leaders,

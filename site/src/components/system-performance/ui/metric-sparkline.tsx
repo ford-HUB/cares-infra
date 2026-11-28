@@ -8,16 +8,12 @@ interface MetricSparklineProps {
 const WIDTH = 120
 const HEIGHT = 28
 
-/**
- * The tile's history, drawn small: a stat tile answers "what is it now", and the line
- * behind it answers "and is that where it has been" without spending a card on it.
- */
 export function MetricSparkline({ values, color, label }: MetricSparklineProps) {
   if (values.length < 2) return null
 
   const min = Math.min(...values)
   const max = Math.max(...values)
-  // A flat series would divide by zero; it draws down the middle instead.
+  // A flat series would divide by zero; draw it down the middle.
   const span = max - min || 1
 
   const points = values.map((value, index) => {

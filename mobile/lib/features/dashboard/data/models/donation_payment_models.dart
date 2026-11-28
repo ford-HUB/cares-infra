@@ -1,7 +1,6 @@
 import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 
-/// Where a checkout stands, as the server mirrors it from Xendit. Only
-/// [pending] is non-terminal.
+/// Mirrored from Xendit; only [pending] is non-terminal.
 enum DonationPaymentStatus {
   pending,
   paid,
@@ -18,8 +17,7 @@ enum DonationPaymentStatus {
   bool get isTerminal => this != DonationPaymentStatus.pending;
 }
 
-/// One checkout the server opened with Xendit — `POST /donations/payments`
-/// and `GET /donations/payments/:id`.
+/// `POST /donations/payments` and `GET /donations/payments/:id`.
 class DonationPayment {
   const DonationPayment({
     required this.id,
@@ -47,10 +45,10 @@ class DonationPayment {
   final DonationPaymentMethod method;
   final DonationPaymentStatus status;
 
-  /// Our reference on the gateway (`CARES-DON-…`), printed on statements.
+  /// Our gateway reference (`CARES-DON-…`), printed on statements.
   final String gatewayReference;
 
-  /// Xendit's id for the settled payment; only set once [status] is paid.
+  /// Set only once paid.
   final String? paymentReference;
   final String? paymentChannel;
 
@@ -63,13 +61,11 @@ class DonationPayment {
   final DateTime? paidAt;
   final String? failureReason;
 
-  /// The ledger row the server opened once this settled as paid; null until
-  /// the gateway's callback (or a reconcile) lands.
+  /// Null until the gateway callback (or a reconcile) lands.
   final String? donationId;
   final DateTime createdAt;
 
-  /// What the donor sees as their receipt number — the gateway's payment id
-  /// once paid, our own reference until then.
+  /// Gateway payment id once paid, our reference until then.
   String get receiptReference => paymentReference ?? gatewayReference;
 
   factory DonationPayment.fromJson(Map<String, dynamic> json) {
@@ -99,8 +95,8 @@ class DonationPayment {
   }
 }
 
-/// One channel the director has switched on in the portal's Payments module,
-/// with the copy and limits they chose — `GET /payments/methods`.
+/// `GET /payments/methods`: a channel the director enabled, with their copy and
+/// limits.
 class AvailablePaymentMethod {
   const AvailablePaymentMethod({
     required this.method,
@@ -114,17 +110,16 @@ class AvailablePaymentMethod {
 
   final DonationPaymentMethod method;
 
-  /// What CARES calls this channel; falls back to the built-in name server-side.
+  /// Falls back to the built-in name server-side.
   final String label;
   final String description;
 
-  /// Whole pesos. The server refuses a checkout outside this range, so the flow
-  /// greys the method out rather than letting the donor hit a 400.
+  /// Whole pesos. Out-of-range methods are greyed out rather than hitting a
+  /// 400.
   final int minAmount;
   final int maxAmount;
 
-  /// Where the money lands, when CARES recorded it — shown on the review step so
-  /// the donor can see who they are paying.
+  /// Shown on the review step so the donor sees who they pay.
   final String? accountName;
   final String? accountNumber;
 
@@ -143,10 +138,8 @@ class AvailablePaymentMethod {
   }
 }
 
-/// What CARES can accept right now. [acceptingPayments] is false when the
-/// director switched online donations off or has not entered a gateway key yet;
-/// [methods] is then empty and the money flow says so instead of failing at the
-/// checkout call.
+/// [acceptingPayments] is false when online donations are off or no gateway key
+/// is set; the flow says so instead of failing at checkout.
 class PaymentMethodAvailability {
   const PaymentMethodAvailability({
     required this.acceptingPayments,

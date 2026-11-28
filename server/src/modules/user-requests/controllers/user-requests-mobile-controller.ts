@@ -29,10 +29,7 @@ import {
   MobileUserRequestResponseSchema,
 } from '../validators/user-requests-mobile-validator';
 
-/**
- * The requester's side. Shares `v1/user-requests` with the portal controller;
- * every route here sits under `me/` so the two never collide.
- */
+/** Routes under `me/` to avoid clashing with the site controller. */
 @Controller('v1/user-requests')
 @Roles(...MOBILE_USER_REQUEST_ROLE_TYPES)
 export class UserRequestsMobileController {
@@ -63,11 +60,7 @@ export class UserRequestsMobileController {
     );
   }
 
-  /**
-   * A beneficiary applying for an event. Multipart: `eventId` beside a `proof`
-   * file (photo or PDF of a barangay certificate or similar) — the director
-   * reviews the proof before the application is accepted.
-   */
+  /** Multipart: `eventId` + `proof` (photo or PDF) for director review. */
   @Post('me/event-join')
   @ResponseMessage('Your application is pending approval')
   @ZSerialize(MobileUserRequestResponseSchema)

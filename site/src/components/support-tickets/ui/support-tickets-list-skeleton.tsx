@@ -1,11 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface SupportTicketsListSkeletonProps {
-  /** Roughly what the loaded list will show, so the swap causes no jump. */
   rows: number
 }
 
-/** Mirrors a list row: number + status on one line, type + reporter on the next. */
 export function SupportTicketsListSkeleton({ rows }: SupportTicketsListSkeletonProps) {
   return (
     <ul aria-hidden className="divide-y divide-gray-100">

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:permission_handler/permission_handler.dart';
 
-/// Requests camera / gallery permissions before [ImagePicker] on mobile.
 class MediaPermissions {
   const MediaPermissions._();
 

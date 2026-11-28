@@ -21,49 +21,34 @@ import loocReads from '../assets/landing_page/photos/looc-reads.jpg'
 import mangrovePlanting from '../assets/landing_page/photos/mangrove-planting.jpg'
 import tutorialProgram from '../assets/landing_page/photos/tutorial-program.jpg'
 
-/** Public landing copy drawn from the UCLM CARES Bulletin (Vol. 1 2023–2024 and
- *  Vol. 2 2024–2025). Static content — the public page fetches nothing. */
+/** Static copy from the UCLM CARES Bulletin; the public page fetches nothing. */
 
-/** Serif display face echoing the bulletin's headings (loaded in index.css). */
 export const LANDING_SERIF = "font-['Libre_Baskerville',_Georgia,_serif]"
 
-/** Condensed sans for poster-style uppercase headlines. */
 export const LANDING_CONDENSED = "font-['Oswald',_'Arial_Narrow',_sans-serif]"
 
-/** Bold book serif for the section banners, whose last words take a gold italic. */
 export const LANDING_BANNER_SERIF = "font-['Lora',_Georgia,_serif]"
 
-/** Soft, heavy display serif for headings set over a lime brush stroke. */
 export const LANDING_BRUSH_SERIF = "font-['Fraunces',_Georgia,_serif]"
 
-/** Heavy slab serif for section headings with an italic accent word. */
 export const LANDING_SLAB = "font-['Bitter',_Georgia,_serif]"
 
-/** Formal display serif for short, emphasised statements. */
 export const LANDING_DISPLAY_SERIF = "font-['Playfair_Display',_Georgia,_serif]"
 
-/** Hero headline: a heavy geometric sans, with a handwritten accent line beneath. */
 export const LANDING_DISPLAY = "font-['Montserrat',_ui-sans-serif,_sans-serif]"
 export const LANDING_SCRIPT = "font-['Dancing_Script',_cursive]"
 
-/** Shared content width for every landing section: wide, with even edge gaps
- *  (about 80px each side on a desktop browser) so text lines up with the header. */
 export const LANDING_CONTAINER = 'mx-auto w-full max-w-[96rem] px-5 sm:px-8 lg:px-12 xl:px-20'
 
-/** Desktop scale for the public site. The layout is designed at `baseWidthPx` of CSS
- *  width; wider windows zoom it up (up to `max`, i.e. 125%) so a 1920px screen at 100%
- *  browser zoom looks like the 1536px-wide design. Narrower windows stay at 1 and fall
- *  back to the normal responsive breakpoints. */
+/** Designed at `baseWidthPx`; wider windows zoom up to `max`, narrower stay at 1. */
 export const LANDING_ZOOM = {
   baseWidthPx: 1536,
   max: 1.25,
   cssVar: '--landing-zoom',
 } as const
 
-/** The pale-green icon chip from the Home page's partners. */
 export const LANDING_MINT_CHIP = 'bg-[#d8f1db] text-[var(--cares-primary)]'
 
-/** In-page anchors. Home through Highlights are the sections of the one-page public site. */
 export const LANDING_SECTION_IDS = {
   home: 'home',
   about: 'about',
@@ -76,68 +61,50 @@ export const LANDING_SECTION_IDS = {
 
 export const landingSectionPath = (sectionId: string) => `${HOME_PATH}#${sectionId}`
 
-/** A thin line 30% down the viewport: the section crossing it is the one being read. */
+/** Thin band 30% down the viewport marks the active section. */
 export const LANDING_ACTIVE_SECTION_ROOT_MARGIN = '-30% 0px -69% 0px'
 
-/** Landing-page motion timings. Every animation also honours prefers-reduced-motion. */
+/** All motion also honours prefers-reduced-motion. */
 export const LANDING_MOTION = {
   revealMs: 700,
   staggerMs: 70,
-  /** Org chart: a gentler cascade between its cards on entry. */
   orgStaggerMs: 80,
-  /** Highlights: the beat between stories as each row fades up. */
   highlightStaggerMs: 110,
-  /** About cards: the beat between cards on entry, the poster tilt cap and hover lift. */
   aboutStaggerMs: 120,
-  /** "Watch CARES in Action" play badge: after the frame starts falling, when the play
-   *  triangle drops in and when the side rules start spreading out from it. */
   badgeIconDropMs: 340,
   badgeRulesGrowMs: 380,
-  /** "Watch CARES in Action": wait before the first word bounces in (after the badge
-   *  above it has assembled), then the gap between words. */
   wordBounceStartMs: 750,
   wordBounceStepMs: 110,
-  /** Letter-by-letter heading reveal: the gap between one letter and the next. */
   letterStepMs: 50,
-  /** Section banner titles: the gap between white words rising, then the pauses before
-   *  the gold words, the underline, the description, and the shimmer (after the gold). */
   bannerWordStepMs: 80,
   bannerAccentGapMs: 150,
   bannerLineAfterAccentMs: 200,
   bannerTextAfterAccentMs: 350,
   bannerShimmerAfterAccentMs: 500,
-  /** Director's scroll: how long it takes to unroll (matching the 900ms in index.css),
-   *  when its contents start fading up, and the beat between them. */
+  /** Must match the 900ms unroll in index.css. */
   unfurlMs: 900,
   unfurlContentStartMs: 250,
   unfurlContentStepMs: 90,
   aboutTiltDeg: 2,
   aboutLiftPx: 4,
-  /** Core Processes cards lift a little further on hover. */
   processLiftPx: 5,
   countUpMs: 1600,
   heroStepMs: 120,
   headerShadowOffsetPx: 8,
-  /** Hero background: how long each photo holds, and how long the crossfade takes. */
   heroSlideMs: 3000,
   heroFadeMs: 1000,
-  /** Hero background fade-in from the solid colour when the page first loads. */
   heroIntroFadeMs: 1400,
 } as const
 
-/** Hero headline, one line per phrase, and the script line beneath it. */
 export const LANDING_HERO_HEADLINE: readonly string[] = [
   'One Mission,',
   'One Community,',
   'One Purpose.',
 ] as const
 export const LANDING_HERO_TAGLINE = 'Together, UCLM CARES.'
-/** Warm cream for the key word of each headline phrase ("Mission", "Community", "Purpose"). */
 export const LANDING_HERO_ACCENT = 'text-[#f3e5bf]'
-/** The same cream as a fill, for the tagline ribbon's first trailing stripe. */
 export const LANDING_HERO_ACCENT_BG = 'bg-[#f3e5bf]'
 
-/** Photos the hero background crossfades between, under the CARES tint. */
 export const LANDING_HERO_BACKGROUNDS: readonly string[] = [
   caresMembers,
   heroBackground,
@@ -152,7 +119,6 @@ export const LANDING_HERO_BACKGROUNDS: readonly string[] = [
   lnkLeadershipAssembly,
 ] as const
 
-/** Public site navigation — one section of the single page per entry. */
 export const LANDING_NAV_LINKS: readonly { label: string; to: string; sectionId: string }[] = [
   { label: 'Home', to: HOME_PATH, sectionId: LANDING_SECTION_IDS.home },
   {
@@ -178,7 +144,6 @@ export const LANDING_BULLETIN = {
   schoolYear: 'School Year 2024–2025',
 } as const
 
-/** Shapes in the hero's leaf collage (see landing-leaf-collage). */
 export type LandingCollageSlot = 'feature' | 'top' | 'middle' | 'bottom' | 'corner'
 
 export interface LandingCollagePhoto {
@@ -187,7 +152,6 @@ export interface LandingCollagePhoto {
   slot: LandingCollageSlot
 }
 
-/** One large feature leaf on the left, four smaller ones clustered to its right. */
 export const LANDING_COLLAGE_PHOTOS: readonly LandingCollagePhoto[] = [
   {
     src: loocReads,
@@ -217,7 +181,6 @@ export const LANDING_COLLAGE_PHOTOS: readonly LandingCollagePhoto[] = [
 ] as const
 
 export interface LandingImpactStat {
-  /** Animated from 0 when the strip scrolls into view. */
   count: number
   suffix?: string
   label: string
@@ -259,8 +222,6 @@ export const LANDING_VISION =
 export const LANDING_MISSION =
   'Carry out integrated and sustainable extension programs responsive to social, economic and environmental needs.'
 
-/** A core-process card on the About page: an icon above its title. */
-/** Which solid icon a core process shows (drawn in landing-process-glyphs.tsx). */
 export type LandingProcessGlyph = 'people' | 'handshake' | 'sprout'
 
 export interface LandingAboutCard {
@@ -268,7 +229,6 @@ export interface LandingAboutCard {
   glyph: LandingProcessGlyph
 }
 
-/** A poster-style statement: a condensed headline above its text. */
 export interface LandingStatement {
   title: string
   text: string
@@ -285,14 +245,12 @@ export const LANDING_CORE_PROCESSES: readonly LandingAboutCard[] = [
   { title: 'Community Extension Services', glyph: 'sprout' },
 ] as const
 
-/** The text card that opens the Objectives grid; `highlight` gets a marker underlay. */
 export const LANDING_OBJECTIVES: readonly string[] = [
   'Maintain harmonious relations with the partner and wider communities.',
   'Enhance instruction through research-based extension programs.',
   'Promote coherence of extension programs among the different campuses and sectors of the school and those of the partner communities through appropriate mobilization and sharing of resources.',
 ] as const
 
-/** The fourth objective, which the source breaks into lettered points. */
 export const LANDING_OPPORTUNITIES_OBJECTIVE = 'Create opportunities in the service programs for:'
 
 export const LANDING_OPPORTUNITIES: readonly string[] = [

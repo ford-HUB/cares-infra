@@ -58,10 +58,6 @@ function mapApiSession(data: ActiveSessionApiResponse): ActiveSession {
   }
 }
 
-/**
- * One keyset page of signed-in devices. Every filter narrows on the server, so the
- * grid never has to hold more than the pages actually scrolled.
- */
 export async function listActiveSessions(
   query: ActiveSessionsQuery = {},
 ): Promise<ActiveSessionsPage> {
@@ -103,7 +99,6 @@ export async function listActiveSessions(
   }
 }
 
-/** Ends one device. The token stops working on that device's next request. */
 export async function revokeSession(
   sessionId: string,
 ): Promise<RevokeSessionsResult> {
@@ -119,10 +114,7 @@ export async function revokeSession(
   }
 }
 
-/**
- * Ends every device of one account. `keepCurrent` spares the calling browser, which is
- * what an admin clearing their own other devices wants.
- */
+/** `keepCurrent` spares the calling browser. */
 export async function revokeUserSessions(
   userId: string,
   keepCurrent = false,

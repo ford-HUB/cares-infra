@@ -114,7 +114,6 @@ export function LandingHeader() {
         </div>
       </div>
 
-      {/* Below md the section links sit in their own scrollable row. */}
       <nav
         aria-label="Main"
         className="flex gap-1 overflow-x-auto border-t border-[var(--cares-border)] px-3 py-1.5 md:hidden"

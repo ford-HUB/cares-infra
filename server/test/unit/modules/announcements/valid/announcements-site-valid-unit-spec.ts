@@ -25,20 +25,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Notices Module · Create Announcement — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Create announcement — input validation: every required field, length and list
-   * boundaries, the states the editor may choose, the expiry-after-publish rule, and
-   * legitimate inputs that must still pass.
-   */
   const ALL_AUDIENCES = Object.values(AnnouncementAudience);
   const ALL_CHANNELS = Object.values(AnnouncementChannel);
 
@@ -76,24 +63,19 @@ import {
     { name: 'body with line breaks', input: { ...VALID, body: 'Line one\n\nLine three' }, expected: 'PASS' },
     { name: 'body with accents and emoji', input: { ...VALID, body: 'Salamat, Señora! 🙏' }, expected: 'PASS' },
 
-    // tone
     ...Object.values(AnnouncementTone).map((tone): LayerFixture => ({ name: `tone ${tone}`, input: { ...VALID, tone }, expected: 'PASS' })),
     { name: 'audiences all', input: { ...VALID, audiences: ALL_AUDIENCES }, expected: 'PASS' },
     { name: 'channels all', input: { ...VALID, channels: ALL_CHANNELS }, expected: 'PASS' },
 
-    // state — publishing goes through the state endpoint, so the server stamps time and reach
+    // Publishing uses the state endpoint, which stamps time and reach.
     { name: 'state SCHEDULED', input: { ...VALID, state: AnnouncementState.SCHEDULED }, expected: 'PASS' },
 
-    // publish_at
     { name: 'publish_at without milliseconds', input: { ...VALID, publish_at: '2099-01-01T08:00:00Z' }, expected: 'PASS' },
 
-    // expires_at
     { name: 'expires_at one second after publish', input: { ...VALID, expires_at: '2099-01-01T08:00:01.000Z' }, expected: 'PASS' },
 
-    // pinned
     { name: 'pinned true', input: { ...VALID, pinned: true }, expected: 'PASS' },
 
-    // window_id — a slug such as win-db-migration, or null for no linked window
     { name: 'window_id slug', input: { ...VALID, window_id: 'win-db-migration' }, expected: 'PASS' },
     { name: 'window_id uuid', input: { ...VALID, window_id: 'b3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d' }, expected: 'PASS' },
     { name: 'window_id at max', input: { ...VALID, window_id: 'a'.repeat(100) }, expected: 'PASS' },
@@ -114,17 +96,10 @@ import {
   });
 }
 
-/* ── maintenance ─────────────────────────────────────────────────────────── */
 {
-  /**
-   * Create announcement from the portal's Maintenance screen (System). It shares
-   * `AnnouncementDialog` and POST /api/v1/announcements with the Notices screen, so the
-   * field rules and attack strings live in the other specs in this folder. This one
-   * covers what is particular to Maintenance: the bodies its dialog really builds, and
-   * the window ids it generates.
-   */
+  /** Maintenance screen: same dialog and endpoint as Notices; covers its real bodies and window ids. */
 
-  /** What `blankAnnouncement()` and `toApiDraft()` send for a new notice, as the dialog fills it in. */
+  /** What `blankAnnouncement()` + `toApiDraft()` send for a new notice. */
   const DIALOG_DRAFT = {
     ...VALID_ANNOUNCEMENT,
     title: 'CARES is offline tonight, 1:00–2:30 AM',
@@ -153,7 +128,7 @@ import {
     { name: 'title of a storage window', input: { ...DIALOG_DRAFT, title: 'Media storage cutover finished' }, expected: 'PASS' },
     { name: 'title of a short pause', input: { ...DIALOG_DRAFT, title: 'Certificates pause briefly this Saturday' }, expected: 'PASS' },
 
-    // Window ids: the ones on the board, and the shape saveMaintenanceWindow generates.
+    // Board ids, plus the shape saveMaintenanceWindow generates.
     { name: 'window_id on the board', input: { ...DIALOG_DRAFT, window_id: 'win-db-migration' }, expected: 'PASS' },
     { name: 'window_id on the board (worker)', input: { ...DIALOG_DRAFT, window_id: 'win-cert-worker' }, expected: 'PASS' },
     { name: 'window_id on the board (storage)', input: { ...DIALOG_DRAFT, window_id: 'win-storage-swap' }, expected: 'PASS' },
@@ -175,12 +150,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Create announcement — normalisation: the schema trims the title and body, and the
-   * service receives the caller from the token as the author.
-   */
   describe('announcements site · create — normalisation', () => {
     const ctx = useAnnouncementsApp();
 
@@ -204,11 +174,10 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   const fixtures: LayerFixture[] = [
 
-    // Free text: stored as data through Prisma and escaped by the clients when rendered.
+    // Free text: Prisma parameterises it and clients escape it on render.
     ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...UNICODE_CONFUSABLE_PAYLOADS, ...XSS_PAYLOADS, ...PATH_TRAVERSAL_PAYLOADS].map(
       (p): LayerFixture => ({
         name: `body ← ${p.category}: ${p.label}`,
@@ -216,8 +185,7 @@ import {
         expected: 'PASS',
       }),
     ),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. A notice can run over several lines, so line breaks are the exception.
+    // Trimmed field rejects control characters; line breaks are allowed for multi-line notices.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => p.label === 'CRLF injection').map((p): LayerFixture => ({
       name: `body ← ${p.category}: ${p.label}`,
       input: { ...VALID, body: p.value },
@@ -227,7 +195,7 @@ import {
 
     ...OPERATOR_INJECTION_PAYLOADS.filter((p) => typeof p.value === 'boolean').map((p): LayerFixture => ({
       name: `pinned ← ${p.category}: ${p.label}`,
-      // The catalogue's "boolean instead of string" is a real value for this field.
+      // The catalogue's boolean is a valid value here.
       input: { ...VALID, pinned: p.value },
       expected: 'PASS',
       ...(typeof p.value === 'boolean' ? {} : { field: 'pinned' }),

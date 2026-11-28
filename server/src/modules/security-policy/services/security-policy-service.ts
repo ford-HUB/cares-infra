@@ -15,18 +15,10 @@ import { SecurityPolicyRepository } from '../repositories/security-policy-reposi
 
 const POLICY_CACHE_KEY = 'security-policy';
 
-/**
- * Every authenticated request can consult the policy, so it is cached rather than read
- * from Postgres each time. A save invalidates the key immediately, so the TTL only
- * bounds how long another instance of the API can serve a stale copy.
- */
+/** Saves invalidate immediately; the TTL only bounds other instances' staleness. */
 const POLICY_CACHE_TTL = DurationUtils.FIVE_MINUTES;
 
-/**
- * Applied until an administrator saves the policy for the first time. Kept in step
- * with the column defaults in `schema.prisma` — a fresh install and a saved-then-reset
- * install must behave identically.
- */
+/** Must match the column defaults in `schema.prisma`. */
 export const DEFAULT_SECURITY_POLICY: SecurityPolicyValuesDto = {
   password_min_length: 8,
   password_require_uppercase: true,
@@ -60,10 +52,7 @@ export class SecurityPolicyService {
     private readonly auditLogRecorder: AuditLogRecorder,
   ) {}
 
-  /**
-   * The settings enforcement reads. Never throws: a database or cache failure falls
-   * back to the defaults rather than taking sign-in down with it.
-   */
+  /** Never throws: falls back to defaults. */
   async getPolicy(): Promise<SecurityPolicyValuesDto> {
     try {
       const cached =
@@ -86,11 +75,7 @@ export class SecurityPolicyService {
     }
   }
 
-  /**
-   * The password rules on their own, for the sign-up and password forms. Reads through
-   * the same cached policy as enforcement, so a form can never state a rule the server
-   * has stopped applying.
-   */
+  /** Same cache as enforcement, so forms match the server. */
   async getPasswordRules(): Promise<PasswordRulesDto> {
     const policy = await this.getPolicy();
 
@@ -103,7 +88,6 @@ export class SecurityPolicyService {
     };
   }
 
-  /** The policy plus its audit fields, for the portal's settings form. */
   async getPolicyDetail(): Promise<SecurityPolicyDto> {
     const row = await this.securityPolicyRepository.findPolicy();
 
@@ -119,14 +103,12 @@ export class SecurityPolicyService {
     actor: JwtPayload,
     context: RequestContextDto = {},
   ): Promise<SecurityPolicyDto> {
-    // Read before writing: the diff the trail records is against what was actually
-    // stored, not against the defaults the form started from.
+    // Diff against what was stored.
     const previous = await this.getPolicyDetail();
 
     const row = await this.securityPolicyRepository.savePolicy(data, actor.sub);
 
-    // Drop the cache rather than overwrite it, so a failed write cannot leave the
-    // cache claiming a policy that was never stored.
+    // Drop rather than overwrite, so a failed write can't leave a phantom policy cached.
     await this.redisService.delete(POLICY_CACHE_KEY);
 
     const changes = diffPolicies(previous, data);
@@ -136,8 +118,7 @@ export class SecurityPolicyService {
         ? `Updated the security policy (${changes.length} setting${changes.length === 1 ? '' : 's'})`
         : 'Saved the security policy with no changes',
       category: 'SYSTEM',
-      // The policy decides who can sign in at all, so a change to it is worth a second
-      // look even when it went through cleanly.
+      // Governs sign-in, so NOTICE.
       severity: 'NOTICE',
       actor,
       targetType: 'system',
@@ -156,10 +137,7 @@ export class SecurityPolicyService {
   }
 }
 
-/**
- * Field-level before/after pairs for the audit trail. Values are stringified because
- * the trail stores them as text — it is read by a person, not replayed.
- */
+/** Stringified: the trail stores text. */
 function diffPolicies(
   previous: SecurityPolicyValuesDto,
   next: SecurityPolicyValuesDto,
@@ -177,7 +155,7 @@ function diffPolicies(
 function format(
   value: SecurityPolicyValuesDto[keyof SecurityPolicyValuesDto],
 ): string {
-  // An empty allowlist reads as "" otherwise, which is indistinguishable from unset.
+  // Otherwise "" is indistinguishable from unset.
   if (Array.isArray(value)) return value.length ? value.join(', ') : 'none';
   return String(value);
 }

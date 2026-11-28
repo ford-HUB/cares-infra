@@ -12,7 +12,6 @@ interface AnnouncementStateBadgeProps {
   className?: string
 }
 
-/** Whether a notice is out yet. Nothing here animates — publishing is not live data. */
 export function AnnouncementStateBadge({ state, className }: AnnouncementStateBadgeProps) {
   return (
     <span

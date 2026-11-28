@@ -7,9 +7,7 @@ import 'package:mobile/core/constants/support_contact.dart';
 import 'package:mobile/features/auth/presentation/providers/app_update_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// "Need help? careeesadmin@gmail.com" on the login footer band. Tapping it
-/// opens the user's mail app with the support address, subject and a
-/// pre-filled body (including the installed app version) already in place.
+/// Opens a mail draft with the subject and pre-filled body (incl. app version).
 class LoginSupportEmail extends ConsumerWidget {
   const LoginSupportEmail({super.key});
 
@@ -53,7 +51,6 @@ class LoginSupportEmail extends ConsumerWidget {
         behavior: HitTestBehavior.opaque,
         onTap: () => _compose(context, appVersion),
         child: Padding(
-          // Widens the tap target without moving the text.
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: Row(
             mainAxisSize: MainAxisSize.min,

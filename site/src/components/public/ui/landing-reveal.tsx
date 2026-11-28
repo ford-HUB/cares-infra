@@ -6,15 +6,13 @@ import { LANDING_MOTION } from '../../../constants/landing-bulletin'
 interface LandingRevealProps {
   children: ReactNode
   className?: string
-  /** Position in a staggered group; each step adds LANDING_MOTION.staggerMs. */
+  /** Position in a staggered group. */
   index?: number
-  /** Delay between steps; defaults to LANDING_MOTION.staggerMs. */
+  /** Defaults to `LANDING_MOTION.staggerMs`. */
   staggerMs?: number
   as?: 'div' | 'li'
 }
 
-/** Fades and lifts its children in the first time they scroll into view. Under
- *  reduced motion the content is simply shown. */
 export function LandingReveal({
   children,
   className,

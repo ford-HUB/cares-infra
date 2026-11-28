@@ -5,7 +5,6 @@ import type {
   UserRequestDto,
 } from '../dto/user-requests-site-dto';
 
-/** Only the proof files actually on the row are listed. */
 export function attachmentsOf(row: UserRequestRow): UserRequestAttachmentDto[] {
   const idLabel =
     row.kind === 'ALUMNI_REGISTRATION'

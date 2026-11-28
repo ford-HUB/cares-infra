@@ -66,7 +66,7 @@ export class CertificateDeploymentsRepository {
     });
   }
 
-  /** Re-cutting an existing deployment keeps its reference and its tallies. */
+  /** Keeps its reference and tallies. */
   async recut(
     id: string,
     data: PersistDeployment,
@@ -87,10 +87,7 @@ export class CertificateDeploymentsRepository {
     });
   }
 
-  /**
-   * Writes the template's "deployed to N events" tally back from the deployments
-   * themselves, so the number on the template card cannot drift from the live page.
-   */
+  /** Recomputes the tally from deployments so it can't drift. */
   async syncTemplateDeploymentCount(templateId: string): Promise<void> {
     const events = await this.prisma.certificateDeployment.findMany({
       where: { certificate_template_id: templateId },

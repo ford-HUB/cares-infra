@@ -7,11 +7,11 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 
-/** Rows pulled per scroll page — enough to overflow the grid so a scroll exists. */
+/** Enough to overflow the grid so it scrolls. */
 export const AUDIT_LOGS_DEFAULT_LIMIT = 25;
 export const AUDIT_LOGS_MAX_LIMIT = 100;
 
-/** `all` keeps the portal's filter selects a single value space. */
+/** `all` keeps the filter a single value space. */
 export const AuditLogRangeSchema = z.enum(['24h', '7d', '30d', 'all']);
 
 export const ListAuditLogsQuerySchema = z
@@ -21,7 +21,7 @@ export const ListAuditLogsQuerySchema = z
     severity: z.union([z.literal('all'), z.enum(AuditSeverity)]).default('all'),
     outcome: z.union([z.literal('all'), z.enum(AuditOutcome)]).default('all'),
     range: AuditLogRangeSchema.default('7d'),
-    /** Id of the last row already shown; the next page starts after it. */
+    /** Last shown id; the next page starts after it. */
     cursor: z.uuid().optional(),
     limit: z.coerce
       .number()
@@ -32,7 +32,7 @@ export const ListAuditLogsQuerySchema = z
   })
   .strict();
 
-/** One field-level before/after pair, so a change is reviewable without a diff tool. */
+/** Field-level before/after pair. */
 export const AuditLogChangeSchema = z.object({
   field: z.string(),
   before: z.string().nullable(),
@@ -46,7 +46,7 @@ export const AuditLogSchema = z.object({
   category: z.enum(AuditCategory),
   severity: z.enum(AuditSeverity),
   outcome: z.enum(AuditOutcome),
-  /** Null for background jobs, and for actors whose account was later deleted. */
+  /** Null for background jobs and deleted actors. */
   actor_user_id: z.string().nullable(),
   actor_name: z.string(),
   actor_email: z.string(),
@@ -60,15 +60,15 @@ export const AuditLogSchema = z.object({
   request_id: z.string().nullable(),
   reason: z.string().nullable(),
   changes: z.array(AuditLogChangeSchema),
-  /** Free-form context, flattened to strings so the portal can render it as-is. */
+  /** Flattened to strings for display. */
   metadata: z.record(z.string(), z.string()),
   created_at: z.iso.datetime(),
 });
 
 export const AuditLogPageResponseSchema = z.object({
   items: z.array(AuditLogSchema),
-  /** Total matching rows, across every page. */
+  /** Across every page. */
   total: z.number(),
-  /** Null once the trail is exhausted — that is how the scroll knows to stop. */
+  /** Null once exhausted; stops the scroll. */
   next_cursor: z.string().nullable(),
 });

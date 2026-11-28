@@ -27,7 +27,7 @@ import {
   SessionUserParamSchema,
 } from '../validators/sessions-site-validator';
 
-/** Every account's signed-in devices are visible here, so it stays admin-only. */
+/** Admin-only. */
 @Controller('v1/sessions')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.SECURITY_SESSION_REVOKE)

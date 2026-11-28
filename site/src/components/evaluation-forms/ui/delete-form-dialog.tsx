@@ -11,14 +11,13 @@ import {
 import type { EvaluationForm } from '../../../types/evaluation'
 
 interface DeleteFormDialogProps {
-  /** Null keeps the dialog closed; a questionnaire opens it on that questionnaire. */
   form: EvaluationForm | null
   saving: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: (form: EvaluationForm) => void
 }
 
-/** Deleting is only offered on an unanswered questionnaire, but it is still final. */
+/** Only offered on an unanswered questionnaire. */
 export function DeleteFormDialog({
   form,
   saving,

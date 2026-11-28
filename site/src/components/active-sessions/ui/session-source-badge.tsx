@@ -10,7 +10,6 @@ const sourceStyles: Record<
   mobile: { badge: 'bg-violet-50 text-violet-700', icon: Smartphone },
 }
 
-/** Dense badge sized for the active-sessions grid. */
 export function SessionSourceBadge({ source }: { source: SessionSource }) {
   const style = sourceStyles[source] ?? sourceStyles.portal
   const Icon = style.icon

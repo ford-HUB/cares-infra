@@ -16,7 +16,6 @@ import {
   LANDING_SERIF,
 } from '../../constants/landing-bulletin'
 
-/** Entrance for the hero's stacked lines: each step starts a beat after the last. */
 const ENTER =
   'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:fill-mode-both motion-safe:duration-700'
 const step = (n: number) => ({
@@ -27,13 +26,9 @@ export function LandingHero() {
   const activePhoto = useRotatingIndex(LANDING_HERO_BACKGROUNDS.length, LANDING_MOTION.heroSlideMs)
 
   return (
-    // Fills the screen below the sticky header (h-14 plus its 1px border), with the copy
-    // centred top to bottom, so no page shows beneath it on first load.
+    // Fills the screen below the sticky header (h-14 + 1px border).
     <section className="relative flex min-h-[calc(100svh/var(--landing-zoom,1)-3.5rem-1px)] flex-col justify-center overflow-hidden bg-gradient-to-r from-[var(--cares-primary)] to-[var(--cares-primary-hover)] text-white">
-      {/* Photos crossfade underneath, tinted CARES green so the copy stays legible:
-          solid behind the text on the left, thinning toward the right. */}
-      {/* The wrapper fades the photos in from the solid colour on first load; the
-          images keep their own zoom animation, so the fade can't sit on them. */}
+      {/* Fade on the wrapper, since the images run their own zoom animation. */}
       <div
         aria-hidden
         style={{ animationDuration: `${LANDING_MOTION.heroIntroFadeMs}ms` }}
@@ -54,13 +49,11 @@ export function LandingHero() {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--cares-primary)] via-[var(--cares-primary-hover)]/85 to-[var(--cares-primary-hover)]/0"
       />
-      {/* Bottom fade repeats the horizontal gradient, masked to fade upward, so the
-          edge doesn't flatten into a single colour band. */}
+      {/* Masked bottom fade, so the edge doesn't flatten into one colour band. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-r from-[var(--cares-primary)] to-[var(--cares-primary-hover)] [mask-image:linear-gradient(to_top,black,transparent)]"
       />
-      {/* Layered green waves with gold crest lines along the bottom edge. */}
       <LandingHeroWaves />
       <div
         aria-hidden
@@ -77,7 +70,6 @@ export function LandingHero() {
             <span
               className={`${LANDING_DISPLAY} block text-[min(2.25rem,9vw)] leading-[1.1] font-bold tracking-tight sm:text-5xl`}
             >
-              {/* "One" stays white; the word after it (with its punctuation) is cream. */}
               {LANDING_HERO_HEADLINE.map((phrase) => {
                 const [lead, ...rest] = phrase.split(' ')
                 return (
@@ -87,10 +79,7 @@ export function LandingHero() {
                 )
               })}
             </span>
-            {/* Tagline on a slanted emerald glass ribbon: a glossy top half, a pale rim,
-                gold light along its top and bottom edges, then a cream stripe (the headline's
-                key-word colour) and a green one trailing its end. The negative margin cancels
-                the padding so the text lines up with the headline. */}
+            {/* The negative margin cancels the padding so the text lines up with the headline. */}
             <span className="relative mt-4 -ml-3 inline-block sm:mt-5 sm:-ml-5 lg:-ml-8">
               <span
                 aria-hidden
@@ -118,8 +107,6 @@ export function LandingHero() {
             </span>
           </h1>
 
-          {/* The office name, then a short gold rule as wide as the name itself: it runs to
-              the final "S" (less the letter-spacing after it). Bright centre, faint glow. */}
           <div className="w-fit max-w-full">
             <p
               className={`${ENTER} mt-5 text-[13px] font-bold tracking-[0.14em] text-white uppercase sm:text-sm`}
@@ -160,7 +147,7 @@ export function LandingHero() {
               className="inline-flex items-center rounded-lg border border-white/50 px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-white/80 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             >
               Request Administrator Access
-            </Link>
+            </Link> 
           </div>
         </div>
       </div>

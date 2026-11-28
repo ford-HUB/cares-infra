@@ -14,7 +14,6 @@ const defaultValues: SuspendActionsFormValues = {
   durationDays: SUSPENSION_DURATIONS[0].value,
 }
 
-/** Converts the preset day count into the ISO expiry the endpoint expects. */
 function toExpiry(durationDays: number): string | undefined {
   if (durationDays <= 0) return undefined
 

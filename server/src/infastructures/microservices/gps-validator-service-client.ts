@@ -68,7 +68,7 @@ export interface GpsValidateResult {
   results: GpsParticipantResult[];
 }
 
-/** gps-validator-service already emits camelCase, so the envelope needs no renaming. */
+/** Already camelCase. */
 interface GpsApiResponse {
   ok: boolean;
   message?: string;
@@ -81,14 +81,7 @@ export class GpsValidatorServiceClient {
   private readonly baseUrl =
     process.env.GPS_VALIDATOR_SERVICE_URL ?? 'http://localhost:8005';
 
-  /**
-   * Judges every participant's recorded movement against the event geofence:
-   * time in/out, time inside, whether the coverage and late-entry rules pass, and
-   * any GPS anomalies. Pass an `endedAt` of "now" for a mid-event snapshot — the
-   * coverage then reads as the share of the event so far. Set `live` for such a
-   * snapshot so a volunteer who stepped out is not timed out until they have been
-   * gone for the departure buffer (1 h) without coming back.
-   */
+  /** `endedAt` = now + `live` for a mid-event snapshot (1 h departure buffer before timing out). */
   async validate(
     event: GpsEventInput,
     participants: GpsParticipantInput[],

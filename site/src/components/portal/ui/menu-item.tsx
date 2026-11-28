@@ -9,10 +9,7 @@ interface MenuItemProps {
   label: string
   to: string
   collapsed: boolean
-  /**
-   * Set when an admin has suspended the right that opens this module. The entry
-   * stays in the sidebar, locked and red, and hovering it explains why and until when.
-   */
+  /** The entry stays in the sidebar, locked and red, with the reason on hover. */
   suspension?: SessionSuspension
 }
 

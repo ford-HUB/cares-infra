@@ -24,7 +24,6 @@ interface DeployedCertificateActionsProps {
   onAction: (action: string, deployment: DeployedCertificate) => void
 }
 
-/** Secondary actions live behind one menu so the card footer stays two buttons wide. */
 export function DeployedCertificateActions({
   deployment,
   onAction,

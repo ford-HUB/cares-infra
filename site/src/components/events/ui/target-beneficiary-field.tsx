@@ -7,7 +7,6 @@ interface TargetBeneficiaryFieldProps {
   onRemove: (id: string) => void
 }
 
-/** The chosen targets as chips, plus the button that opens the picker. */
 export function TargetBeneficiaryField({ selected, onOpen, onRemove }: TargetBeneficiaryFieldProps) {
   return (
     <div>

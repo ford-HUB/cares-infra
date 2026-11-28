@@ -161,7 +161,7 @@ export async function listAccessUsers(
     const first = await fetchUserPage(query, 1)
     const list = first.items.map(mapApiUser)
 
-    // The table paginates client-side, so pull the remaining pages up to the cap.
+    // Client-side pagination: pull remaining pages up to the cap.
     const loadable = Math.min(first.total, ACCESS_USERS_MAX_LOADED)
     let page = 2
     while (list.length < loadable) {
@@ -206,7 +206,7 @@ export async function getAccessUserDetail(id: string): Promise<DetailResult> {
   }
 }
 
-/** Sends the complete set of rights the user should end up with — the server diffs it. */
+/** Sends the full target set; the server diffs it. */
 export async function updateAccessUserPermissions(
   id: string,
   permissions: PermissionKey[],

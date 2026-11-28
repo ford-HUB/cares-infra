@@ -13,11 +13,7 @@ import {
   useAuthSiteApp,
 } from '../login-site-support';
 
-/**
- * Forgot Password — valid inputs. The portal has no OTP step: a registered
- * administrator's email gets a temporary password, the stored hash is replaced
- * only after the mail is sent, and a 2-minute cooldown starts.
- */
+/** No OTP step: temp password mailed, hash replaced only after send, 2-minute cooldown. */
 const testCase = defineCases({ module: MODULE, unit: 'Forgot Password', kind: 'valid', prefix: 'FORGOT' });
 
 describe('Forgot Password — valid inputs', () => {

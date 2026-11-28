@@ -1,7 +1,6 @@
 import 'package:mobile/core/constants/goods_types.dart';
 import 'package:mobile/features/dashboard/data/donation_format.dart';
 
-/// Whether the donor is giving money or physical goods.
 enum DonationKind {
   money,
   goods;
@@ -15,14 +14,9 @@ enum DonationKind {
       value == 'GOODS' ? DonationKind.goods : DonationKind.money;
 }
 
-/// Payment channels offered in the money flow. Each one is a different Xendit
-/// product on the server, with its own hand-off:
-///
-/// * [gcash] — the donor is sent to GCash to approve the charge.
-/// * [qrph]  — a QR Ph code is shown in-app for any bank / e-wallet to scan.
-/// * [card]  — Xendit's hosted card page (3-D Secure) opens in the browser.
-/// * [bank]  — Xendit's hosted page where the donor pays from their own bank
-///   (BPI, UnionBank, RCBC, Chinabank).
+/// Each is a different Xendit product with its own hand-off: [gcash] approve in
+/// GCash; [qrph] QR shown in-app; [card] hosted 3-D Secure page; [bank] hosted
+/// bank page (BPI, UnionBank, RCBC, Chinabank).
 enum DonationPaymentMethod { gcash, qrph, card, bank }
 
 extension DonationPaymentMethodMeta on DonationPaymentMethod {
@@ -33,7 +27,6 @@ extension DonationPaymentMethodMeta on DonationPaymentMethod {
     DonationPaymentMethod.bank => 'Bank Transfer',
   };
 
-  /// One line under the name on the payment-method step.
   String get description => switch (this) {
     DonationPaymentMethod.gcash => 'Approve the payment in your GCash app',
     DonationPaymentMethod.qrph =>
@@ -44,7 +37,6 @@ extension DonationPaymentMethodMeta on DonationPaymentMethod {
       'BPI, UnionBank, RCBC or Chinabank online banking',
   };
 
-  /// Brand artwork under `assets/images/payment/`.
   String get assetPath => switch (this) {
     DonationPaymentMethod.gcash => 'assets/images/payment/gcash.svg',
     DonationPaymentMethod.qrph => 'assets/images/payment/qrph.svg',
@@ -60,15 +52,12 @@ extension DonationPaymentMethodMeta on DonationPaymentMethod {
     DonationPaymentMethod.bank => 'BANK_TRANSFER',
   };
 
-  /// Label for the payment reference row, matching the channel used.
   String get referenceLabel => switch (this) {
     DonationPaymentMethod.gcash => 'GCash Reference No.',
     DonationPaymentMethod.qrph => 'QR Ph Reference No.',
     _ => 'Payment Reference No.',
   };
 
-  /// Whether the donor leaves the app to pay (browser / GCash) rather than
-  /// scanning a code shown in-app.
   bool get opensExternally => this != DonationPaymentMethod.qrph;
 
   static DonationPaymentMethod fromWire(String value) =>
@@ -86,11 +75,9 @@ extension DonationPaymentMethodMeta on DonationPaymentMethod {
   }
 }
 
-/// One ladder for both kinds, walked at different speeds — the server's
-/// `DonationStatus`. Goods: pledged → awaitingPickup (CARES is expecting the
-/// donor to drop the goods off at the office) → verifying → confirmed.
-/// Money (already paid): pledged → verifying → confirmed. [declined] is the
-/// director's off-ramp; [cancelled] is the donor's, only while still pledged.
+/// The server's `DonationStatus`. Goods: pledged → awaitingPickup (drop-off at
+/// the office) → verifying → confirmed. Money: pledged → verifying → confirmed.
+/// [declined] is the director's exit; [cancelled] the donor's, while pledged.
 enum DonationStatus {
   pledged,
   awaitingPickup,
@@ -124,7 +111,6 @@ enum DonationStatus {
     _ => DonationStatus.pledged,
   };
 
-  /// The forward path for a kind, in order.
   static List<DonationStatus> flowFor(DonationKind kind) => switch (kind) {
     DonationKind.goods => const [
       DonationStatus.pledged,
@@ -140,7 +126,6 @@ enum DonationStatus {
   };
 }
 
-/// One move on the donation's ladder, as the portal recorded it.
 class DonationTrailEntry {
   const DonationTrailEntry({
     required this.id,
@@ -169,9 +154,8 @@ class DonationTrailEntry {
   final DateTime createdAt;
 }
 
-/// A donation on the server's ledger — `GET /donations/me` row. Money rows are
-/// opened by the gateway once the checkout is paid; goods rows when the donor
-/// pledges. Either only counts once a director confirms it.
+/// `GET /donations/me` row. Money rows open when the checkout is paid, goods
+/// rows on pledge; either counts only once a director confirms.
 class Donation {
   const Donation({
     required this.id,
@@ -232,14 +216,14 @@ class Donation {
 
   final String id;
 
-  /// `DN-0007` — the tracking number the portal prints too.
+  /// `DN-0007`, as the portal prints it.
   final String reference;
   final DonationKind kind;
   final DonationStatus status;
   final int eventId;
   final String eventTitle;
 
-  /// Whole pesos: what was paid for money; the credited value of the goods.
+  /// Whole pesos: the paid amount, or the goods' credited value.
   final int amount;
   final String? paymentId;
   final DonationPaymentMethod? paymentMethod;
@@ -248,10 +232,10 @@ class Donation {
   final String? goodsItem;
   final int? goodsQuantity;
 
-  /// Goods only — the number CARES can reach the donor on about the drop-off.
+  /// Goods only: drop-off contact.
   final String? contactNumber;
 
-  /// Goods only — the day the donor plans to hand the goods in at the CARES Office.
+  /// Goods only: planned hand-in day at the CARES Office.
   final DateTime? deliveryDate;
   final DateTime? confirmedAt;
   final List<DonationTrailEntry> trail;
@@ -264,7 +248,6 @@ class Donation {
   bool get isCancelled => status == DonationStatus.cancelled;
   bool get isDeclined => status == DonationStatus.declined;
 
-  /// Edit and cancel are only allowed on goods still pledged.
   bool get canModify => isGoods && status == DonationStatus.pledged;
 
   String get statusLabel => status.label;

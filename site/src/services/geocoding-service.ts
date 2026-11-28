@@ -21,14 +21,7 @@ import type {
 
 const cebuProvince = polygon([[...CEBU_PROVINCE_OUTLINE, CEBU_PROVINCE_OUTLINE[0]]])
 
-/**
- * Decide whether a suggestion should appear:
- * - Must lie anywhere in Cebu province (Cebu City, Mandaue, Lapu-Lapu, the
- *   north and south towns alike). Mapbox leaves `region` empty for Philippine
- *   addresses, so this is a geometric test rather than a name match.
- * - University/college results: only "University of Cebu" branches; every other
- *   university is hidden.
- */
+/** Cebu province by geometry (Mapbox leaves `region` empty for PH); universities limited to UC branches. */
 function isAllowedSuggestion(f: MapboxGeocodingFeature): boolean {
   const { properties: p } = f
   const { longitude, latitude } = p.coordinates
@@ -43,10 +36,7 @@ function isAllowedSuggestion(f: MapboxGeocodingFeature): boolean {
   return !isUniversity || ALLOWED_UNIVERSITY_NAMES.some((name) => haystack.includes(name))
 }
 
-/**
- * Human-readable one-line label for a search feature. POIs carry the venue name
- * separately from the address, so it is prefixed when the address lacks it.
- */
+/** POIs carry the venue name apart from the address, so prefix it when missing. */
 function featureLabel(f: MapboxGeocodingFeature): string {
   const { name, full_address, place_formatted } = f.properties
   const address = full_address ?? place_formatted ?? ''
@@ -55,10 +45,7 @@ function featureLabel(f: MapboxGeocodingFeature): string {
   return address.toLowerCase().includes(name.toLowerCase()) ? address : `${name}, ${address}`
 }
 
-/**
- * Fetch address suggestions from the Mapbox Search Box API for the given query.
- * Returns an empty list on missing token, short query, aborted requests, or errors.
- */
+/** Empty on missing token, short query, abort, or error. */
 export async function autocompleteAddress(
   query: string,
   signal?: AbortSignal,
@@ -90,11 +77,7 @@ export async function autocompleteAddress(
   }
 }
 
-/**
- * Pick the tightest usable footprint from the candidates read off the map: the
- * smallest polygon that still fits {@link MAX_AUTO_TRACE_AREA_SQM}. Only a
- * building-sized outline makes sense as an attendance boundary.
- */
+/** Smallest footprint within {@link MAX_AUTO_TRACE_AREA_SQM}. */
 function pickFootprint(candidates: FootprintCandidate[]): Polygon | MultiPolygon | undefined {
   return candidates
     .filter(
@@ -109,12 +92,7 @@ function pickFootprint(candidates: FootprintCandidate[]): Polygon | MultiPolygon
     .sort((a, b) => a.areaSqM - b.areaSqM)[0]?.geometry
 }
 
-/**
- * Resolve the place at the given coordinates via Mapbox reverse geocoding.
- * Mapbox's geocoder returns points only, so the building footprint comes from
- * `footprints` — geometries the caller read off the rendered map at that spot.
- * Returns null on error or no result.
- */
+/** Geocoder returns points only, so footprints come from the caller's rendered map. Null on error. */
 export async function getPlaceDetails(
   lat: number,
   lng: number,

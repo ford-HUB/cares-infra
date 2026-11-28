@@ -4,7 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile/core/models/sun_weather_mood.dart';
 
-/// Fetches current weather from OpenWeather for Cebu City.
 class OpenWeatherService {
   OpenWeatherService({http.Client? client}) : _client = client ?? http.Client();
 

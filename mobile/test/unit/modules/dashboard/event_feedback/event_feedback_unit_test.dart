@@ -1,5 +1,5 @@
-// Unit tests for post-event feedback — the questionnaire a volunteer answers
-// after a completed event, which unlocks that event's certificate:
+// Unit tests for post-event feedback, which unlocks the certificate (local
+// fixtures; MockClient via `http.runWithClient`):
 //
 //   GET  /v1/evaluation/events/:id            EventEvaluationService.fetchForEvent
 //   POST /v1/evaluation/events/:id/responses  EventEvaluationService.submit
@@ -8,10 +8,6 @@
 //   EventFeedbackStore                        submitted-or-not, certificate gate
 //   EventFeedbackScreen                       load states, every answer type,
 //                                             required checks, submit, 409
-//
-// The screen builds its own service, so the network is swapped for
-// package:http's MockClient through `http.runWithClient`. Every questionnaire
-// and event here is a local fixture — nothing reaches a real server.
 
 import 'dart:convert';
 import 'dart:io';
@@ -37,10 +33,6 @@ const _submissionsPath = '/v1/evaluation/submissions';
 
 /// Who the screen records feedback for when no prototype user is signed in.
 const _guest = 'guest@cares.local';
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 CaresEvent _event({String id = 'event-42'}) => CaresEvent(
   id: id,
@@ -85,7 +77,6 @@ Map<String, dynamic> _q(
   'scale_max_label': ?maxLabel,
 };
 
-/// The questionnaire the director assigned to the clean-up drive.
 List<Map<String, dynamic>> _questions() => [
   _q(
     'q_overall',
@@ -157,10 +148,6 @@ Map<String, dynamic> _submission({Map<String, dynamic>? answers}) => {
   'answers': answers ?? {'q_overall': 5},
 };
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 class _Recorder {
   _Recorder({Map<String, dynamic>? evaluation, this.onSubmit})
     : evaluation = evaluation ?? _evaluation();
@@ -223,7 +210,6 @@ Map<String, dynamic> _sentAnswers(http.Request request) =>
     (jsonDecode(request.body) as Map<String, dynamic>)['answers']
         as Map<String, dynamic>;
 
-/// One part of a captured multipart/form-data body.
 class _Part {
   _Part(this.headers, this.content);
 
@@ -263,17 +249,13 @@ List<_Part> _partsOf(http.Request request) {
   return parts;
 }
 
-// ---------------------------------------------------------------------------
-// Screen harness
-// ---------------------------------------------------------------------------
-
 class _Outcome {
   bool closed = false;
   bool? submitted;
 }
 
-/// Opens the feedback screen from a launcher, as the details screen does, on
-/// a tall surface so every question card is built without scrolling.
+/// Opened from a launcher, as the details screen does, on a tall surface so
+/// every card is built.
 Future<_Outcome> _openScreen(WidgetTester tester, {CaresEvent? event}) async {
   tester.view.physicalSize = const Size(900, 3200);
   tester.view.devicePixelRatio = 1.0;
@@ -357,10 +339,6 @@ void main() {
     AuthSession.onSessionEnded = null;
     EventFeedbackStore.instance.hydrate(_guest, const {});
   });
-
-  // -------------------------------------------------------------------------
-  // Service
-  // -------------------------------------------------------------------------
 
   group('GET /evaluation/events/:id', () {
     test('fetches the event’s questionnaire with the volunteer’s token',
@@ -552,10 +530,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Models
-  // -------------------------------------------------------------------------
-
   group('evaluation models', () {
     test('every question type maps from the wire; unknowns become text', () {
       for (final type in EvaluationQuestionType.values) {
@@ -610,10 +584,6 @@ void main() {
       expect(evaluation.submission!.answers, {'q_overall': 5});
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Feedback store (the certificate gate)
-  // -------------------------------------------------------------------------
 
   group('EventFeedbackStore', () {
     const email = 'juan@uclm.edu.ph';
@@ -713,10 +683,6 @@ void main() {
       expect(notifications, 2);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Screen — what it shows before there is anything to fill in
-  // -------------------------------------------------------------------------
 
   group('EventFeedbackScreen — load states', () {
     testWidgets('a prototype event never asks the server', (tester) async {
@@ -827,10 +793,6 @@ void main() {
       });
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Screen — the form
-  // -------------------------------------------------------------------------
 
   group('EventFeedbackScreen — the form', () {
     testWidgets('shows the form, whose questions these are, and every card',
@@ -1118,10 +1080,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Screen — when the server refuses
-  // -------------------------------------------------------------------------
-
   group('EventFeedbackScreen — refusals', () {
     testWidgets('a 409 means it was already sent: mirror it and say so',
         (tester) async {
@@ -1176,10 +1134,6 @@ void main() {
       });
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Invalid fields
-  // -------------------------------------------------------------------------
 
   group('EventFeedbackScreen — invalid fields', () {
     testWidgets('a short answer is capped at 200 characters', (tester) async {

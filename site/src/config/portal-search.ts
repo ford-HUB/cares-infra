@@ -23,19 +23,13 @@ import {
 } from '../constants/routes'
 import type { PortalSearchExtraEntry, PortalSearchRouteMeta } from '../types/portal-search'
 
-/**
- * What each sidebar screen adds to the header search, keyed by its route. The
- * sidebar (config/admin-nav.ts) stays the source of which screens exist and who may
- * open them; this only teaches search what is *inside* each one and the other words
- * people type for it. A route missing here is still found by its sidebar label.
- */
+/** Search metadata per sidebar route; unlisted routes still match by sidebar label. */
 export const PORTAL_SEARCH_ROUTE_META: Record<string, PortalSearchRouteMeta> = {
   '/admin/overview': {
     description: 'Today at a glance — live events, volunteers, approvals and recent activity',
     keywords: ['dashboard', 'home', 'summary', 'kpi', 'metrics'],
   },
   '/admin/statistics': {
-    // Programme numbers for directors and coordinators; system usage for the admin.
     description: 'Trends and charts — programme activity, or CPU and service health for admins',
     keywords: ['analytics', 'charts', 'graphs', 'trends', 'cpu usage', 'uptime', 'departments'],
   },
@@ -181,13 +175,11 @@ export const PORTAL_SEARCH_ROUTE_META: Record<string, PortalSearchRouteMeta> = {
   },
 }
 
-/** Extra words for a settings section, keyed by its route segment. */
 const SETTINGS_KEYWORDS: Record<string, string[]> = {
   email: ['sign in', 'address', 'login'],
   password: ['security', 'credentials', 'reset'],
 }
 
-/** Screens reachable inside modules that the sidebar does not list on its own. */
 export const PORTAL_SEARCH_EXTRA_ENTRIES: PortalSearchExtraEntry[] = [
   {
     kind: 'page',
@@ -207,8 +199,6 @@ export const PORTAL_SEARCH_EXTRA_ENTRIES: PortalSearchExtraEntry[] = [
     description: 'Households grouped by similar needs',
     keywords: ['clusters', 'groups', 'segments', 'survey'],
   },
-  // Settings sections come from config/settings-nav.ts, so a new section is
-  // searchable the moment it is added there.
   ...settingsNavItems.map(
     (item): PortalSearchExtraEntry => ({
       kind: 'setting',

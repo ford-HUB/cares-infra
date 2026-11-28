@@ -10,11 +10,7 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 let socket: Socket | null = null
 const listeners = new Set<() => void>()
 
-/**
- * Calls `onChanged` whenever a beneficiary submits or updates a Needs Assessment
- * Survey. One connection is shared by every screen that subscribes and closed
- * when the last one leaves. Returns the unsubscribe.
- */
+/** One shared connection, closed when the last subscriber leaves. */
 export function subscribeToResidentialNeeds(onChanged: () => void): () => void {
   listeners.add(onChanged)
 

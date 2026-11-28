@@ -15,7 +15,7 @@ import {
   LoginActivityPageResponseSchema,
 } from '../validators/login-activity-site-validator';
 
-/** The sign-in trail exposes every account's IPs, so it stays admin-only. */
+/** Exposes every account's IPs, so admin-only. */
 @Controller('v1/login-activity')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.SECURITY_AUDIT_VIEW)

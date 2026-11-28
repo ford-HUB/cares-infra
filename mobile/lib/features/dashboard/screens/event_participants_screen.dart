@@ -4,10 +4,8 @@ import 'package:mobile/features/dashboard/data/event_participants_service.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
 
-/// Everyone registered for an event, the signed-in volunteer first.
-///
-/// Server events load their volunteers from `GET /events/:id/participants`;
-/// prototype fixtures (no server id) only know the local registration store.
+/// Server events load `GET /events/:id/participants`; prototype fixtures only
+/// know the local store.
 class EventParticipantsScreen extends StatefulWidget {
   const EventParticipantsScreen({super.key, required this.event});
 

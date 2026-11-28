@@ -30,8 +30,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
 
   ActivityGroup _group = ActivityGroup.all;
 
-  /// Regroups once a minute so an event that just ended slides from
-  /// "Registered" to "Completed" without leaving the tab.
+  /// Regroups each minute so a just-ended event moves to "Completed".
   Timer? _phaseTimer;
 
   @override
@@ -62,24 +61,21 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
   String get _userEmail =>
       StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
-  /// Server-backed events this volunteer holds a slot on. The store is
-  /// hydrated from `is_registered` on the recommended feed and updated by
-  /// every join/cancel, so fixture-only events never reach this page.
+  /// Hydrated from `is_registered` and every join/cancel, so fixture-only
+  /// events never appear.
   List<EventParticipation> get _participations => _registrationStore
       .participationsForEmail(_userEmail)
       .where((p) => p.event.serverId != null)
       .toList();
 
-  /// Upcoming and ongoing events the volunteer joined, newest registration
-  /// first. Ended ones show in their own section.
+  /// Newest registration first; ended ones have their own section.
   List<EventParticipation> get _registered {
     final list = _participations.where((p) => !p.event.hasEnded()).toList();
     list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
     return list;
   }
 
-  /// Joined events that have ended — marked completed by the server or past
-  /// their end time — latest first.
+  /// Server-completed or past their end time, latest first.
   List<CaresEvent> get _completed {
     final list = _participations
         .where((p) => p.event.hasEnded())
@@ -89,7 +85,6 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
     return list;
   }
 
-  /// A joined event rendered through the activity card.
   VolunteerActivityEntry _entryFor(CaresEvent event) => VolunteerActivityEntry(
     id: event.id,
     eventTitle: event.title,
@@ -103,8 +98,8 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
 
   bool _showing(ActivityGroup g) => _group == ActivityGroup.all || _group == g;
 
-  /// The completed card's call to action: the questionnaire while feedback
-  /// is outstanding, the certificate once the scheduler has issued it.
+  /// The questionnaire while feedback is outstanding, the certificate once
+  /// issued.
   Future<void> _onFeedbackTap(CaresEvent event) async {
     if (_feedbackStore.hasSubmitted(event.id, _userEmail)) {
       final issued = _certificateStore.forEvent(event.serverId);
@@ -144,10 +139,8 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Watching hydrates the store from the server's registration list —
-    // including finished events the recommended feed no longer carries. The
-    // page itself still renders from the store, so a join or cancel made on
-    // the details screen shows up without waiting on the request.
+    // Watching hydrates the store (incl. finished events the feed dropped); the
+    // page renders from the store so local joins/cancels show at once.
     final remote = ref.watch(registeredEventsProvider);
     final loading = remote.isLoading && _participations.isEmpty;
     final registered = _registered;

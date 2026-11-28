@@ -10,10 +10,7 @@ interface DepartmentChipProps {
   className?: string
 }
 
-/**
- * Identity, not status — the colour says which college filed the report, so it is
- * kept off the emerald/amber/red range the review states own.
- */
+/** Identity colour, kept off the emerald/amber/red review-state range. */
 export function DepartmentChip({ department, className }: DepartmentChipProps) {
   return (
     <span

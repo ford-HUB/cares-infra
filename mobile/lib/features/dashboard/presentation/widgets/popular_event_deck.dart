@@ -6,11 +6,8 @@ import 'package:mobile/features/dashboard/presentation/utils/home_event_format.d
 import 'package:mobile/features/dashboard/presentation/widgets/event_joined_count.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_event_image.dart';
 
-/// Horizontal deck of white poster cards: hero photo, then title, date,
-/// place, and the joined count beside an ink "JOIN NOW" pill — or a green
-/// "JOINED" pill once the volunteer has joined that event (it stays in the
-/// deck either way). Bleeds to the screen edge; the first card lines up
-/// with [gutter].
+/// Joined events stay, with a green "JOINED" pill. Bleeds to the screen edge;
+/// the first card aligns with [gutter].
 class PopularEventDeck extends StatelessWidget {
   const PopularEventDeck({
     super.key,
@@ -24,8 +21,7 @@ class PopularEventDeck extends StatelessWidget {
   final double gutter;
   final ValueChanged<RecommendedEvent> onOpen;
 
-  /// Whether the volunteer already joined an event; null treats none as
-  /// joined.
+  /// Null treats none as joined.
   final bool Function(RecommendedEvent event)? isJoined;
 
   static const double cardWidth = 236;
@@ -54,7 +50,6 @@ class PopularEventDeck extends StatelessWidget {
   }
 }
 
-/// Same footprint as the deck while the fetch is in flight.
 class PopularEventDeckSkeleton extends StatelessWidget {
   const PopularEventDeckSkeleton({super.key, required this.gutter});
 
@@ -99,7 +94,6 @@ class PopularEventCard extends StatelessWidget {
   final RecommendedEvent event;
   final VoidCallback onOpen;
 
-  /// Swaps "JOIN NOW" for a green "JOINED" pill.
   final bool joined;
 
   static const _radius = 22.0;
@@ -197,8 +191,7 @@ class PopularEventCard extends StatelessWidget {
   }
 }
 
-/// "12 slots left" over the photo; turns orange when nearly full so the
-/// scarcity reads before the title does.
+/// Turns orange when nearly full so scarcity reads first.
 class _SlotsBadge extends StatelessWidget {
   const _SlotsBadge({required this.slotsLeft});
 

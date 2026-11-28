@@ -1,19 +1,10 @@
 import { DonationPaymentMethod } from '../../infastructures/prisma/common/client';
 
 /**
- * The four channels CARES can collect a money donation through, and what each one
- * looks like before the director has changed anything in the Payments module. The
- * portal renders this order, the donor app is sent whichever of them are enabled,
- * and an unconfigured install still has sensible copy.
- *
- * `channelCodes` is the Xendit side: GCash and QR Ph are single-channel products, so
- * they carry none; the card and bank options are hosted invoices limited to the codes
- * listed here unless the director narrows them (e.g. only the banks CARES holds an
- * account with).
- *
- * `gatewayChannelCodes` is what the activation check asks about — the codes Xendit
- * lists on `GET /payment_channels`. `callbackTypes` is which callback URLs have to
- * point at our webhook for this channel to report its payments.
+ * Defaults before the Payments module is configured; the portal renders this order.
+ * `channelCodes`: invoice codes for card/bank (GCash and QR Ph need none).
+ * `gatewayChannelCodes`: what the activation check asks about (`GET /payment_channels`).
+ * `callbackTypes`: callback URLs that must point at our webhook.
  */
 export interface PaymentMethodDescriptor {
   method: DonationPaymentMethod;
@@ -22,7 +13,7 @@ export interface PaymentMethodDescriptor {
   channelCodes: readonly string[];
   gatewayChannelCodes: readonly string[];
   callbackTypes: readonly string[];
-  /** Whether the director is expected to record a receiving account for it. */
+  /** Expects a receiving account. */
   collectsAccount: boolean;
   sortOrder: number;
 }
@@ -70,7 +61,7 @@ export const PAYMENT_METHOD_CATALOG: readonly PaymentMethodDescriptor[] = [
   },
 ];
 
-/** Every Xendit channel code the portal may tick, for validating what it sends. */
+/** For validating what the portal sends. */
 export const PAYMENT_CHANNEL_CODES: readonly string[] = [
   ...new Set(
     PAYMENT_METHOD_CATALOG.flatMap((entry) => [...entry.channelCodes]),
@@ -81,8 +72,7 @@ export function paymentMethodDescriptor(
   method: DonationPaymentMethod,
 ): PaymentMethodDescriptor {
   const found = PAYMENT_METHOD_CATALOG.find((entry) => entry.method === method);
-  // Unreachable while the catalog covers the enum; the throw keeps a future channel
-  // from silently arriving with no copy and no channel codes.
+  // Guards a future enum value missing from the catalog.
   if (!found) throw new Error(`No payment method descriptor for ${method}`);
   return found;
 }

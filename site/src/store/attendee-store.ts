@@ -6,11 +6,9 @@ import type { EventAttendee, ManualAttendanceResult } from '../types/attendee'
 interface AttendeeState {
   attendees: EventAttendee[]
   loading: boolean
-  /** False until the first fetch settles, so the summary doesn't flash zeroes. */
   initialized: boolean
   error: string | null
   fetchAttendees: () => Promise<void>
-  /** Marks rows present by hand and swaps the server's updated rows into the roster. */
   markPresent: (
     eventAttendanceIds: string[],
     reason?: string,

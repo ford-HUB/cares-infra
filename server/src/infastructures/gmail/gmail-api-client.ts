@@ -4,15 +4,11 @@ const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 
-/**
- * Gmail answers 429 for a burst of concurrent calls even when the daily quota is
- * nowhere near spent, so a rejected call is worth retrying after a short pause.
- */
+/** Gmail 429s on bursts well under quota, so retry. */
 const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
 const RETRY_ATTEMPTS = 3;
 const RETRY_BASE_DELAY_MS = 300;
 
-/** Scopes the portal asks for: read + label changes, send, and the account identity. */
 export const GMAIL_OAUTH_SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
   'https://www.googleapis.com/auth/gmail.send',
@@ -66,10 +62,7 @@ interface GoogleErrorPayload {
   error_description?: string;
 }
 
-/**
- * Thin fetch wrapper over the Gmail REST API. It is deliberately stateless — callers
- * pass an access token they already refreshed, mirroring the microservice clients.
- */
+/** Stateless: callers pass an already-refreshed token. */
 @Injectable()
 export class GmailApiClient {
   private readonly logger = new Logger(GmailApiClient.name);
@@ -100,10 +93,7 @@ export class GmailApiClient {
     return payload as GoogleRefreshedToken;
   }
 
-  /**
-   * Best-effort — a revoked or already-expired token answers 400, which still means the
-   * portal side of the connection can be torn down.
-   */
+  /** Best-effort: a 400 (revoked/expired) is fine. */
   async revokeToken(token: string): Promise<void> {
     try {
       await fetch(`${GOOGLE_REVOKE_URL}?token=${encodeURIComponent(token)}`, {
@@ -143,7 +133,7 @@ export class GmailApiClient {
     );
   }
 
-  /** `metadata` is enough for list rows; `full` carries the body for the reading pane. */
+  /** `metadata` for list rows; `full` for the body. */
   async getMessage(
     accessToken: string,
     messageId: string,
@@ -192,7 +182,7 @@ export class GmailApiClient {
     });
   }
 
-  /** Retries the transient statuses with a widening pause; anything else throws at once. */
+  /** Retries transient statuses with backoff. */
   private async request<T>(
     accessToken: string,
     path: string,
@@ -250,7 +240,7 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Carries Google's HTTP status so the service can tell "token dead" from "Gmail is down". */
+/** Keeps the HTTP status to tell a dead token from a Gmail outage. */
 export class GmailApiError extends Error {
   constructor(
     message: string,

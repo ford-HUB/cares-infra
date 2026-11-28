@@ -9,11 +9,8 @@ import 'package:mobile/features/auth/presentation/widgets/weather_panel.dart';
 import 'package:mobile/shared/widgets/brand_wave.dart';
 import 'package:mobile/shared/widgets/staggered_reveal.dart';
 
-/// Photo hero at the top of login: green-tinted outreach photo, live weather
-/// on the right, logo + wordmark on the left, closed by the brand wave.
-///
-/// When the pull callbacks are set the whole hero is the grip that drags the
-/// leading story back down, and a handle with a hint sits at the very top.
+/// With the pull callbacks set, the whole hero drags the leading story back
+/// down.
 class LoginHeroHeader extends StatelessWidget {
   const LoginHeroHeader({
     super.key,
@@ -23,13 +20,11 @@ class LoginHeroHeader extends StatelessWidget {
     this.onPullEnd,
   });
 
-  /// Intro animation progress, 0 → 1.
   final double progress;
   final GestureDragStartCallback? onPullStart;
   final GestureDragUpdateCallback? onPullUpdate;
   final GestureDragEndCallback? onPullEnd;
 
-  /// How far the wave (and the card above it) eats into the hero's bottom.
   static const double waveHeight = 72;
 
   bool get _pullable => onPullUpdate != null;
@@ -58,8 +53,7 @@ class LoginHeroHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // No fixed height: the panel sizes itself from `width`, and
-              // clamping it would clip the weather animation.
+              // No fixed height: clamping would clip the weather animation.
               Align(
                 alignment: Alignment.centerRight,
                 child: WeatherPanel(
@@ -101,9 +95,7 @@ class LoginHeroHeader extends StatelessWidget {
   }
 }
 
-/// The outreach photo, every hue repainted green (BlendMode.color keeps its
-/// light and shade), under a scrim that is darkest at the top so the status
-/// bar, hint and wordmark stay legible.
+/// BlendMode.color repaints hues green but keeps light and shade.
 class _PhotoBackdrop extends StatelessWidget {
   const _PhotoBackdrop();
 

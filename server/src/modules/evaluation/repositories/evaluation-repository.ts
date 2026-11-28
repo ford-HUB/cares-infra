@@ -6,7 +6,6 @@ import {
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
-/** The response row plus enough of the event and volunteer to fill the portal table. */
 const RESPONSE_INCLUDE = {
   event: { select: { event_id: true, title: true } },
   form: { select: { evaluation_form_id: true, title: true } },
@@ -33,7 +32,6 @@ export type EvaluationResponseRow = Prisma.EvaluationResponseGetPayload<{
   include: typeof RESPONSE_INCLUDE;
 }>;
 
-/** The assignment plus the event and questionnaire the portal's Forms page shows. */
 const ASSIGNMENT_INCLUDE = {
   event: {
     select: {
@@ -54,7 +52,6 @@ export type EvaluationAssignmentRow = Prisma.EvaluationAssignmentGetPayload<{
   include: typeof ASSIGNMENT_INCLUDE;
 }>;
 
-/** A questionnaire with the tallies the Forms page reads off the row itself. */
 export type EvaluationFormRow = Prisma.EvaluationFormGetPayload<{
   include: { _count: { select: { assignments: true; responses: true } } };
 }>;
@@ -82,12 +79,11 @@ export interface EvaluationResponseWrite {
   status: EvaluationResponseStatus;
 }
 
-/** The tallies every questionnaire row is served with. */
 const FORM_COUNTS = {
   _count: { select: { assignments: true, responses: true } },
 } as const;
 
-/** What the builder opens with the first time, before a director has saved anything. */
+/** The builder's initial form. */
 const DEFAULT_FORM: EvaluationFormWrite = {
   title: 'Post-Event Volunteer Evaluation',
   description:
@@ -101,11 +97,7 @@ const DEFAULT_FORM: EvaluationFormWrite = {
 export class EvaluationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Every questionnaire the director has built, newest first. The first read of an
-   * empty table seeds the starter form rather than leaving the builder with nothing
-   * to open — the same row the pre-assignment portal edited.
-   */
+  /** Newest first; an empty table seeds the starter form. */
   async findForms(): Promise<EvaluationFormRow[]> {
     const rows = await this.prisma.evaluationForm.findMany({
       include: FORM_COUNTS,
@@ -150,10 +142,7 @@ export class EvaluationRepository {
     });
   }
 
-  /**
-   * Moves the fallback flag rather than adding a second holder, so an event with no
-   * assignment can only ever resolve to one questionnaire.
-   */
+  /** Moves the flag, so only one fallback exists. */
   async setDefaultForm(formId: string): Promise<EvaluationFormRow> {
     const [, form] = await this.prisma.$transaction([
       this.prisma.evaluationForm.updateMany({
@@ -169,18 +158,14 @@ export class EvaluationRepository {
     return form;
   }
 
-  /** The published fallback for an event nobody has assigned a questionnaire to. */
+  /** Fallback for unassigned events. */
   async findDefaultPublishedForm() {
     return this.prisma.evaluationForm.findFirst({
       where: { is_default: true, status: EvaluationFormStatus.PUBLISHED },
     });
   }
 
-  /**
-   * The questionnaire this event asks: its own assignment when it has one and that
-   * questionnaire is published, the default otherwise. An assigned-but-draft form
-   * falls through on purpose — a draft is never shown to a volunteer.
-   */
+  /** Own assignment if published, else the default; drafts are never shown. */
   async findFormForEvent(eventId: number) {
     const assignment = await this.prisma.evaluationAssignment.findUnique({
       where: { event_id: eventId },
@@ -195,7 +180,6 @@ export class EvaluationRepository {
     return this.findDefaultPublishedForm();
   }
 
-  /** Every event-to-questionnaire assignment, newest first. */
   async findAssignments(): Promise<EvaluationAssignmentRow[]> {
     return this.prisma.evaluationAssignment.findMany({
       include: ASSIGNMENT_INCLUDE,
@@ -203,10 +187,7 @@ export class EvaluationRepository {
     });
   }
 
-  /**
-   * One questionnaire per event: assigning to an event that already has one replaces
-   * it, which is what the Forms page's picker offers.
-   */
+  /** One per event; reassigning replaces it. */
   async upsertAssignment(data: EvaluationAssignmentWrite) {
     return this.prisma.evaluationAssignment.upsert({
       where: { event_id: data.event_id },
@@ -237,7 +218,6 @@ export class EvaluationRepository {
     return event !== null;
   }
 
-  /** Events the picker offers, with the assignment each one already carries. */
   async findAssignableEvents() {
     return this.prisma.event.findMany({
       select: {
@@ -282,7 +262,7 @@ export class EvaluationRepository {
     return this.prisma.evaluationResponse.create({ data });
   }
 
-  /** Every event the volunteer has answered for, newest submission first. */
+  /** Newest first. */
   async findSubmissionsForUser(userId: string) {
     return this.prisma.evaluationResponse.findMany({
       where: { user_id: userId },
@@ -291,7 +271,7 @@ export class EvaluationRepository {
     });
   }
 
-  /** Just the answers of one response — what the image proxy checks a key against. */
+  /** Used by the image proxy to validate keys. */
   async findResponseAnswers(responseId: string) {
     return this.prisma.evaluationResponse.findUnique({
       where: { evaluation_response_id: responseId },
@@ -299,7 +279,7 @@ export class EvaluationRepository {
     });
   }
 
-  /** All responses, or one event's, newest first for the portal table. */
+  /** Newest first. */
   async findResponses(eventId?: number): Promise<EvaluationResponseRow[]> {
     return this.prisma.evaluationResponse.findMany({
       where: eventId ? { event_id: eventId } : undefined,

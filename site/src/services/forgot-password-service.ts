@@ -11,13 +11,10 @@ interface ForgotPasswordEnvelope {
 export interface ForgotPasswordResult {
   success: boolean
   message: string
-  /** Seconds before the server will accept another request for this email. */
   retryAfterSeconds?: number
-  /** True when the server refused because a temporary password was sent too recently. */
   rateLimited?: boolean
 }
 
-/** Asks the server to generate a temporary password for a portal account and mail it. */
 export async function requestPortalPasswordReset(
   email: string,
 ): Promise<ForgotPasswordResult> {

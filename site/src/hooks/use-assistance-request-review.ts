@@ -4,7 +4,6 @@ import { OPEN_ASSISTANCE_STATUSES, type AssistanceFilter } from '../constants/as
 import { useAssistanceRequestStore } from '../store/assistance-request-store'
 import type { AssistanceDecision, AssistanceRequest } from '../types/assistance-request'
 
-/** Approving and declining ask for a note first; the other moves apply on click. */
 export type AssistanceNoteDecision = Extract<AssistanceDecision, 'approve' | 'decline'>
 
 const SUCCESS_MESSAGES: Record<AssistanceDecision, (reference: string) => string> = {
@@ -14,7 +13,6 @@ const SUCCESS_MESSAGES: Record<AssistanceDecision, (reference: string) => string
   complete: (reference) => `${reference} marked as released`,
 }
 
-/** The Assistance tab of the director's Request page: the queue, filters and moves. */
 export function useAssistanceRequestReview() {
   const requests = useAssistanceRequestStore((s) => s.requests)
   const loading = useAssistanceRequestStore((s) => s.loading)
@@ -43,7 +41,6 @@ export function useAssistanceRequestReview() {
     [requests, filter],
   )
 
-  /** Shown on the tab, so the director sees new requests from the other tab. */
   const awaitingCount = useMemo(
     () => requests.filter((request) => request.status === 'pending').length,
     [requests],
@@ -56,7 +53,7 @@ export function useAssistanceRequestReview() {
       toast.success(SUCCESS_MESSAGES[decision](request.reference))
       return true
     } catch (error) {
-      // The server's message says why — usually the beneficiary cancelled it meanwhile.
+      // Usually the beneficiary cancelled it meanwhile.
       toast.error(error instanceof Error ? error.message : 'The request could not be updated')
       return false
     } finally {
@@ -72,7 +69,7 @@ export function useAssistanceRequestReview() {
     void run(request, decision)
   }
 
-  // The modal stays open until the call settles, so a failure keeps the typed note.
+  // Modal stays open until settled so a failure keeps the typed note.
   const onConfirmNote = async (note: string) => {
     if (!noting) return
     const done = await run(noting.request, noting.decision, note)

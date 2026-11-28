@@ -7,7 +7,6 @@ import {
 
 const rows = (count: number) => Array.from({ length: count }, (_, index) => index)
 
-/** Mirrors `StatisticTile`: chip, label, value, delta line, sparkline. */
 function StatisticTileSkeleton() {
   return (
     <Card aria-hidden size="sm" className="shadow-sm">
@@ -24,7 +23,6 @@ function StatisticTileSkeleton() {
   )
 }
 
-/** Mirrors `ChartCard`: title, description, then the plot at the chart's height. */
 function ChartCardSkeleton({ height }: { height: string }) {
   return (
     <Card aria-hidden size="sm" className="shadow-sm">

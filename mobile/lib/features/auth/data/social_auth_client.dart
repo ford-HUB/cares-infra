@@ -3,8 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mobile/core/config/social_auth_config.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 
-/// Raised when a provider sign-in cannot proceed. [cancelled] separates "the user backed
-/// out", which the UI should pass over in silence, from a real failure worth surfacing.
+/// [cancelled]: the user backed out, so the UI stays silent.
 class SocialAuthException implements Exception {
   const SocialAuthException(this.message, {this.cancelled = false});
 
@@ -19,28 +18,21 @@ class SocialAuthException implements Exception {
   String toString() => message;
 }
 
-/// A provider token, ready to post to `POST /v1/auth/donor/oauth`.
 class SocialAuthToken {
   const SocialAuthToken({required this.provider, required this.token});
 
   final SocialAuthProvider provider;
 
-  /// Google hands back an ID token, Facebook an access token. The server tells them
-  /// apart by [provider] and verifies each with its own provider.
+  /// Google: ID token; Facebook: access token.
   final String token;
 
-  /// The `AuthProvider` enum name the API expects.
   String get apiProvider => switch (provider) {
     SocialAuthProvider.google => 'GOOGLE',
     SocialAuthProvider.facebook => 'FACEBOOK',
   };
 }
 
-/// Runs the native Google / Facebook consent flow.
-///
-/// Deliberately stops at the token: nothing here inspects the profile, because a profile
-/// read on the device proves nothing. The server re-verifies the token with the provider
-/// and derives the identity itself.
+/// Stops at the token: the server re-verifies it and derives the identity.
 class SocialAuthClient {
   SocialAuthClient({GoogleSignIn? googleSignIn, FacebookAuth? facebookAuth})
     : _googleSignIn =
@@ -65,8 +57,7 @@ class SocialAuthClient {
     };
   }
 
-  /// Clears the cached provider session so the next tap shows the account chooser
-  /// again. Failures are ignored: this is cleanup, never the point of the operation.
+  /// Shows the account chooser again next time. Failures are ignored.
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();

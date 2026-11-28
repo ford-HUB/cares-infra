@@ -3,18 +3,13 @@ import { useAuthenticatedImage } from '../../../hooks/use-authenticated-image'
 import type { UserRequestAttachment } from '../../../types/user-request'
 
 interface RequestAttachmentPreviewProps {
-  /** Only what the viewer needs, so assistance-request files can open here too. */
+  /** Narrow type so assistance-request files can open here too. */
   attachment: Pick<UserRequestAttachment, 'label' | 'path' | 'contentType'> &
     Partial<Pick<UserRequestAttachment, 'fileName'>>
   onClose: () => void
 }
 
-/**
- * The proof files sit behind the bearer token, so a plain `<img src>` can't show
- * them — the hook fetches the bytes and hands back an object URL. A PDF opens in an
- * embedded viewer; any other non-image file (a beneficiary's supporting document can
- * be any type) gets a download button instead of a broken image.
- */
+/** Files sit behind the bearer token, so they load as object URLs; PDFs embed, other non-images get a download button. */
 export function RequestAttachmentPreview({
   attachment,
   onClose,
@@ -22,7 +17,7 @@ export function RequestAttachmentPreview({
   const { objectUrl, loading, failed } = useAuthenticatedImage(attachment.path)
   const contentType = attachment.contentType
   const isPdf = contentType === 'application/pdf'
-  // Untyped files are the ID and selfie captures, which are always images.
+  // Untyped files are the ID and selfie captures, always images.
   const isImage = !contentType || contentType.startsWith('image/')
   const downloadName = attachment.fileName ?? attachment.label
 

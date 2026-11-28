@@ -21,17 +21,14 @@ export const EventAttendeeQuerySchema = z
   })
   .strict();
 
-/**
- * The portal renders one flat roster and groups it client-side, so every row carries
- * its own event identity rather than being nested under one.
- */
+/** Flat: the portal groups client-side. */
 export const EventAttendeeResponseSchema = z.object({
   event_attendance_id: z.string(),
   event_id: z.number(),
   event_title: z.string(),
   event_started: z.string(),
   event_ended: z.string(),
-  /** The college the event was run for; null for non-School events. */
+  /** Null for non-School events. */
   event_department: z.string().nullable(),
   user_id: z.string(),
   firstname: z.string(),
@@ -42,14 +39,11 @@ export const EventAttendeeResponseSchema = z.object({
   year_level: z.string().nullable(),
   status: z.enum(AttendanceStatus),
   validation_method: z.enum(GeoValidationMethod).nullable(),
-  /** Time in: the first reading inside the event zone. */
+  /** First in-zone reading. */
   first_ping_at: z.string().nullable(),
-  /** The last reading inside the event zone so far, settled or not. */
+  /** Latest in-zone reading, settled or not. */
   last_ping_at: z.string().nullable(),
-  /**
-   * Time out: when the volunteer left the zone for good. Null while they are still
-   * inside, or out for less than the departure buffer mid-event (a break).
-   */
+  /** Null while inside or on a mid-event break under the departure buffer. */
   time_out_at: z.string().nullable(),
   hours_rendered: z.number().nullable(),
   remarks: z.string().nullable(),
@@ -60,14 +54,10 @@ export const EventAttendeeListResponseSchema = z.array(
   EventAttendeeResponseSchema,
 );
 
-/** How many rows one manual ruling may carry — a full event roster fits easily. */
 export const MANUAL_ATTENDANCE_MAX_ROWS = 500;
 export const MANUAL_ATTENDANCE_REASON_MAX = 300;
 
-/**
- * The fallback when the geofence could not rule: mark these attendance rows present.
- * The reason is optional but lands in the row's remarks and the audit trail.
- */
+/** Optional reason goes to remarks and the audit trail. */
 export const ManualAttendanceSchema = withoutPrototypeKeys(
   z
     .object({
@@ -90,16 +80,11 @@ export const ManualAttendanceSchema = withoutPrototypeKeys(
 );
 
 export const ManualAttendanceResponseSchema = z.object({
-  /** The rows now COMPLETED by this ruling, in the roster shape. */
   marked: EventAttendeeListResponseSchema,
-  /** Rows that were already completed and so were left as they were. */
   already_completed: z.number(),
 });
 
-/**
- * What the geofence is seeing for one volunteer right now. Not `AttendanceStatus`:
- * that is the post-event ruling and stays PENDING for everyone while the event runs.
- */
+/** Not `AttendanceStatus`, which stays PENDING until the post-event ruling. */
 export const LiveAttendanceStateSchema = z.enum([
   'in_area',
   'outside_area',
@@ -112,7 +97,7 @@ export const LiveEventSessionSchema = z.object({
   location: z.string(),
   started_at: z.string(),
   ended_at: z.string(),
-  /** Equivalent-circle radius of the drawn fence, in metres; null when no fence. */
+  /** Equivalent-circle radius; null when no fence. */
   radius_meters: z.number().nullable(),
   coordinator: z.string(),
 });
@@ -131,17 +116,16 @@ export const LiveAttendeeResponseSchema = z.object({
   validation_method: z.enum(GeoValidationMethod).nullable(),
   first_ping_at: z.string().nullable(),
   last_ping_at: z.string().nullable(),
-  /** Time out, as on the roster: null while inside or on a break under the buffer. */
+  /** Null while inside or on a break under the buffer. */
   time_out_at: z.string().nullable(),
-  /** Metres from the fence at the last reading; 0 when inside. */
+  /** 0 when inside. */
   distance_meters: z.number().nullable(),
-  /** Share (0–1) of the event so far the readings place inside the fence. */
+  /** Share (0–1) of the event so far. */
   inside_ratio: z.number().nullable(),
   remarks: z.string().nullable(),
 });
 
 export const LiveAttendanceSnapshotSchema = z.object({
-  /** Null when no event is running right now. */
   session: LiveEventSessionSchema.nullable(),
   attendees: z.array(LiveAttendeeResponseSchema),
   captured_at: z.string(),

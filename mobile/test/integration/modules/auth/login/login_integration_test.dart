@@ -1,12 +1,6 @@
-// Integration tests for the sign-in screen.
-//
-// Unlike the unit tests in test/unit/modules/auth/login/, these drive the real
-// LoginScreen widget end to end: typing into the fields, tapping "Sign In",
-// and following the request through AuthLoginService -> ApiClient ->
-// AuthSession -> navigation. Only the HTTP transport is replaced: every
-// http.Client the app creates inside the test zone is a MockClient that
-// answers with a mock `{ ok, message, data }` envelope, so nothing here
-// reaches a real server.
+// Drives the real LoginScreen end to end (AuthLoginService → ApiClient →
+// AuthSession → navigation). Only http.Client is mocked, answering
+// `{ ok, message, data }` envelopes.
 //
 //   POST /v1/auth/login              email + password sign-in
 //   POST /v1/auth/send-verification  unverified-email branch (purpose: login)
@@ -35,9 +29,8 @@ const _origin = 'http://api.test';
 const _loginPath = '/v1/auth/login';
 const _sendVerificationPath = '/v1/auth/send-verification';
 
-/// Keeps every request the app sends and answers each one through [reply].
-/// Paths the test does not handle get a 404 envelope, so a screen that loads
-/// after sign-in fails quietly instead of reaching the network.
+/// Unhandled paths get a 404 envelope, so post-login screens fail quietly
+/// instead of reaching the network.
 class _MockServer {
   _MockServer(this.reply);
 
@@ -115,8 +108,8 @@ Future<_NavRecorder> _pumpLogin(WidgetTester tester) async {
       ),
     ),
   );
-  // Let the 2.2 s intro finish so the form is fully on screen. The weather
-  // ambience animates forever, so pumpAndSettle would never return.
+  // Let the 2.2 s intro finish; the weather animates forever, so pumpAndSettle
+  // would never return.
   await tester.pump(const Duration(milliseconds: 2400));
   nav.pushed.clear(); // drop the initial home route
   return nav;
@@ -136,9 +129,8 @@ Future<void> _signIn(
   await tester.pump(const Duration(milliseconds: 400)); // snackbar / route
 }
 
-/// The dashboard reached after a successful sign-in asks for notification
-/// permission. `flutter test` reports Android as the platform but registers no
-/// plugin implementation, so register it here and answer its channel.
+/// `flutter test` reports Android but registers no plugin, so register it and
+/// answer its channel.
 const _notificationsChannel = MethodChannel(
   'dexterous.com/flutter/local_notifications',
 );

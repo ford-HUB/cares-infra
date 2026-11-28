@@ -1,4 +1,4 @@
-/** Google's four-colour "G", inlined so the button needs no remote asset. */
+/** Inlined so the button needs no remote asset. */
 export function GoogleMark({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden focusable="false">

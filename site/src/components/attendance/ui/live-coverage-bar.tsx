@@ -1,15 +1,11 @@
 import { formatPercent } from '../../../constants/formatting'
 
 interface LiveCoverageBarProps {
-  /** Share (0–1) of elapsed event time spent inside the geofence; null before any ping. */
+  /** 0–1 share of elapsed time inside the geofence; null before any ping. */
   ratio?: number | null
 }
 
-/**
- * How much of the elapsed event the readings put the volunteer inside the area. It is
- * a running figure, not the ruling — the AI service decides `completed`/`absent` after
- * the event, and this bar is only what the coordinates say so far.
- */
+/** Running figure only; the AI service rules `completed`/`absent` after the event. */
 export function LiveCoverageBar({ ratio }: LiveCoverageBarProps) {
   if (ratio == null) {
     return <span className="text-[13px] text-gray-400">—</span>

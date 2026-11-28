@@ -3,22 +3,16 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/donation_format.dart';
 import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
 
-/// Which slice of the ledger the donor Activity tab lists.
 enum DonorActivityView {
   /// Only donations a director has confirmed.
   confirmed,
 
-  /// Every donation, newest first.
   donations,
 
-  /// Donations grouped under the drive they went to.
   drives,
 }
 
-/// Confirmed total, donation count and drives supported, sitting in the
-/// [DeepTabHeader] band. Each figure is also a filter chip — the same
-/// selected / unselected look as the band's period chips on Ranks — and
-/// tapping one switches what the list below shows.
+/// Each figure doubles as a filter chip for the list below.
 class DonorSummaryRow extends StatelessWidget {
   const DonorSummaryRow({
     super.key,

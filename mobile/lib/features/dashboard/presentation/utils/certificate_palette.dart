@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// The six accents the portal's customizer offers, in the Tailwind shades the
-/// portal draws them with, so a sheet reads the same on the phone.
+/// In the Tailwind shades the portal draws, so sheets match.
 class CertificateAccentPalette {
   const CertificateAccentPalette({
     required this.frame,
@@ -98,14 +97,12 @@ CertificateAccentPalette certificatePalette(String accent) =>
 const certificateGilt = Color(0xFFFBBF24);
 const certificateGiltLight = Color(0xFFFCD34D);
 
-/// Text greys the portal sets the wording in.
 const certificateInk = Color(0xFF1F2937);
 const certificateInkSoft = Color(0xFF4B5563);
 const certificateInkMuted = Color(0xFF9CA3AF);
 const certificateRuleGrey = Color(0xFFD1D5DB);
 const certificateBorderGrey = Color(0xFFE5E7EB);
 
-/// The Google Fonts family behind each face the customizer offers.
 const _fontFamilies = <String, String>{
   'old_english': 'UnifrakturMaguntia',
   'pirata': 'Pirata One',
@@ -124,12 +121,10 @@ const _fontFamilies = <String, String>{
   'inter': 'Inter',
 };
 
-/// Frames that set their wording in a serif when the director left the font
-/// on "frame default".
+/// Serif when the font is left on "frame default".
 const _serifFrames = {'classic', 'royal'};
 
-/// Blocks the ornate frames set in an italic serif regardless of the frame's
-/// base face (the award name on diagonal/corners, the signature name on corners).
+/// The award name on diagonal/corners, the signature name on corners.
 bool _frameItalicSerif(String frame, String element) {
   if (element == 'title') {
     return frame == 'royal' || frame == 'diagonal' || frame == 'corners';
@@ -138,10 +133,8 @@ bool _frameItalicSerif(String frame, String element) {
   return false;
 }
 
-/// The text style for one block: the picked face, else the frame's own
-/// typography — the same fall-through the portal's `resolveElementFont` does.
-/// Google Fonts are fetched on first use; if that fails the platform face
-/// stands in, so the sheet still draws offline.
+/// Same fall-through as the portal's `resolveElementFont`. Google Fonts load on
+/// first use; on failure the platform face stands in offline.
 TextStyle certificateFontStyle({
   required String fontId,
   required String frame,
@@ -175,7 +168,6 @@ TextStyle certificateFontStyle({
   return base;
 }
 
-/// Letter-spacing (in em) each frame gives the headline.
 double certificateHeadlineTracking(String frame) {
   return switch (frame) {
     'classic' => 0.35,

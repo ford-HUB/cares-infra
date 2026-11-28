@@ -27,10 +27,6 @@ import {
   useAuthSiteApp,
 } from '../login-site-support';
 
-/**
- * Forgot Password — invalid inputs. Each case Passes when the request is refused
- * as stated and no temporary password is mailed or written.
- */
 const testCase = defineCases({ module: MODULE, unit: 'Forgot Password', kind: 'invalid', prefix: 'FORGOT' });
 
 const NOT_REGISTERED = 'No administrator account is registered with this email';

@@ -10,10 +10,7 @@ interface DeletedRequestsModalProps {
   onClose: () => void
 }
 
-/**
- * The recycle bin. Deleting only moves a request out of the queue, so the director
- * can put it back — either to accept it after all, or leave it here for good.
- */
+/** Deleting only moves a request out of the queue, so it can be restored. */
 export function DeletedRequestsModal({
   requests,
   busyId,

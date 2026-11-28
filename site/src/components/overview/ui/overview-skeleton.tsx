@@ -9,21 +9,15 @@ import {
 } from '../../../constants/overview'
 
 interface OverviewSkeletonProps {
-  /**
-   * The role is known from the auth store before the overview request resolves, so the
-   * skeleton can commit to the right layout instead of guessing one and reflowing.
-   * The coordinator's gauge row holds two cards where the system overview holds three.
-   */
+  /** Known before the overview resolves, so the skeleton picks the right layout (2 gauges vs 3). */
   isCoordinator: boolean
 }
 
 interface ChartCardSkeletonProps {
-  /** Mirrors the plot area of the card it stands in for — same height class. */
   bodyHeight: string
   legendRows?: number
 }
 
-/** Mirrors `ChartCard`: title, one description line, the plot, then the legend. */
 function ChartCardSkeleton({ bodyHeight, legendRows = 0 }: ChartCardSkeletonProps) {
   return (
     <Card size="sm" aria-hidden className="min-w-0 shadow-sm">

@@ -61,7 +61,7 @@ export class EventsMobileController {
     return this.eventsMobileService.listCompletedForBeneficiaries(user.sub);
   }
 
-  /** Open events with money or goods donations enabled — the donor's campaigns. */
+  /** The donor's campaigns. */
   @Get('donations')
   @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Events accepting donations')

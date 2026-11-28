@@ -28,25 +28,17 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
 interface EventMapDrawProps {
   value?: Geometry | null
-  /**
-   * When set, the map flies to this location and drops a marker. `replaceArea`
-   * discards whatever area is drawn and traces a fresh one around the point — used
-   * when a targeted beneficiary's pin becomes the event location.
-   */
+  /** Flies here and drops a marker; `replaceArea` re-traces the area around the point. */
   focus?: { lng: number; lat: number; replaceArea?: boolean } | null
-  /** Address resolved for a `replaceArea` focus, so the caller can fill its field. */
+  /** Address resolved for a `replaceArea` focus. */
   onFocusAddressResolved?: (label: string) => void
   onChange: (geojson: Geometry | null, areaSqM: number | null) => void
-  /** Called when a building/place is picked on the map (auto-fills the address). */
+  /** Building/place picked on the map; auto-fills the address. */
   onAddressResolved?: (label: string, center: { lng: number; lat: number }) => void
-  /** Pin saved with the event, restored when an existing event is edited. */
+  /** Restored when editing an existing event. */
   marker?: { lng: number; lat: number } | null
-  /** The pin inside the area, whenever it is dropped or dragged. */
   onMarkerChange?: (marker: { lng: number; lat: number }) => void
-  /**
-   * Where targeted beneficiaries pinned their assistance requests. Each gets a red
-   * marker, and the map moves to frame them whenever the set changes.
-   */
+  /** Targeted beneficiaries' request pins; the map reframes when the set changes. */
   beneficiaryPins?: BeneficiaryPin[]
 }
 
@@ -57,29 +49,25 @@ function formatArea(sqM: number) {
 }
 
 const BENEFICIARY_PIN_COLOR = '#e53935'
-/** Closest the map zooms in when framing beneficiary pins. */
 const BENEFICIARY_FRAME_MAX_ZOOM = 16
 const BENEFICIARY_FRAME_PADDING = 48
 
-/** One press of the grow/shrink buttons changes the area by this factor. */
 const RESIZE_STEP = 1.15
 
-/** How close (in screen pixels) the pointer must be to an edge to grab it. */
+/** Screen pixels from an edge that still grab it. */
 const EDGE_HIT_PX = 8
 /** Pixels around a vertex/midpoint handle left to Mapbox Draw's own dragging. */
 const HANDLE_HIT_PX = 12
 
-/** Smallest radius a drag can draw, so a stray click never wipes the boundary. */
+/** So a stray click never wipes the boundary. */
 const MIN_DRAW_RADIUS_M = 5
 
-/** The polygon edge the pointer is on, if any. */
 interface EdgeHit {
   featureId: string
   ringIndex: number
   vertexIndex: number
 }
 
-/** Shortest distance in pixels from `p` to the segment `a`–`b`. */
 function distanceToSegment(p: mapboxgl.Point, a: mapboxgl.Point, b: mapboxgl.Point) {
   const dx = b.x - a.x
   const dy = b.y - a.y
@@ -91,10 +79,6 @@ function distanceToSegment(p: mapboxgl.Point, a: mapboxgl.Point, b: mapboxgl.Poi
 const DRAW_GREEN = '#22c55e'
 const DRAW_GREEN_DARK = '#16a34a'
 
-/**
- * Custom Mapbox Draw theme: polygons (active while drawing and after they auto-close
- * on the start point) are filled green with a darker green outline and vertices.
- */
 const DRAW_STYLES: object[] = [
   {
     id: 'gl-draw-polygon-fill',
@@ -140,11 +124,7 @@ const DRAW_STYLES: object[] = [
   },
 ]
 
-/**
- * Building outlines rendered under `point`, read straight off the Mapbox Streets
- * tiles. Only features already drawn are returned, so callers must wait for the
- * map to settle (`idle`) after moving it before asking.
- */
+/** Reads Mapbox Streets building tiles; only rendered features count, so wait for `idle` after moving. */
 function buildingFootprintsAt(map: mapboxgl.Map, point: mapboxgl.PointLike): Geometry[] {
   if (!map.getLayer(MAPBOX_BUILDING_LAYER)) return []
   return map
@@ -179,9 +159,7 @@ export function EventMapDraw({
   const framedPinsRef = useRef<string>('')
   const [ready, setReady] = useState(false)
   const [detecting, setDetecting] = useState(false)
-  /** Building resolved by a double-click, waiting for the operator to confirm it. */
   const [pendingPlace, setPendingPlace] = useState<PlaceDetails | null>(null)
-  /** True once the draw tool is armed and the map is waiting for a drag. */
   const [drawArmed, setDrawArmed] = useState(false)
   const drawArmedRef = useRef(false)
 
@@ -214,7 +192,6 @@ export function EventMapDraw({
     onFocusAddressResolvedRef.current = onFocusAddressResolved
   }, [onFocusAddressResolved])
 
-  /** Replace whatever is drawn with `geometry` and push the change upwards. */
   const applyGeometry = useCallback((draw: MapboxDraw, geometry: Geometry) => {
     draw.deleteAll()
     draw.add({ type: 'Feature', geometry, properties: {} })
@@ -222,7 +199,7 @@ export function EventMapDraw({
     setAreaLabel(formatArea(areaSqM))
     setHasArea(geometry.type === 'Polygon' || geometry.type === 'MultiPolygon')
 
-    // A tightened boundary can leave the pin outside — pull it back in.
+    // A tightened boundary can leave the pin outside; pull it back in.
     const marker = markerRef.current
     if (marker && (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon')) {
       const { lng, lat } = marker.getLngLat()
@@ -234,18 +211,13 @@ export function EventMapDraw({
     onChangeRef.current(geometry, areaSqM)
   }, [])
 
-  /** The polygon currently drawn, if any — the bounds the marker is kept inside. */
   const drawnPolygon = useCallback((): Polygon | MultiPolygon | null => {
     const geom = drawRef.current?.getAll().features.at(-1)?.geometry
     if (geom?.type !== 'Polygon' && geom?.type !== 'MultiPolygon') return null
     return geom as Polygon | MultiPolygon
   }, [])
 
-  /**
-   * Drop (or move) the pin, keeping it inside the drawn area. The pin is draggable
-   * so the director can point at the exact meeting spot, but a drag that leaves the
-   * boundary snaps back to the closest point inside it.
-   */
+  /** Drags that leave the boundary snap back to the closest point inside it. */
   const placeMarker = useCallback(
     (lng: number, lat: number) => {
       const map = mapRef.current
@@ -285,7 +257,6 @@ export function EventMapDraw({
     placeMarkerRef.current = placeMarker
   }, [placeMarker])
 
-  /** Grow or shrink the drawn area around its centre by one {@link RESIZE_STEP}. */
   const resizeArea = useCallback(
     (factor: number) => {
       const draw = drawRef.current
@@ -323,7 +294,6 @@ export function EventMapDraw({
     map.addControl(draw, 'top-left')
     map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
-    /** True unless the operator is mid-way through drawing an area by hand. */
     const isEditing = () => draw.getMode() === 'simple_select' || draw.getMode() === 'direct_select'
 
     const syncGeometry = () => {
@@ -366,8 +336,7 @@ export function EventMapDraw({
       }
     })
 
-    // The polygon button arms our drag-to-size gesture rather than Draw's
-    // click-a-corner-at-a-time tool, so an area is drawn in one drag.
+    // The polygon button arms our drag-to-size gesture instead of Draw's click-per-corner tool.
     map.on('draw.modechange', (e: { mode: string }) => {
       if (e.mode !== 'draw_polygon') return
       draw.changeMode('simple_select')
@@ -379,10 +348,7 @@ export function EventMapDraw({
     map.on('draw.update', syncGeometry)
     map.on('draw.delete', syncGeometry)
 
-    /**
-     * Resolve the building under the pointer and hand it to the confirmation
-     * modal — nothing on the map changes until the operator says yes.
-     */
+    /** Nothing on the map changes until the operator confirms. */
     const handleBuildingSelect = async (lngLat: mapboxgl.LngLat, point: mapboxgl.Point) => {
       detailsAbortRef.current?.abort()
       const controller = new AbortController()
@@ -399,8 +365,7 @@ export function EventMapDraw({
     }
 
     map.on('click', (e) => {
-      // Clicking the drawn area opens its vertices for dragging, so the operator
-      // can widen or reshape the pre-traced boundary instead of losing it.
+      // Clicking the area opens its vertices, so a pre-traced boundary can be reshaped.
       if (!isEditing() || drawArmedRef.current) return
       const [featureId] = draw.getFeatureIdsAt(e.point)
       if (featureId) draw.changeMode('direct_select', { featureId: String(featureId) })
@@ -413,22 +378,17 @@ export function EventMapDraw({
       e.preventDefault()
       const [featureId] = draw.getFeatureIdsAt(e.point)
       if (featureId) {
-        // Inside the drawn area: pick up the whole boundary so it can be dragged
-        // to a new spot without reshaping it.
+        // Inside the area: select the whole boundary so it can be moved without reshaping.
         draw.changeMode('simple_select', { featureIds: [String(featureId)] })
         return
       }
-      // Anywhere else: offer to trace the building that was double-clicked.
+      // Elsewhere: offer to trace the double-clicked building.
       void handleBuildingSelect(e.lngLat, e.point)
     })
 
-    /**
-     * Which drawn edge sits under a screen point. Vertex and midpoint handles win
-     * over the edge, so Mapbox Draw keeps its corner-dragging and add-a-corner
-     * behaviour untouched.
-     */
+    /** Vertex/midpoint handles win over edges, so Mapbox Draw's corner behaviour is untouched. */
     const edgeAt = (point: mapboxgl.Point): EdgeHit | null => {
-      // While an area is being drawn by hand, every click belongs to that gesture.
+      // While drawing by hand, every click belongs to that gesture.
       if (!isEditing() || drawArmedRef.current) return null
       for (const feature of draw.getAll().features) {
         const geom = feature.geometry
@@ -493,10 +453,7 @@ export function EventMapDraw({
       syncGeometry()
     }
 
-    /**
-     * Capture-phase so a grabbed edge never reaches Mapbox's pan handler or Draw's
-     * move-the-whole-feature handler — dragging a side pushes just that side in or out.
-     */
+    /** Capture phase so an edge grab never reaches Mapbox's pan or Draw's move handlers. */
     const onEdgeDown = (ev: MouseEvent) => {
       if (ev.button !== 0) return
       const point = pointOf(ev)
@@ -509,7 +466,6 @@ export function EventMapDraw({
       window.addEventListener('mouseup', onEdgeUp)
     }
 
-    /** Centre of the area being dragged out, plus the boundary it would replace. */
     let drawDrag: { centre: mapboxgl.LngLat; previous: Geometry | null } | null = null
 
     const onDrawMove = (ev: MouseEvent) => {
@@ -518,7 +474,7 @@ export function EventMapDraw({
       const radiusM = metersBetween(drawDrag.centre.lng, drawDrag.centre.lat, edge.lng, edge.lat)
       if (radiusM < MIN_DRAW_RADIUS_M) return
 
-      // The previous area only clears once the new one is actually being sized.
+      // The previous area only clears once the new one is being sized.
       draw.deleteAll()
       draw.add({
         type: 'Feature',
@@ -547,10 +503,7 @@ export function EventMapDraw({
       applyGeometry(draw, circlePolygon(centre.lng, centre.lat, radiusM))
     }
 
-    /**
-     * With the draw tool armed, pressing on the map anchors the centre of the new
-     * area and the drag sizes it; releasing replaces the old boundary with it.
-     */
+    /** Press anchors the centre, drag sizes it, release replaces the old boundary. */
     const onDrawDown = (ev: MouseEvent) => {
       if (ev.button !== 0 || !drawArmedRef.current) return
       ev.preventDefault()
@@ -602,7 +555,7 @@ export function EventMapDraw({
 
     const focusKey = `${focus.lng},${focus.lat}`
     const replacing = !!focus.replaceArea && tracedFocusRef.current !== focusKey
-    // Cleared before the pin drops, or the pin would be clamped into the old area.
+    // Cleared before the pin drops, or it would be clamped into the old area.
     if (replacing && draw.getAll().features.length > 0) {
       draw.deleteAll()
       setAreaLabel(null)
@@ -614,9 +567,7 @@ export function EventMapDraw({
 
     placeMarker(focus.lng, focus.lat)
 
-    // Pre-trace the building under the picked suggestion so the area starts filled
-    // in. Never clobber an area that is already drawn — the operator owns that one —
-    // unless the focus explicitly asked to replace it (cleared above).
+    // Pre-trace the picked building, but never over an existing area unless `replaceArea` asked.
     if (tracedFocusRef.current === focusKey) return
     tracedFocusRef.current = focusKey
     if (draw.getAll().features.length > 0) return
@@ -626,8 +577,7 @@ export function EventMapDraw({
     detailsAbortRef.current = controller
 
     setDetecting(true)
-    // The building layer is only queryable once the fly-in has rendered its
-    // tiles, so wait for the map to settle before reading footprints.
+    // Building tiles are only queryable once the fly-in renders, so wait for `idle`.
     const settled = new Promise<void>((resolve) => map.once('idle', () => resolve()))
     void settled
       .then(() => {
@@ -661,11 +611,11 @@ export function EventMapDraw({
         .addTo(map),
     )
 
-    // Only move the camera when the targeted set itself changes, not on a refetch.
+    // Reframe only when the targeted set changes, not on a refetch.
     const key = pins.map((pin) => `${pin.id}:${pin.lng},${pin.lat}`).join('|')
     if (key === framedPinsRef.current) return
     framedPinsRef.current = key
-    // A lone pin becomes the event location, and that focus already flies to it.
+    // A lone pin becomes the event location, whose focus already flies to it.
     if (pins.length < 2) return
 
     const bounds = new mapboxgl.LngLatBounds()
@@ -677,20 +627,18 @@ export function EventMapDraw({
     })
   }, [beneficiaryPins, ready])
 
-  /** Replace the drawn area with the confirmed building's footprint. */
   const confirmPendingPlace = useCallback(() => {
     const draw = drawRef.current
     const details = pendingPlace
     setPendingPlace(null)
     if (!draw || !details) return
 
-    // Keep the pre-trace effect from re-tracing over the operator's choice.
+    // Stops the pre-trace effect from re-tracing over the operator's choice.
     tracedFocusRef.current = `${details.lng},${details.lat}`
     applyGeometry(
       draw,
       details.geometry ?? circlePolygon(details.lng, details.lat, FALLBACK_GEOFENCE_RADIUS_M),
     )
-    // Mark the chosen building straight away, inside its freshly traced area.
     placeMarker(details.lng, details.lat)
     onAddressResolvedRef.current?.(details.label, { lng: details.lng, lat: details.lat })
   }, [applyGeometry, pendingPlace, placeMarker])

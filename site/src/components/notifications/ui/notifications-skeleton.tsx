@@ -2,12 +2,10 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface NotificationsSkeletonProps {
-  /** Roughly what the loaded week shows, so the swap causes no jump. */
   groups: number
   rowsPerGroup: number
 }
 
-/** Mirrors the section heading, and the day-grouped rows under it. */
 export function NotificationsSkeleton({ groups, rowsPerGroup }: NotificationsSkeletonProps) {
   return (
     <div aria-hidden className="space-y-4">

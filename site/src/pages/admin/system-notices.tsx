@@ -29,11 +29,7 @@ import { usePermission, usePortalRole, useSuspension } from '../../store/auth-st
 import { useMaintenanceStore } from '../../store/maintenance-store'
 import type { Announcement } from '../../types/maintenance'
 
-/**
- * The record of what CARES has told its users, newest first. Announcements are written
- * on Maintenance, where they sit beside the downtime that prompted them; this screen is
- * where staff read them back — so it is a chronology, not a control board.
- */
+/** A chronology: notices are written on Maintenance and read back here. */
 export function SystemNoticesPage() {
   const announcements = useMaintenanceStore((s) => s.announcements)
   const initialized = useMaintenanceStore((s) => s.initialized)
@@ -43,15 +39,11 @@ export function SystemNoticesPage() {
   const saveNotice = useMaintenanceStore((s) => s.saveNotice)
 
   const role = usePortalRole()
-  // Writing is the "Manage notices" right in Access Control. Whoever holds it and is
-  // not an admin has no Maintenance screen to write on, so the composer opens here
-  // instead of sending them to a page they cannot reach. Admins keep the link: on
-  // Maintenance a notice sits beside the downtime that prompted it.
+  // Non-admin writers have no Maintenance screen, so the composer opens here.
   const canWrite = usePermission(PORTAL_PERMISSION.SYSTEM_NOTICE_MANAGE)
   const writeSuspension = useSuspension(PORTAL_PERMISSION.SYSTEM_NOTICE_MANAGE)
   const writesHere = canWrite && role !== 'admin'
-  // A coordinator reads, never writes: they see what the director addressed to them
-  // and is live on the portal — not the chronology of drafts and schedules.
+  // Coordinators only see notices addressed to them and live on the portal.
   const readsOnly = role === 'coordinator'
 
   const [filter, setFilter] = useState<AnnouncementStateFilter>(
@@ -63,8 +55,7 @@ export function SystemNoticesPage() {
     void fetchAll()
   }, [fetchAll])
 
-  // A scheduled notice can publish itself while this page is open; silent polls keep
-  // the feed on screen instead of blinking back to its skeleton.
+  // Scheduled notices can publish while open; poll silently.
   useEffect(() => {
     const timer = window.setInterval(
       () => void fetchAll({ silent: true }),
@@ -73,8 +64,7 @@ export function SystemNoticesPage() {
     return () => window.clearInterval(timer)
   }, [fetchAll])
 
-  // Counted over every notice, not the filtered view — the legend must not move when
-  // one of its entries is selected.
+  // Over every notice so the legend doesn't move when one is selected.
   const counts = useMemo(() => {
     const base = ANNOUNCEMENT_STATE_ORDER.reduce(
       (totals, state) => ({
@@ -104,8 +94,7 @@ export function SystemNoticesPage() {
         ? announcements
         : announcements.filter((one) => one.state === filter)
 
-    // Strictly newest to oldest. Pinning is honoured in the feeds users read, not here —
-    // a chronology that reorders itself cannot be read as a record.
+    // Strictly newest first; pinning applies in user feeds, not the record.
     const ordered = [...matching].sort(
       (a, b) => dayjs(b.publishAt).valueOf() - dayjs(a.publishAt).valueOf(),
     )

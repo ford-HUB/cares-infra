@@ -14,9 +14,6 @@ const LEGAL_LINKS = [
   { label: "Terms of Service", to: TERMS_OF_SERVICE_PATH },
 ] as const;
 
-/** Site footer on deep CARES green with a soft glow: the logo and a two-tone serif
- *  "UCLM CARES" over the office name in spaced capitals, a hairline divider, then the
- *  contact lines, each behind a frosted-glass icon tile. */
 export function LandingFooter() {
   const contacts = [
     {

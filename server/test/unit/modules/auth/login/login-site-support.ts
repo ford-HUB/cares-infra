@@ -40,20 +40,7 @@ import {
 } from '../../../../config/layer-harness';
 import { SecurityPayload } from '../../../../config/security-payloads';
 
-/**
- * Shared by every spec under `auth/login/{valid,invalid}/` — the Portal Login
- * screen, its Forgot Password modal and the Request Access screen beside it:
- *
- *   POST /api/v1/auth/admin/login            Login           (LoginSchema)
- *   POST /api/v1/auth/admin/forgot-password  Forgot Password (PortalForgotPasswordSchema)
- *   POST /api/v1/auth/access-request         Request Access  (AccessRequestSchema, multipart)
- *
- * The app runs the REAL `AuthSiteController`, `AuthSiteService` and
- * `LoginPolicyEnforcer` — bcrypt compare, role gate, credential expiry,
- * restriction, blocked network, lockout, reset cooldown and attachment rules are
- * all production code. Only data access, mail, Redis, sessions and JWT signing
- * are mocked, so nothing touches a database or sends a real email.
- */
+/** Real controller, service and LoginPolicyEnforcer; only data access, mail, Redis, sessions and JWT signing are mocked. */
 export const MODULE = 'Authentication Module';
 
 export const LOGIN_PATH = '/api/v1/auth/admin/login';
@@ -67,11 +54,11 @@ export const VALID_ACCESS_REQUEST = {
   subject: 'Coordinator access request',
   body: 'Requesting coordinator access for the CCS department outreach.',
 };
-/** Keeps a body payload above the 20-character minimum so length is never the reason it fails. */
+/** Clears the 20-character minimum so length never causes the failure. */
 export const BODY_PREFIX = 'Requesting coordinator access:';
 export const ACCESS_REQUEST_RECIPIENT = 'admin-inbox@cares.ph';
 
-/** The reply every credential failure shares, so it never reveals which part was wrong. */
+/** Shared by every credential failure so it never reveals which part was wrong. */
 export const INVALID_CREDENTIALS = 'Invalid email or password';
 
 /** Low cost keeps the suite fast; the compare path is identical to production. */
@@ -94,7 +81,7 @@ export interface StoredAccount {
   };
 }
 
-/** The row `AuthRepository.findAccountForLogin` returns — an ADMIN with `VALID_LOGIN`'s password. */
+/** `findAccountForLogin` row: an ADMIN with `VALID_LOGIN`'s password. */
 export const storedAccount = (overrides: Partial<StoredAccount> = {}, role: RoleType = RoleType.ADMIN): StoredAccount => ({
   email: VALID_LOGIN.email,
   password: PASSWORD_HASH,
@@ -117,11 +104,7 @@ export const NON_PORTAL_ROLES = [RoleType.VOLUNTEER, RoleType.DONOR, RoleType.BE
 
 const CONFIG: Record<string, string> = { ACCESS_REQUEST_EMAIL: ACCESS_REQUEST_RECIPIENT };
 
-/**
- * Boots the auth site controller on the real service for the enclosing `describe`
- * and restores every mock to the "registered ADMIN, nothing blocked" default before
- * each test. Read `ctx.app` inside tests — it is assigned in `beforeAll`.
- */
+/** Resets mocks to "registered ADMIN, nothing blocked" before each test; `ctx.app` is assigned in `beforeAll`. */
 export const useAuthSiteApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -192,11 +175,7 @@ export const useAuthSiteApp = () => {
 
 export type AuthSiteCtx = ReturnType<typeof useAuthSiteApp>;
 
-/**
- * One endpoint under test: its schema (layer 1), its path (layer 2), and the mock
- * that only gets called once a request has passed validation — used to prove an
- * invalid input never reached the business logic.
- */
+/** `reached` is first called past validation, proving invalid input never got through. */
 export interface Endpoint {
   schema: ZodType;
   path: string;
@@ -222,9 +201,6 @@ export const ACCESS_REQUEST: Endpoint = {
 export const post = (ctx: AuthSiteCtx, path: string, body: unknown, headers?: Record<string, string>) =>
   runApiLayer(ctx.app, { method: 'post', path, body, headers });
 
-/* ───────────────────────── checks reused by cases ───────────────────────── */
-
-/** Asserts both layers refuse `input`: Zod reports `field`, the API answers 400 and stops before the service. */
 const expectRejectedByValidation = async (ctx: AuthSiteCtx, endpoint: Endpoint, input: unknown, field?: string) => {
   const fixture = { name: '', input, expected: 'FAIL' as const, field };
   expectLayer(await runSchemaLayer(endpoint.schema, input), fixture);
@@ -235,7 +211,6 @@ const expectRejectedByValidation = async (ctx: AuthSiteCtx, endpoint: Endpoint, 
   expect(endpoint.reached(ctx)).not.toHaveBeenCalled();
 };
 
-/** Two checks: layer 1 — schema, layer 2 — API. */
 export const rejectsByValidation = (ctx: AuthSiteCtx, endpoint: Endpoint, input: unknown, field?: string) => {
   it('layer 1 — schema rejects the input', async () => {
     expectLayer(await runSchemaLayer(endpoint.schema, input), { name: '', input, expected: 'FAIL', field });
@@ -248,7 +223,6 @@ export const rejectsByValidation = (ctx: AuthSiteCtx, endpoint: Endpoint, input:
   });
 };
 
-/** One check per payload variant, each running both layers. */
 export const rejectsEachByValidation = (
   ctx: AuthSiteCtx,
   endpoint: Endpoint,
@@ -261,7 +235,6 @@ export const rejectsEachByValidation = (
   });
 };
 
-/** `__proto__` / `constructor.prototype` sent as raw JSON is refused and `Object.prototype` stays clean. */
 export const rejectsPrototypePollution = (
   ctx: AuthSiteCtx,
   endpoint: Endpoint,
@@ -277,20 +250,16 @@ export const rejectsPrototypePollution = (
   });
 };
 
-/** Layer 1 accepts the input as-is. */
 export const acceptedBySchema = (endpoint: Endpoint, input: unknown) => {
   it('layer 1 — schema accepts the input', async () => {
     expectLayer(await runSchemaLayer(endpoint.schema, input), { name: '', input, expected: 'PASS' });
   });
 };
 
-/** Refused by the service with exactly this status and message, in the safe error envelope. */
 export const expectRefusal = (outcome: LayerOutcome, status: number, message: string) => {
   expect(outcome.status).toBe(status);
   expect(outcome.body).toEqual({ ok: false, message });
 };
-
-/* ───────────────────────── multipart (Request Access) ───────────────────────── */
 
 export interface Upload {
   filename: string;
@@ -304,12 +273,12 @@ export const upload = (filename: string, contentType: string, bytes: number): Up
   buffer: Buffer.alloc(bytes, 1),
 });
 
-/** The ID document every Request Access submission must carry (attachments are required). */
+/** Attachments are required, so every submission carries this ID document. */
 export const ID_ATTACHMENT: Upload = upload('id.pdf', 'application/pdf', 2048);
 
 const keepAliveAgent = new Agent({ keepAlive: true });
 
-/** Posts the Request Access form the way the portal does: multipart fields plus `attachments`. */
+/** Multipart, as the portal sends it. */
 export const postAccessRequest = async (
   ctx: AuthSiteCtx,
   fields: Record<string, string>,

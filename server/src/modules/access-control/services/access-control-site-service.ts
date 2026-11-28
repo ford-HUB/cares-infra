@@ -45,7 +45,7 @@ import {
   type OverrideInput,
 } from '../repositories/access-control-repository';
 
-/** Catalog order, so every response lists permissions the same way the portal draws them. */
+/** Catalog order, matching the portal. */
 const PERMISSION_ORDER = new Map(
   PERMISSION_CATALOG.map((entry, index) => [entry.key, index]),
 );
@@ -124,13 +124,7 @@ export class AccessControlSiteService {
     return toAccessUserDetail(row, baseline, this.isProtected(row));
   }
 
-  /**
-   * The rights a signed-in portal account holds right now, for the session payload,
-   * together with the active suspensions that took some of them away — the portal
-   * keeps a suspended module or button on screen, locked, and shows the reason and
-   * window on hover. Unlike `getUserDetail` this never throws on an app-side role —
-   * a volunteer simply carries no portal rights — so the sign-in path stays clean.
-   */
+  /** Includes active suspensions so the portal can show locked items. Never throws on app-side roles. */
   async sessionRightsFor(userId: string): Promise<SessionRightsDto> {
     const row = await this.accessControlRepository.findUser(userId);
     if (
@@ -156,16 +150,12 @@ export class AccessControlSiteService {
     };
   }
 
-  /** The permission list alone — what the request guard checks on every call. */
+  /** Checked by the request guard on every call. */
   async effectivePermissionsFor(userId: string): Promise<PermissionKey[]> {
     return (await this.sessionRightsFor(userId)).permissions;
   }
 
-  /**
-   * Takes the complete set of actions the user should end up with and stores only the
-   * departures from the role baseline, so a later baseline change still reaches users
-   * who were never customised.
-   */
+  /** Stores only departures from the baseline, so later baseline changes still apply. */
   async updateUserPermissions(
     caller: JwtPayload,
     userId: string,
@@ -202,8 +192,7 @@ export class AccessControlSiteService {
       }
     }
 
-    // Read before writing, so the trail records the rights the user actually held
-    // rather than the baseline the form happened to start from.
+    // Read first so the trail records the actual prior rights.
     const detail = await this.getUserDetail(userId);
     const changes = diffPermissions(detail.effective_permissions, [...desired]);
 
@@ -221,8 +210,7 @@ export class AccessControlSiteService {
         ? `Updated the rights of ${targetName(row)} (${changes.length} change${changes.length === 1 ? '' : 's'})`
         : `Saved the rights of ${targetName(row)} with no changes`,
       category: 'ACCESS_CONTROL',
-      // Widening what an account may do is exactly what a review of the trail looks
-      // for, so it stays above the ordinary INFO line even when it went through.
+      // Widening rights is what reviewers look for.
       severity: 'NOTICE',
       actor: caller,
       targetType: 'user',
@@ -235,7 +223,7 @@ export class AccessControlSiteService {
       metadata: { role: row.role.type },
     });
 
-    // The person whose rights moved is told what changed; a no-op save says nothing.
+    // No-op saves send no notice.
     if (changes.length > 0) {
       const granted = changes.filter(
         (change) => change.after === 'allowed',
@@ -284,11 +272,10 @@ export class AccessControlSiteService {
         ? `Updated the ${roleType} baseline (${changes.length} change${changes.length === 1 ? '' : 's'})`
         : `Saved the ${roleType} baseline with no changes`,
       category: 'ACCESS_CONTROL',
-      // A baseline reaches every account holding the role, so it outranks a
-      // single-user override.
+      // A baseline change reaches every holder of the role.
       severity: 'WARNING',
       actor: caller,
-      // The baseline is a role, not a record — it has no id to point at.
+      // Roles have no id.
       targetType: 'role',
       targetLabel: `${roleType} baseline`,
       ipAddress: context.ipAddress,
@@ -350,8 +337,7 @@ export class AccessControlSiteService {
         after: 'suspended',
       })),
       metadata: {
-        // "never" rather than an omitted key: an open-ended suspension is the
-        // heavier of the two, and it should be visible without reading the code.
+        // Explicit "never": open-ended is the heavier case.
         expires_at: expiresAt ? expiresAt.toISOString() : 'never',
       },
     });
@@ -423,10 +409,7 @@ export class AccessControlSiteService {
     return this.getUserDetail(userId);
   }
 
-  /**
-   * Stored baseline for a role, falling back to the catalog default when the role has
-   * no rows yet — a database that predates the access-control seeder still behaves.
-   */
+  /** Falls back to the catalog default when the role has no rows yet. */
   private async baselineFor(role: RoleType): Promise<readonly PermissionKey[]> {
     const stored = await this.accessControlRepository.findRoleDefaults(role);
     if (stored.length === 0) {
@@ -468,16 +451,13 @@ export class AccessControlSiteService {
   }
 }
 
-/** The name the trail shows for the account acted on, denormalised at write time. */
+/** Denormalised at write time. */
 function targetName(row: AccessUserRow): string {
   const name = `${row.firstname} ${row.lastname}`.trim();
   return name || (row.accounts[0]?.email ?? row.user_id);
 }
 
-/**
- * One before/after pair per permission that moved, so the trail says which rights
- * changed rather than restating the whole set on both sides.
- */
+/** One before/after pair per changed permission. */
 function diffPermissions(
   previous: readonly PermissionKey[],
   next: readonly PermissionKey[],
@@ -611,7 +591,6 @@ function toAccessUserDetail(
   };
 }
 
-/** The catalogue's label for a right, so the notice reads "Manage events", not a key. */
 function permissionLabel(permission: PermissionKey): string {
   return (
     PERMISSION_CATALOG.find((entry) => entry.key === permission)?.label ??
@@ -628,7 +607,7 @@ function describeRightsChange(granted: number, revoked: number): string {
   return `${parts.join(', ')}.`;
 }
 
-/** e.g. "10 September 2026, 14:05" — a person reads this, not a parser. */
+/** e.g. "10 September 2026, 14:05". */
 function formatNoticeDate(date: Date): string {
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',

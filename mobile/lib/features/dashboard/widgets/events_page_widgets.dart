@@ -56,7 +56,6 @@ class SmartEventSearchBar extends StatelessWidget {
     this.onDark = false,
   });
 
-  /// Glassy white-on-green field for a deep [HeaderBand].
   final bool onDark;
 
   final TextEditingController controller;
@@ -69,8 +68,7 @@ class SmartEventSearchBar extends StatelessWidget {
   final List<String> suggestions;
   final String hintText;
 
-  /// Corner radius of the field — the events tab passes [AppColors.pillRadius]
-  /// for a fully round search pill.
+  /// The events tab passes [AppColors.pillRadius] for a round pill.
   final double radius;
 
   @override
@@ -253,8 +251,8 @@ class EventCategoryFilters extends StatelessWidget {
   final String selected;
   final ValueChanged<String> onSelected;
 
-  /// Chip labels, "All" first. Volunteers get the interests their matched
-  /// events carry; the prototype default is the fixture's category list.
+  /// Volunteers get their matched events' interests; the prototype default is
+  /// the fixture list.
   final List<String> categories;
 
   @override
@@ -516,7 +514,6 @@ class EventCatalogCard extends StatelessWidget {
   }
 }
 
-/// Tinted fallback for a card with no photos, or while one is still loading.
 class _CategoryPlaceholder extends StatelessWidget {
   const _CategoryPlaceholder({required this.color});
 
@@ -560,8 +557,7 @@ class EventsEmptyState extends StatelessWidget {
   final bool hasActiveFilters;
   final VoidCallback onClearFilters;
 
-  /// Override the default copy when the list is empty for a reason other
-  /// than the search or filter — e.g. no events match the volunteer's interests.
+  /// For empty lists not caused by search or filter, e.g. no interest matches.
   final String? title;
   final String? message;
 

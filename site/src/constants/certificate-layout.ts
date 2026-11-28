@@ -4,7 +4,6 @@ import type {
   CertificateLayout,
 } from '../types/certificate-template'
 
-/** Top to bottom, the order the auto-align pass distributes them in. */
 export const CERTIFICATE_ELEMENT_ORDER: CertificateElementId[] = [
   'headline',
   'title',
@@ -29,25 +28,20 @@ export const DEFAULT_CERTIFICATE_LAYOUT: CertificateLayout = {
   signatures: { x: 50, y: 88 },
 }
 
-/** Elements stay inside the sheet; the margin keeps a block from half-hanging off. */
 export const LAYOUT_MIN = 4
 export const LAYOUT_MAX = 96
 
-/** Within this distance of a guide, a drag snaps to it. */
 export const SNAP_THRESHOLD = 1.2
 
-/** Auto-align spreads the visible blocks between these two rows. */
 export const DISTRIBUTE_TOP = 12
 export const DISTRIBUTE_BOTTOM = 88
 
 export const NUDGE_STEP = 0.5
 export const NUDGE_STEP_LARGE = 2.5
 
-/** Ruler ticks every 5%, labelled every 25%. */
 export const RULER_TICK_STEP = 5
 export const RULER_LABEL_STEP = 25
 
-/** True when the element has anything to draw at all. */
 export function isElementVisible(
   id: CertificateElementId,
   design: CertificateDesign,
@@ -61,7 +55,6 @@ export function clampPosition(value: number): number {
   return Math.min(LAYOUT_MAX, Math.max(LAYOUT_MIN, value))
 }
 
-/** Snaps to the sheet centre and to any other element's axis. */
 export function snapToGuides(value: number, guides: number[]): number {
   const hit = guides.find((guide) => Math.abs(guide - value) <= SNAP_THRESHOLD)
   return hit ?? value
@@ -78,7 +71,6 @@ export function centerHorizontally(
   return next
 }
 
-/** Even vertical rhythm, keeping the elements in their current top-to-bottom order. */
 export function distributeVertically(
   layout: CertificateLayout,
   ids: CertificateElementId[],
@@ -99,6 +91,6 @@ export function distributeVertically(
   return next
 }
 
-/** Imported SVG frames are inlined as data URLs in the mock, so keep them small. */
+/** Inlined as data URLs in the mock. */
 export const FRAME_SVG_MAX_BYTES = 1024 * 1024
 export const FRAME_SVG_ACCEPTED_TYPES = 'image/svg+xml'

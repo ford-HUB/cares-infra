@@ -98,12 +98,7 @@ export class ProfileSiteController {
     return this.sendProfileAsset(user.sub, 'signature', request, response);
   }
 
-  /**
-   * Assets are private but revalidatable: `no-cache` makes the browser ask every time,
-   * and the content-hash ETag lets it answer 304 without re-sending the image. That is
-   * what stops the navbar avatar re-downloading on every portal refresh — Redis only
-   * removes the S3 round-trip behind it.
-   */
+  /** `no-cache` + content-hash ETag lets the browser get a 304. */
   private async sendProfileAsset(
     userId: string,
     kind: ProfileAssetKind,

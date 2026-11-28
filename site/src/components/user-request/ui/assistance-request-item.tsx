@@ -32,9 +32,8 @@ import { RequestAttachmentPreview } from './request-attachment-preview'
 
 interface AssistanceRequestItemProps {
   request: AssistanceRequest
-  /** True while this row's own call is in flight. */
   busy: boolean
-  /** Any move in flight — keeps a second click from racing the first. */
+  /** Any move in flight; stops a second click racing the first. */
   disabled: boolean
   onDecide: (request: AssistanceRequest, decision: AssistanceDecision) => void
 }

@@ -26,19 +26,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Certificate Module · Certificate Template — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * New Template — input validation: required, empty and length rules on the name and
-   * description, the category and orientation lists, plus legitimate inputs that must pass.
-   */
   const textRules = (field: string, min: number, max: number): LayerFixture[] => [
     { name: `${field} at min`, input: { ...VALID, [field]: 'a'.repeat(min) }, expected: 'PASS' },
     { name: `${field} at max`, input: { ...VALID, [field]: 'a'.repeat(max) }, expected: 'PASS' },
@@ -88,13 +76,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * New Template — normalisation: the schema trims the text and defaults the orientation,
-   * the service receives that with the caller and where the request came from, and only
-   * the response schema's fields leave the server.
-   */
   describe('certificate templates site · new template — normalisation', () => {
     const ctx = useCertificateTemplatesApp();
 
@@ -148,14 +130,13 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /** Padded past the minimum, so a payload is judged on its content and not on its length. */
+  /** Padded past the minimum so only the payload's content is judged. */
   const asDescription = (value: unknown) => `Used for ${value as string}`;
 
   const fixtures: LayerFixture[] = [
 
-    // Free text: stored as data through Prisma and escaped by the portal when rendered.
+    // Free text: Prisma parameterises it and the portal escapes it on render.
     ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...UNICODE_CONFUSABLE_PAYLOADS, ...XSS_PAYLOADS, ...PATH_TRAVERSAL_PAYLOADS].map(
       (p): LayerFixture => ({
         name: `description ← ${p.category}: ${p.label}`,
@@ -163,8 +144,7 @@ import {
         expected: 'PASS',
       }),
     ),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. A description can run over several lines, so line breaks are the exception.
+    // Trimmed field rejects control characters; line breaks are allowed.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => p.label === 'CRLF injection').map((p): LayerFixture => ({
       name: `description ← ${p.category}: ${p.label}`,
       input: { ...VALID, description: asDescription(p.value) },
@@ -180,7 +160,7 @@ import {
       describeTemplateTable(ctx, fixtures);
     });
 
-    // The controller's service is mocked above; what a new template is made of lives in the real one.
+    // The controller's service is mocked; creation rules live in the real one.
     describe('createTemplate (real service)', () => {
       const AUTHOR = {
         user_id: CALLER.sub,
@@ -277,9 +257,8 @@ import {
         },
       );
 
-      // The name becomes the design's title, which the response schema checks for broken
-      // placeholders. A name the request accepts but the response refuses saves the row and
-      // then answers 500, so every name that gets through must come back out.
+      // The name becomes the design title, checked by the response schema; a name accepted
+      // in but refused out would save the row and then 500.
       asCase('valid', 'Staff enters template names at the length limits or with unusual placeholders').it.each([
         { title: 'at the minimum length', name: 'abc' },
         { title: 'at the maximum length', name: 'a'.repeat(80) },

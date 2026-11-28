@@ -11,10 +11,7 @@ interface UseAddressAutocompleteResult {
   loading: boolean
 }
 
-/**
- * Debounced address suggestions for `query`. Fetching pauses while `enabled` is
- * false (e.g. right after the user picks a result) to avoid reopening the list.
- */
+/** Paused while `enabled` is false so picking a result doesn't reopen the list. */
 export function useAddressAutocomplete(
   query: string,
   enabled: boolean,

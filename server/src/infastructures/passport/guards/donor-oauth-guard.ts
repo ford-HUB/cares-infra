@@ -11,14 +11,7 @@ import type { AuthProvider } from '../../prisma/common/client';
 import { FACEBOOK_IDENTITY_STRATEGY_NAME } from '../strategies/facebook-identity-strategy';
 import { GOOGLE_IDENTITY_STRATEGY_NAME } from '../strategies/google-identity-strategy';
 
-/**
- * Builds the guard for one identity strategy.
- *
- * The `handleRequest` override exists because `passport-jwt` reports every rejection the
- * same way — `user: false` plus an `info` error — which would otherwise reach the donor
- * as a bare "Unauthorized". Mapping `info` back to a cause is the difference between
- * "try again" and "your session expired, tap the button again".
- */
+/** `handleRequest` maps passport-jwt's generic `info` rejection back to a specific cause. */
 function buildProviderGuard(
   strategyName: string,
   providerLabel: string,
@@ -29,8 +22,7 @@ function buildProviderGuard(
       user: TUser | false,
       info: unknown,
     ): TUser {
-      // A strategy that threw on purpose — "not configured", "wrong app" — already
-      // carries the right status and wording, so it passes straight through.
+      // Deliberate strategy errors already carry the right status.
       if (error) {
         throw error;
       }
@@ -68,23 +60,13 @@ function describeFailure(providerLabel: string, info: unknown): string {
   return `${providerLabel} rejected this sign-in token`;
 }
 
-/**
- * One guard instance per provider, built once at module load — they hold no per-request
- * state, and rebuilding a mixin class on every call would be waste.
- */
+/** Built once; guards are stateless. */
 const GUARD_BY_PROVIDER = {
   GOOGLE: buildProviderGuard(GOOGLE_IDENTITY_STRATEGY_NAME, 'Google'),
   FACEBOOK: buildProviderGuard(FACEBOOK_IDENTITY_STRATEGY_NAME, 'Facebook'),
 } satisfies Record<AuthProvider, IAuthGuard>;
 
-/**
- * Runs whichever identity strategy the posted `provider` names, so donors keep a single
- * sign-in endpoint instead of one route per provider.
- *
- * Guards run before pipes, so this reads the raw body — `provider` is validated here
- * rather than waiting for `DonorOAuthSchema`, and an unknown value is refused before any
- * provider is contacted.
- */
+/** Dispatches on the body's `provider`, validated here since guards run before pipes. */
 @Injectable()
 export class DonorOAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {

@@ -16,11 +16,9 @@ import type {
 interface TicketPriorityBoardProps {
   buckets: SupportTicketBucketCount[]
   total: number
-  /** The active bucket — its row renders as selected. */
   active: TicketPriorityFilter
-  /** False until the first fetch settles, so the board doesn't flash zeroes. */
   initialized: boolean
-  /** Selecting a row filters the list; selecting it again clears the filter. */
+  /** Selecting the active row again clears the filter. */
   onSelect: (value: TicketPriorityFilter) => void
 }
 
@@ -40,10 +38,7 @@ const bucketStyles: Record<
 const rowBase =
   'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left transition-colors'
 
-/**
- * The board above the ticket list — one row per bucket, Issue / Support / Feature,
- * doubling as the priority filter for the list beside it.
- */
+/** One row per bucket, doubling as the list's priority filter. */
 export function TicketPriorityBoard({
   buckets,
   total,

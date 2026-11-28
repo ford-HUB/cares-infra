@@ -17,16 +17,13 @@ export interface RecentActivityRow {
 
 interface RecentActivityChartProps {
   rows: RecentActivityRow[]
-  /** How far back the window reaches, in days — the server decides, the copy repeats it. */
+  /** In days; set by the server. */
   recentDays: number
 }
 
 const config: ChartConfig = { value: { label: 'In window', color: '#2a78d6' } }
 
-/**
- * What moved inside the recent window, one bar per kind. A single hue, because these
- * are one measure — activity in the window — counted over different things.
- */
+/** A single hue: one measure counted over different things. */
 export function RecentActivityChart({ rows, recentDays }: RecentActivityChartProps) {
   const total = rows.reduce((sum, row) => sum + row.value, 0)
 

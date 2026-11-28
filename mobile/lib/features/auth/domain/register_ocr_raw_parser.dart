@@ -1,5 +1,4 @@
-/// Fills missing structured fields from raw OCR text when the server parser
-/// returns raw text but incomplete field values.
+/// Fills fields the server parser left blank from its raw OCR text.
 class RegisterOcrRawParser {
   const RegisterOcrRawParser._();
 
@@ -13,10 +12,8 @@ class RegisterOcrRawParser {
     String phoneNumber,
     String idNumber,
   })
-  /// [staffId]: the card is a UC staff/faculty ID rather than a student ID.
-  /// Staff IDs print an employee number of any length after "ID NO." and the
-  /// name as "SURNAME, FIRST M." with no NAME label, so both are looked for
-  /// on top of the student layout.
+  /// [staffId]: staff IDs print an any-length number after "ID NO." and an
+  /// unlabelled "SURNAME, FIRST M." name.
   parse(String frontText, String backText, {bool staffId = false}) {
     final combined = '$frontText\n$backText';
     final lines = combined
@@ -25,9 +22,7 @@ class RegisterOcrRawParser {
         .where((line) => line.isNotEmpty)
         .toList();
 
-    // The cardholder's name is only printed on the front. The back carries the
-    // emergency contact's NAME and the president's signature line, so it is
-    // never consulted.
+    // The name is only on the front; the back has the emergency contact's NAME.
     final name = _extractName(
       frontText
           .split('\n')
@@ -105,8 +100,8 @@ class RegisterOcrRawParser {
       }
     }
 
-    // An unlabelled line printed like a name: upper case, first and last
-    // words of 2+ letters, initials or words between ("JAY S. ICOY").
+    // Unlabelled name-like line: upper case, 2+ letter first/last words ("JAY
+    // S. ICOY").
     for (final line in lines) {
       final candidate = _cleanName(line);
       if (RegExp(
@@ -134,8 +129,7 @@ class RegisterOcrRawParser {
     return ('', '', '');
   }
 
-  // Staff IDs print the name as "REYES, JESIECA C." — surname, comma, given
-  // names and an optional middle initial (its period is already stripped by
+  // Staff name line: "REYES, JESIECA C." (period already stripped by
   // [_cleanName]).
   static final _staffNameLine = RegExp(
     r"^[A-Z][A-Z']+(?: [A-Z][A-Z']+)*, ?[A-Z]{2,}(?: (?:[A-Z]{2,}|[A-Z]\.?))*$",
@@ -200,8 +194,7 @@ class RegisterOcrRawParser {
     if (letters.contains('SIGNATURE') || letters.contains('IDNO')) {
       return false;
     }
-    // The coloured course strip on the front ("INFORMATION TECHNOLOGY") is
-    // shaped like a two-word name but is never one.
+    // The front's course strip ("INFORMATION TECHNOLOGY") looks like a name.
     if (RegExp(
       r'\b(INFORMATION|TECHNOLOGY|COMPUTER|SCIENCE|ENGINEERING|EDUCATION|'
       r'SECONDARY|ELEMENTARY|NURSING|CRIMINOLOGY|ACCOUNTANCY|ACCOUNTING|'
@@ -324,18 +317,16 @@ class RegisterOcrRawParser {
   static String normalizeIdNumber(String value) =>
       value.replaceAll(RegExp(r'\D'), '');
 
-  // UCLM student IDs are 8 digits (YY + 6-digit serial, e.g. 24247447)
-  // printed above the "ID NO ____" line on the front of the card. Mirrors
-  // _extract_id_number in microservices/ocr-service/app/ocr_engine.py.
+  // 8 digits (YY + serial, e.g. 24247447) above "ID NO"; mirrors
+  // `_extract_id_number` in ocr-service `ocr_engine.py`.
   static const _studentIdLength = 8;
   static const _studentIdMinRealDigits = 6;
   static final _studentIdLabel = RegExp(
     r'\b(?:I[D0O]|1D)\s*(?:N[O0]\b\.?|NUMBER\b|#)\s*[:.]?',
     caseSensitive: false,
   );
-  // Exactly 8 digit-like chars (OCR may read 0 as O, 1 as I/l, 8 as B, ...),
-  // optionally split by hyphens; bounded on both sides so longer runs such as
-  // phone numbers (11 digits) and dates never yield an 8-digit slice.
+  // 8 digit-like chars (OCR misreads O/I/l/B…), optional hyphens; bounded so
+  // phones and dates never yield a slice.
   static final _studentIdToken = RegExp(
     r'(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){7})(?![A-Za-z0-9/]|-[0-9A-Za-z])',
   );
@@ -377,8 +368,8 @@ class RegisterOcrRawParser {
       final line = lines[index];
       final label = _studentIdLabel.firstMatch(line);
       if (label == null) continue;
-      // UCLM prints the number just above the "ID NO ____" line; OCR may also
-      // merge it onto the label line or push it below.
+      // Printed above "ID NO ____"; OCR may merge it onto or below the label
+      // line.
       final nearby = [
         line.substring(label.end),
         line.substring(0, label.start),
@@ -393,9 +384,8 @@ class RegisterOcrRawParser {
     return '';
   }
 
-  // A staff/faculty ID number (e.g. "ID NO. 201346") is printed right after
-  // the label and is not a fixed length, so 5–10 digit-like chars are taken;
-  // still bounded so an 11-digit phone number is never sliced.
+  // Staff numbers follow the label, 5–10 digit-like chars; bounded so an
+  // 11-digit phone isn't sliced.
   static const _staffIdMinRealDigits = 4;
   static final _staffIdToken = RegExp(
     r'(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){4,9})(?![A-Za-z0-9/]|-[0-9A-Za-z])',
@@ -423,9 +413,8 @@ class RegisterOcrRawParser {
     return '';
   }
 
-  /// The student ID is only printed on the front of the card; the back
-  /// carries school years, phone and birthdate, so it is never consulted.
-  /// A staff ID's number is looked for after its "ID NO." label first.
+  /// Front only: the back has school years, phone and birthdate. Staff IDs try
+  /// after "ID NO." first.
   static String _extractIdNumber(String frontText, {bool staffId = false}) {
     final lines = frontText
         .split('\n')

@@ -3,22 +3,17 @@ import { formatNumber, formatPercent } from '../../../constants/formatting'
 import { DISTRIBUTION_BEHIND_THRESHOLD } from '../../../constants/deployed-certificates'
 
 interface DistributionBarProps {
-  /** Certificates released to a participant. */
   distributed: number
-  /** Of those, the ones the recipient has opened. */
+  /** Subset of `distributed` the recipient has opened. */
   claimed: number
   /** The whole: every participant the deployment covers. */
   participants: number
-  /** A paused or scheduled run is not behind, it simply hasn't started. */
+  /** False for paused/scheduled runs, which aren't behind. */
   behindMatters?: boolean
   size?: 'sm' | 'lg'
 }
 
-/**
- * One participant roster, split three ways: opened, delivered but unopened, and still
- * waiting. Nesting `claimed` inside `distributed` keeps the reader from adding two
- * numbers to work out whether the sheets actually landed.
- */
+/** `claimed` is nested inside `distributed`, so readers needn't add the two. */
 export function DistributionBar({
   distributed,
   claimed,

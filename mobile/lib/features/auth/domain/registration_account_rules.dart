@@ -1,7 +1,6 @@
 import 'package:mobile/core/models/password_policy.dart';
 
-/// When the Create Account step of self-registration may continue. The
-/// password rules are passed in — they belong to the administrator.
+/// Password rules are passed in; the administrator owns them.
 abstract final class RegistrationAccountRules {
   /// A light shape check; the server validates the address properly.
   static bool emailValid(String email) =>

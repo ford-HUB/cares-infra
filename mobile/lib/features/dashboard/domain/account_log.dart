@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Chip groups on the Activity Logs screen. Derived on the app side from the
-/// server's `action` key (`auth.mobile.sign-in`, `profile.updated`, …) so the
-/// grouping can change without a server release.
+/// Derived on the app from the server's `action` key (`auth.mobile.sign-in`, …)
+/// so grouping changes need no server release.
 enum AccountLogCategory {
   signIn,
   profile,
@@ -43,7 +42,6 @@ extension AccountLogCategoryX on AccountLogCategory {
     AccountLogCategory.other => Icons.circle_outlined,
   };
 
-  /// Maps a server action key to the chip it belongs under.
   static AccountLogCategory fromAction(String action) {
     if (action.startsWith('auth.') && action.contains('password')) {
       return AccountLogCategory.security;
@@ -74,7 +72,6 @@ extension AccountLogCategoryX on AccountLogCategory {
   }
 }
 
-/// One row on the Activity Logs timeline.
 class AccountLogEntry {
   const AccountLogEntry({
     required this.id,
@@ -91,11 +88,10 @@ class AccountLogEntry {
   final AccountLogCategory category;
   final String title;
 
-  /// One line of context — what changed, where from.
   final String detail;
   final DateTime at;
 
-  /// Highlight actions that didn't go through — a refused sign-in, a denied
-  /// request — so the person can spot activity they may not recognise.
+  /// Failed actions (refused sign-in, denied request), so the person can spot
+  /// unrecognised activity.
   final bool flagged;
 }

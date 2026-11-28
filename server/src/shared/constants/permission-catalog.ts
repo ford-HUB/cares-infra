@@ -3,17 +3,13 @@ import {
   RoleType,
 } from '../../infastructures/prisma/common/client';
 
-/**
- * The portal renders permissions grouped by module, so the grouping and the copy
- * live here rather than being hardcoded in the React app — a new PermissionKey then
- * only has to be described once, and the client picks it up from the catalog endpoint.
- */
+/** Grouping and copy live here so a new PermissionKey is described once. */
 export interface PermissionDescriptor {
   key: PermissionKey;
   module: string;
   label: string;
   description: string;
-  /** Marks an action worth a confirmation prompt before it is handed out. */
+  /** Warrants a confirmation prompt. */
   sensitive: boolean;
 }
 
@@ -271,18 +267,14 @@ export const PERMISSION_CATALOG: readonly PermissionDescriptor[] = [
   },
 ];
 
-/** Module order for the portal — the catalog array order, deduplicated. */
+/** Catalog order, deduplicated. */
 export const PERMISSION_MODULES: readonly string[] = [
   ...new Set(PERMISSION_CATALOG.map((entry) => entry.module)),
 ];
 
 const ALL_PERMISSIONS = PERMISSION_CATALOG.map((entry) => entry.key);
 
-/**
- * Baseline rights per role, applied by the access-control seeder and used as the
- * fallback when a role has no rows yet. Roles absent from this map (the app-side
- * roles — volunteer, donor, beneficiary) hold no portal rights at all.
- */
+/** Seeder baseline and no-rows fallback; app-side roles hold no portal rights. */
 export const DEFAULT_ROLE_PERMISSIONS: Readonly<
   Partial<Record<RoleType, readonly PermissionKey[]>>
 > = {
@@ -301,21 +293,19 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.ATTENDANCE_VIEW,
     PermissionKey.ATTENDANCE_RECORD,
     PermissionKey.ATTENDANCE_EXPORT,
-    // The fallback when the geofence could not rule on a volunteer who was there.
+    // Geofence fallback.
     PermissionKey.ATTENDANCE_MANUAL_MARK,
     PermissionKey.CERTIFICATES_VIEW,
     PermissionKey.CERTIFICATES_TEMPLATE_MANAGE,
     PermissionKey.CERTIFICATES_ISSUE,
     PermissionKey.DONATIONS_VIEW,
     PermissionKey.DONATIONS_RECORD,
-    // The director holds the CARES finance relationship, so the account donations are
-    // collected into is theirs to enter; a coordinator is never given this by default.
+    // Director-only by default: they own the finance relationship.
     PermissionKey.PAYMENT_SETTINGS_MANAGE,
     PermissionKey.REPORTS_VIEW,
     PermissionKey.REPORTS_PUBLISH,
     PermissionKey.SECURITY_AUDIT_VIEW,
-    // Directors write the notices coordinators read; the portal's Notices screen
-    // offers its composer on this right rather than on the role.
+    // The Notices composer is gated on this right.
     PermissionKey.SYSTEM_NOTICE_MANAGE,
     PermissionKey.CHAT_ACCESS,
     PermissionKey.MAIL_ACCESS,
@@ -323,8 +313,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.MOBILE_APP_ACCESS,
   ],
   [RoleType.COORDINATOR]: [
-    // Coordinators rule on volunteers' event-role requests (Organizer,
-    // Facilitator, Speaker) alongside directors, which live in this queue.
+    // Coordinators rule on event-role requests here.
     PermissionKey.USERS_REQUEST,
     PermissionKey.EVENTS_VIEW,
     PermissionKey.EVENTS_CREATE,

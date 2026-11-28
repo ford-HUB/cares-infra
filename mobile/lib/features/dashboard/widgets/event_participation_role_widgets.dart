@@ -4,9 +4,8 @@ import '../../../core/theme/app_theme.dart';
 import '../domain/event_participation_role.dart';
 import 'event_details_widgets.dart';
 
-/// The "Participation Role" picker shown before registering. Regular is the
-/// default; picking any other role says up front that it goes to a Director
-/// or Coordinator for approval and that nothing has to be uploaded.
+/// Non-Regular roles go to a Director or Coordinator for approval; nothing is
+/// uploaded.
 class EventParticipationRoleField extends StatelessWidget {
   const EventParticipationRoleField({
     super.key,
@@ -82,7 +81,6 @@ class EventParticipationRoleField extends StatelessWidget {
   }
 }
 
-/// The role on the volunteer's registration and where its review stands.
 class EventRoleStatusCard extends StatelessWidget {
   const EventRoleStatusCard({
     super.key,

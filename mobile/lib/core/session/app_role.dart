@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// The roles a single CARES account can hold. One account can be authorized
-/// for any combination of these — the active role decides which dashboard,
-/// navigation, and features are shown.
 enum AppRole { volunteer, beneficiary, donor }
 
 extension AppRoleX on AppRole {
@@ -32,7 +29,6 @@ extension AppRoleX on AppRole {
     AppRole.donor => const Color(0xFFE65100),
   };
 
-  /// Server role type used by the auth/registration APIs.
   String get apiValue => switch (this) {
     AppRole.volunteer => 'VOLUNTEER',
     AppRole.beneficiary => 'BENEFICIARY',

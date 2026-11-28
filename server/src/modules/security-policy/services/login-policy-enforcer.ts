@@ -24,20 +24,9 @@ export interface LoginAttemptContext {
 const MINUTES_IN_DAY = 1440;
 
 /**
- * Applies the parts of the security policy that gate a sign-in: account lockout,
- * allowed hours, and the IP allowlist. Each refusal is written to the login trail
- * before it is thrown, so the portal shows *why* someone could not get in.
- *
- * The root operator (see `protected-admin`) is exempt from the hours and allowlist
- * rules — those are configuration, and a typo in either must not leave the system
- * with no reachable administrator. It stays subject to lockout, which is what stops a
- * brute-force, but its lock is always time-bounded even when the policy says
- * "until an administrator lifts it".
- *
- * Hours and the allowlist are portal-only controls: they describe an office network
- * and office hours, which say nothing about a volunteer signing in from the field on
- * mobile data. Lockout applies to every source — brute-force is brute-force wherever
- * it comes from.
+ * Lockout, allowed hours and IP allowlist; refusals are logged first.
+ * The root operator skips hours/allowlist (a typo mustn't lock out every admin) and its lockout is always time-bounded.
+ * Hours and allowlist are portal-only; lockout applies everywhere.
  */
 @Injectable()
 export class LoginPolicyEnforcer {
@@ -48,7 +37,6 @@ export class LoginPolicyEnforcer {
     private readonly configService: ConfigService,
   ) {}
 
-  /** Throws when the policy refuses this attempt; returns quietly when it allows it. */
   async assertLoginAllowed(attempt: LoginAttemptContext): Promise<void> {
     const policy = await this.securityPolicyService.getPolicy();
     const isRootAdmin = isProtectedAdminEmail(
@@ -64,11 +52,7 @@ export class LoginPolicyEnforcer {
     await this.assertNotLockedOut(policy, attempt, isRootAdmin);
   }
 
-  /**
-   * Rejects a password that does not satisfy the policy. Used wherever a password is
-   * set — registration and the portal's change-password form — so the rules cannot
-   * hold in one place and not the other.
-   */
+  /** Used wherever a password is set, so rules stay consistent. */
   async assertPasswordMeetsPolicy(password: string): Promise<void> {
     const policy = await this.securityPolicyService.getPolicy();
     const unmet: string[] = [];
@@ -107,7 +91,7 @@ export class LoginPolicyEnforcer {
     const { login_hours_start_minute: start, login_hours_end_minute: end } =
       policy;
 
-    // A start after the end means the window wraps past midnight (e.g. 20:00–06:00).
+    // Start after end wraps past midnight (e.g. 20:00–06:00).
     const withinWindow =
       start <= end
         ? minuteOfDay >= start && minuteOfDay < end
@@ -124,7 +108,7 @@ export class LoginPolicyEnforcer {
     policy: SecurityPolicyValuesDto,
     attempt: LoginAttemptContext,
   ): Promise<void> {
-    // An empty allowlist is "no allowlist", not "allow nobody".
+    // Empty means no allowlist.
     if (policy.ip_allowlist.length === 0) return;
 
     const ip = attempt.ipAddress?.trim();
@@ -153,20 +137,17 @@ export class LoginPolicyEnforcer {
 
     if (failures < policy.lockout_max_attempts) return;
 
-    // The clock runs from the failure that tripped the lock, so each further attempt
-    // during a lock does not push the unlock time further out.
+    // Measured from the tripping failure so attempts during a lock don't extend it.
     const unlocksAt = this.unlockTime(
       policy,
       lastFailureAt ?? new Date(),
       isRootAdmin,
     );
 
-    // The lock has aged out — the streak is stale, so the attempt goes through and a
-    // fresh failure starts counting again.
+    // Lock expired; a new failure starts a fresh count.
     if (unlocksAt && unlocksAt.getTime() <= Date.now()) return;
 
-    // Remaining time, not a clock time: the server formats dates in its own timezone
-    // (UTC in production), which never matches the person reading the message.
+    // Remaining time, not a clock time (server is UTC).
     const message = unlocksAt
       ? `Too many failed sign-in attempts. Try again in ${formatRemaining(unlocksAt.getTime() - Date.now())}`
       : 'This account is locked after too many failed sign-in attempts. Contact an administrator';
@@ -175,10 +156,7 @@ export class LoginPolicyEnforcer {
     throw new ForbiddenException(message);
   }
 
-  /**
-   * When the lock lifts by itself. Null means never — only reachable for a normal
-   * account, since the root operator always gets a bounded lock.
-   */
+  /** Null = never; only for normal accounts. */
   private unlockTime(
     policy: SecurityPolicyValuesDto,
     lastFailureAt: Date,
@@ -195,7 +173,7 @@ export class LoginPolicyEnforcer {
     return new Date(lastFailureAt.getTime() + minutes * 60 * 1000);
   }
 
-  /** Writes the refusal to the login trail. Best-effort, like every other write there. */
+  /** Best-effort. */
   private async refuse(
     attempt: LoginAttemptContext,
     outcome: LoginOutcome,
@@ -219,7 +197,7 @@ function formatMinute(minuteOfDay: number): string {
   return `${hours}:${minutes}`;
 }
 
-/** "5 minutes", "1 minute", "1 hour 30 minutes" — rounded up so it never undersells the wait. */
+/** Rounded up. */
 function formatRemaining(ms: number): string {
   const totalMinutes = Math.max(1, Math.ceil(ms / 60_000));
   const hours = Math.floor(totalMinutes / 60);

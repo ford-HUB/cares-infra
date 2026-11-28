@@ -11,7 +11,6 @@ import type { UserRequest } from '../types/user-request'
 interface UserRequestState {
   requests: UserRequest[]
   loading: boolean
-  /** False until the first fetch settles, so the empty state can't flash on mount. */
   initialized: boolean
   error: string | null
   fetchRequests: () => Promise<void>

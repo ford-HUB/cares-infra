@@ -6,9 +6,7 @@ function zoomForWidth(width: number) {
   return Math.min(Math.max(scale, 1), LANDING_ZOOM.max)
 }
 
-/** Publishes the landing page's desktop zoom as `--landing-zoom` on <html>; the stylesheet
- *  applies it while the landing page is mounted. Viewport units are scaled by CSS zoom, so
- *  full-height blocks divide by the same variable. Runs before paint to avoid a jump. */
+/** Runs before paint to avoid a jump; viewport units are scaled by CSS zoom, so full-height blocks divide by it. */
 export function useLandingZoom() {
   useLayoutEffect(() => {
     const root = document.documentElement

@@ -4,10 +4,8 @@ import type {
   LoginSource,
 } from '../types/login-activity'
 
-/** Rows pulled per scroll page — enough to overflow the container so a scroll exists. */
 export const LOGIN_ACTIVITY_PAGE_SIZE = 25
 
-/** Search narrows on the server, so hold the keystrokes before refetching the trail. */
 export const LOGIN_ACTIVITY_SEARCH_DEBOUNCE_MS = 300
 
 export const LOGIN_ACTIVITY_FILTER_ALL = 'all'
@@ -56,7 +54,6 @@ export const LOGIN_RANGE_FILTERS: { value: LoginActivityRange; label: string }[]
   { value: 'all', label: 'All time' },
 ]
 
-/** Left rail colour on a row — the fastest read of "did this attempt get in". */
 export const LOGIN_OUTCOME_ACCENT: Record<LoginOutcome, string> = {
   success: 'bg-transparent',
   'invalid-credentials': 'bg-red-400',
@@ -80,11 +77,7 @@ export const LOGIN_ACTIVITY_COLUMNS = [
   { key: 'outcome', label: 'Outcome', width: 'w-[12%]' },
 ] as const
 
-/**
- * Cell classes shared by the login-activity table and its loading skeleton. They live
- * here so the skeleton cannot drift from the real row — a height mismatch is exactly
- * the layout jump the skeleton exists to prevent.
- */
+/** Shared with the loading skeleton so row heights can't drift. */
 export const LOGIN_CELL_BORDER = 'border-r border-gray-100 last:border-r-0'
 export const LOGIN_CELL_BASE =
   'h-11 truncate border-b border-gray-100 px-3 py-0 text-[13px]'

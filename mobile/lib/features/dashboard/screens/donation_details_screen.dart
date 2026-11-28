@@ -6,8 +6,6 @@ import '../presentation/utils/profile_gate.dart';
 import '../presentation/widgets/home_event_image.dart';
 import 'donation_flow_screen.dart';
 
-/// A director event with donations enabled, as the donor sees it before
-/// giving: what it accepts, what has been raised, and the goods it asks for.
 class DonationDetailsScreen extends StatefulWidget {
   const DonationDetailsScreen({super.key, required this.donation});
 

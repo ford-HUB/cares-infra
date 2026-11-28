@@ -14,7 +14,6 @@ import { useResolvedTheme } from './use-portal-theme'
 const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/** Centre of `origin`, else of the header toggle, else the top-right corner. */
 function revealOrigin(origin?: Element | null): { x: number; y: number } {
   const el = origin ?? document.querySelector(MODE_TOGGLE_SELECTOR)
   if (el) {
@@ -24,14 +23,7 @@ function revealOrigin(origin?: Element | null): { x: number; y: number } {
   return { x: window.innerWidth, y: 0 }
 }
 
-/**
- * Switches the theme with the circular reveal: the browser snapshots the page, the
- * theme flips underneath (flushSync, so the `dark` class lands inside the
- * snapshot callback), and the new palette grows out of the toggle until it covers
- * the screen. Browsers without View Transitions, and viewers who ask for reduced
- * motion, get an instant switch. Choosing an option that looks the same (System
- * while the OS is already dark, say) just records the choice.
- */
+/** flushSync so the `dark` class lands inside the View Transition snapshot. */
 export function useThemeSwitch() {
   const current = useResolvedTheme()
   const setTheme = useThemeStore((s) => s.setTheme)
@@ -53,7 +45,6 @@ export function useThemeSwitch() {
       }
 
       if (!document.startViewTransition || prefersReducedMotion()) {
-        // Still pause transitions for the frame, so nothing smears between palettes.
         root.classList.add(THEME_SWITCHING_CLASS)
         apply()
         requestAnimationFrame(() => root.classList.remove(THEME_SWITCHING_CLASS))
@@ -77,7 +68,7 @@ export function useThemeSwitch() {
           )
         })
         .catch(() => {
-          // Skipped (e.g. a second click mid-reveal) — the theme is already applied.
+          // Skipped (e.g. a second click mid-reveal); theme already applied.
         })
       void transition.finished.finally(() => root.classList.remove(THEME_SWITCHING_CLASS))
     },

@@ -2,18 +2,8 @@ import dayjs from 'dayjs'
 import type { ApiResponse } from '../types/portal-roles'
 import type { DailyUsage, SystemUsageRangeDays } from '../types/system-usage'
 
-/*
- * SAMPLE DATA — CPU per day before the last 24 h only.
- *
- * Everything else on the admin's Statistics screen is live (system-performance,
- * system-services and system-diagnostics). The server, though, keeps CPU readings
- * for 24 h only, so there is no record of earlier days to chart. Until it keeps a
- * daily rollup, those days come from this deterministic fixture, and the screen
- * draws them faded and labelled "sample". Replace with an `apiClient` call when a
- * daily-history endpoint lands; the last 24 h is filled in from live data either way.
- */
+/** SAMPLE DATA: the server keeps only 24 h of CPU; replace when a daily-history endpoint lands. */
 
-/** Small seeded PRNG — the same day always produces the same reading. */
 function seeded(seed: number) {
   let t = seed >>> 0
   return () => {
@@ -39,7 +29,7 @@ function sampleDay(day: dayjs.Dayjs): DailyUsage {
   }
 }
 
-/** The `rangeDays - 1` days before today, oldest first — today itself is live. */
+/** Today itself is live. */
 export async function getCpuHistory(
   rangeDays: SystemUsageRangeDays,
 ): Promise<ApiResponse<DailyUsage[]>> {

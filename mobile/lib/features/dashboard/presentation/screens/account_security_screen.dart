@@ -10,15 +10,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/account_security_
 import 'package:mobile/features/dashboard/presentation/widgets/connected_device_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Account Security landing, opened from the Profile tab. Lists the sign-in
-/// details that can be changed here — the email (guarded by an OTP sent to
-/// the current address first) and the password — and the devices signed in
-/// to the account from `GET /account/mobile/sessions`.
-///
-/// For an account that signs in through Google or Facebook, whatever its role,
-/// both controls are disabled: the provider owns the address and there is no
-/// password to change. The server refuses those calls too; this only keeps the
-/// user from starting a flow that cannot finish.
+/// Provider sign-in accounts get both controls disabled (the server refuses
+/// too); this just avoids starting a flow that can't finish.
 class AccountSecurityScreen extends StatefulWidget {
   const AccountSecurityScreen({
     super.key,
@@ -27,13 +20,10 @@ class AccountSecurityScreen extends StatefulWidget {
     this.signInProviderLabel = 'your sign-in provider',
   });
 
-  /// The address currently used to sign in.
   final String email;
 
-  /// True when the account has no password and at least one provider identity.
   final bool usesSocialSignIn;
 
-  /// "Google", "Facebook", or "Google and Facebook" — used in the disabled hints.
   final String signInProviderLabel;
 
   static void open(
@@ -66,10 +56,9 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
   bool _loadingDevices = true;
   String? _devicesError;
 
-  /// Session ids with a revoke in flight, so a row cannot be tapped twice.
+  /// Revokes in flight, so a row can't be tapped twice.
   final Set<String> _revoking = {};
 
-  /// How many sessions the landing shows before handing off to the full list.
   static const _devicePreviewCount = 3;
 
   @override

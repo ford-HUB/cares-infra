@@ -4,8 +4,7 @@ import {
   isEventVisibleTo,
 } from './event-audience';
 
-// The generated client is ESM, which Jest cannot load; only the college codes the
-// alias map is keyed on are needed here.
+// The generated client is ESM (Jest can't load it); only the college codes are needed.
 jest.mock('../../infastructures/prisma/common/client', () => ({
   ReportDepartment: {
     CCS: 'CCS',

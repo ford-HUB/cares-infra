@@ -6,20 +6,15 @@ import { TicketTypeBadge } from './ui/ticket-type-badge'
 interface SupportTicketsListProps {
   tickets: SupportTicket[]
   loading: boolean
-  /** False until the first fetch settles — see `support-ticket-store`. */
   initialized: boolean
   errored: boolean
   selectedId?: string
   onSelect: (ticket: SupportTicket) => void
 }
 
-/** Enough rows to fill the column before the list scrolls. */
+/** Enough rows to fill the column before it scrolls. */
 const SKELETON_ROWS = 12
 
-/**
- * The left-hand index: ticket number and type only. Everything else about a ticket
- * lives in the detail view it opens, so this column stays narrow and scannable.
- */
 export function SupportTicketsList({
   tickets,
   loading,

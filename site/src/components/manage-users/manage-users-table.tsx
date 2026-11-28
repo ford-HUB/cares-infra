@@ -20,19 +20,18 @@ import { UserStatusBadge } from './ui/user-status-badge'
 interface ManageUsersTableProps {
   users: ManagedUser[]
   loading: boolean
-  /** False until the first fetch settles — see `manage-users-store`. */
   initialized: boolean
   page: number
   onPageChange: (page: number) => void
   onView: (user: ManagedUser) => void
-  /** Each pair is optional: without the right, the row menu leaves that action out. */
+  /** Optional per right; without it the row menu leaves the action out. */
   onRestrict?: (user: ManagedUser) => void
   onUnrestrict?: (user: ManagedUser) => void
   onBlockIp?: (user: ManagedUser) => void
   onUnblockIp?: (user: ManagedUser) => void
   onReissueCredentials?: (user: ManagedUser) => void
   onDelete?: (user: ManagedUser) => void
-  /** Suspended rights — the matching menu entry is drawn locked rather than left out. */
+  /** Suspended rights draw the menu entry locked instead of omitting it. */
   restrictSuspension?: SessionSuspension
   blockIpSuspension?: SessionSuspension
 }
@@ -64,8 +63,7 @@ export function ManageUsersTable({
     USER_HEADER_HEIGHT_PX,
   )
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A refilter
-  // or refetch keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; refetches keep existing rows on screen.
   const showSkeleton = !initialized || (loading && users.length === 0)
 
   const totalPages = Math.max(1, Math.ceil(users.length / rowsPerPage))

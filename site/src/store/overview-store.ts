@@ -8,10 +8,6 @@ import type { OverviewData } from '../types/overview'
 interface OverviewState {
   overview: OverviewData | null
   loading: boolean
-  /**
-   * False until the first fetch settles, so the mount render — `loading` still false,
-   * `overview` still null — renders the skeleton instead of a blank frame.
-   */
   initialized: boolean
   error: string | null
   fetchAdminOverview: () => Promise<void>

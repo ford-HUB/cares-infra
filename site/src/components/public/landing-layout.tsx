@@ -4,7 +4,6 @@ import { useRealignHashAfterFonts } from '../../hooks/use-realign-hash-after-fon
 import { LandingFooter } from './landing-footer'
 import { LandingHeader } from './landing-header'
 
-/** Shell for the public site: shared header and footer around the single page. */
 export function LandingLayout() {
   useLandingZoom()
   useRealignHashAfterFonts()

@@ -3,16 +3,13 @@ import type { OverviewSlice } from './overview-slice'
 
 interface OverviewLegendProps {
   slices: OverviewSlice[]
-  /** The whole the slices divide, so every count carries its denominator. */
+  /** The denominator for every count. */
   total: number
-  /** Two columns under a donut, one column beside a bar. */
+  /** Two columns under a donut, one beside a bar. */
   columns?: 1 | 2
 }
 
-/**
- * The key for a part-to-whole chart: swatch, label, count, share. Identity never rides
- * on colour alone — the label is always next to the swatch.
- */
+/** Labels sit next to swatches, so identity never rides on colour alone. */
 export function OverviewLegend({ slices, total, columns = 2 }: OverviewLegendProps) {
   return (
     <ul

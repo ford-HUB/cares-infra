@@ -8,10 +8,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/rank_tier_frame.d
 import 'package:mobile/features/dashboard/presentation/widgets/ranks_tab_widgets.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
-/// The donor leaderboard. Scored on the server from confirmed donations —
-/// one point per the portal's pesos-per-point rate, goods credited at the
-/// value set per type — and cut into the same tier ladder the volunteers
-/// wear. The same fetch feeds the home hero's rank badge.
+/// Server-scored from confirmed donations (goods at their per-type value); same
+/// tier ladder as volunteers. The same fetch feeds the home hero's badge.
 class DonorRanksTab extends ConsumerWidget {
   const DonorRanksTab({super.key, this.displayName = 'You'});
 

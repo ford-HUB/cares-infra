@@ -8,12 +8,12 @@ import type {
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
-/** The singleton row plus its channel rows — the shape every read here returns. */
+/** Singleton row plus its channel rows. */
 export type PaymentSettingsRow = Prisma.PaymentGatewaySettingsGetPayload<{
   include: { methods: true };
 }>;
 
-/** What a save writes on the settings row; the secrets are already ciphertext. */
+/** Secrets already encrypted. */
 export interface PaymentSettingsWrite {
   mode: PaymentGatewayMode;
   enabled: boolean;
@@ -21,7 +21,7 @@ export interface PaymentSettingsWrite {
   statement_name: string | null;
   support_email: string | null;
   support_contact: string | null;
-  /** Undefined leaves the stored secret alone; null clears it. */
+  /** Undefined keeps the stored secret; null clears it. */
   secret_key_cipher?: string | null;
   secret_key_last4?: string | null;
   webhook_token_cipher?: string | null;
@@ -38,10 +38,7 @@ export interface PaymentMethodWrite {
   min_amount: number;
   max_amount: number;
   sort_order: number;
-  /**
-   * Only set when a save switches the channel off: its activation verdict is cleared
-   * so a channel that comes back on is checked again rather than trusting an old pass.
-   */
+  /** Set only when switched off, so re-enabling re-checks activation. */
   verification?: PaymentMethodVerification;
   verified_at?: Date | null;
   verification_message?: string | null;
@@ -49,7 +46,6 @@ export interface PaymentMethodWrite {
   callbacks_registered_at?: Date | null;
 }
 
-/** One step of the ownership proof, as written onto the channel's row. */
 export interface PaymentAccountProofWrite {
   account_proof: PaymentAccountProof;
   account_proof_amount?: number | null;
@@ -62,7 +58,6 @@ export interface PaymentAccountProofWrite {
   account_verified_at?: Date | null;
 }
 
-/** The verdict of one activation check, as written onto the channel's row. */
 export interface PaymentMethodVerificationWrite {
   verification: PaymentMethodVerification;
   verified_at: Date | null;
@@ -75,7 +70,7 @@ export interface PaymentMethodVerificationWrite {
 export class PaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Null until the director saves the module for the first time. */
+  /** Null until first saved. */
   async findSettings(): Promise<PaymentSettingsRow | null> {
     return this.prisma.paymentGatewaySettings.findUnique({
       where: { singleton: true },
@@ -83,11 +78,7 @@ export class PaymentsRepository {
     });
   }
 
-  /**
-   * Upserts the one row and replaces its channel rows, in a single transaction: a
-   * half-applied save would leave a channel enabled against credentials that were
-   * never stored.
-   */
+  /** One transaction, so no channel is enabled against unsaved credentials. */
   async saveSettings(
     settings: PaymentSettingsWrite,
     methods: PaymentMethodWrite[],
@@ -127,11 +118,7 @@ export class PaymentsRepository {
     });
   }
 
-  /**
-   * The settings row and a row per channel, created on first use. The activation check
-   * can run before the director has ever pressed Save, so it cannot assume either
-   * exists.
-   */
+  /** Created on first use; the activation check can run before any save. */
   async ensureSettings(
     methods: PaymentMethodWrite[],
     updatedByUserId: string,
@@ -152,7 +139,7 @@ export class PaymentsRepository {
             },
           },
           create: { ...method, settings_id: row.payment_gateway_settings_id },
-          // Only fills the gap — an existing channel keeps everything it was saved with.
+          // Only fills gaps; existing channels unchanged.
           update: {},
         });
       }
@@ -164,7 +151,6 @@ export class PaymentsRepository {
     });
   }
 
-  /** Writes one step of the ownership proof onto a channel. */
   async recordAccountProof(
     settingsId: string,
     method: DonationPaymentMethod,
@@ -181,7 +167,6 @@ export class PaymentsRepository {
     });
   }
 
-  /** Writes the verdict of an activation check onto one channel. */
   async recordMethodVerification(
     settingsId: string,
     method: DonationPaymentMethod,
@@ -198,10 +183,7 @@ export class PaymentsRepository {
     });
   }
 
-  /**
-   * Records the outcome of a connection test. `verification_error` is cleared on a
-   * pass, so the portal never shows a stale reason next to a working key.
-   */
+  /** Clears `verification_error` on pass. */
   async recordVerification(
     settingsId: string,
     error: string | null,

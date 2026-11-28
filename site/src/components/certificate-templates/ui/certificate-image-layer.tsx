@@ -6,10 +6,7 @@ interface CertificateImageLayerProps {
   images: CertificateImage[]
 }
 
-/**
- * The placed images, drawn exactly as the editor positions them. Stacking is the
- * image's own `z`: below zero it prints behind the wording, above zero in front.
- */
+/** Stacking is the image's `z`: < 0 prints behind the wording, > 0 in front. */
 export function CertificateImageLayer({ images }: CertificateImageLayerProps) {
   return (
     <>

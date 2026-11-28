@@ -11,9 +11,9 @@ import { StarRating } from './ui/star-rating'
 
 interface AnswersToolbarProps {
   search: string
-  /** Event id as a string, or `ANSWER_EVENT_FILTER_ALL`. */
+  /** Event id, or `ANSWER_EVENT_FILTER_ALL`. */
   event: string
-  /** Every event with at least one response, newest submission first. */
+  /** Events with at least one response, newest submission first. */
   events: { id: number; title: string }[]
   department: string
   rating: string
@@ -21,16 +21,14 @@ interface AnswersToolbarProps {
   departments: string[]
   shown: number
   total: number
-  /** Mean star rating across every response, one decimal. */
+  /** One decimal. */
   averageRating: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onEventChange: (value: string) => void
   onDepartmentChange: (value: string) => void
   onRatingChange: (value: string) => void
   onStatusChange: (value: AnswerStatusFilter) => void
-  /** Generates the answers report as a PDF. */
   onExport: () => void
 }
 
@@ -39,7 +37,6 @@ const selectClass =
 
 const RATING_FILTERS = [5, 4, 3, 2, 1]
 
-/** Page header for the answers grid — the same cut as the users master toolbar. */
 export function AnswersToolbar({
   search,
   event,

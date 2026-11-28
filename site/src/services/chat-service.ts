@@ -86,7 +86,7 @@ export async function fetchChatConversation(
   }
 }
 
-/** Multipart so the S3 upload and the message land in one request. */
+/** Multipart so the S3 upload and message land in one request. */
 export async function sendChatMessage(
   contactId: string,
   body: string,
@@ -119,7 +119,7 @@ export async function markConversationRead(
   }
 }
 
-/** Attachments are private in S3, so they are streamed through the API. */
+/** Private in S3, so streamed through the API. */
 export function chatAttachmentPath(attachmentId: string): string {
   return `/api/v1/chat/attachments/${attachmentId}`
 }

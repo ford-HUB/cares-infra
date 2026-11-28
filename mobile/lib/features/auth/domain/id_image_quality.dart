@@ -10,13 +10,9 @@ extension IdCardSideX on IdCardSide {
   String get label => this == IdCardSide.front ? 'front' : 'back';
 }
 
-/// Why a photo of one side of an ID was rejected before upload.
-///
-/// Image-quality issues can always be fixed by retaking the photo, so they
-/// always block. [missingIdDetails] depends on how the ID is laid out, and
-/// the portrait checks depend on a face detector that can miss a small or
-/// printed photo, so those can be overridden after repeated attempts
-/// ([overridable]).
+/// Quality issues always block; [missingIdDetails] and portrait checks depend
+/// on layout or a fallible detector, so they're [overridable] after repeated
+/// attempts.
 enum IdImageIssue {
   unreadableFile,
   tooSmall,
@@ -28,11 +24,9 @@ enum IdImageIssue {
   noReadableText,
   missingIdDetails,
 
-  /// No face could be found on the front of the ID.
   faceNotFound,
 
-  /// The ID's portrait is blurry, even if the rest of the card reads fine —
-  /// the face scan is matched against it.
+  /// The face scan is matched against it.
   faceBlurry;
 
   bool get overridable =>
@@ -83,8 +77,8 @@ enum IdImageIssue {
   };
 }
 
-/// Pixel statistics for one photo, measured on a downscaled greyscale copy so
-/// thresholds behave the same whatever resolution the camera produced.
+/// Measured on a downscaled greyscale copy so thresholds ignore camera
+/// resolution.
 class IdImageQualityMetrics {
   const IdImageQualityMetrics({
     required this.width,
@@ -95,7 +89,7 @@ class IdImageQualityMetrics {
     required this.sharpness,
   });
 
-  /// Size of the original (orientation-corrected) image.
+  /// Original, orientation-corrected.
   final int width;
   final int height;
 
@@ -112,14 +106,13 @@ class IdImageQualityMetrics {
   final double sharpness;
 }
 
-/// Thresholds for [IdImageQualityRules]. Tune here, not in the widget.
+/// Tune here, not in the widget.
 abstract final class IdImageQualityThresholds {
-  /// Longest side the analysis runs at. Sharpness is resolution-dependent,
-  /// so every photo is measured at this size.
+  /// Sharpness is resolution-dependent, so every photo is measured at this
+  /// size.
   static const analysisLongSide = 1000;
 
-  /// Below roughly this size the 8-digit student ID is only a few pixels tall
-  /// and OCR starts flipping digits (5/6, 8/9), so ask for a sharper photo.
+  /// Below this the 8-digit ID is too small and OCR flips digits (5/6, 8/9).
   static const minLongSide = 1280;
   static const minShortSide = 960;
   static const minMeanLuma = 55.0;
@@ -129,13 +122,11 @@ abstract final class IdImageQualityThresholds {
   static const minLumaStdDev = 22.0;
   static const minSharpness = 45.0;
 
-  /// The ID portrait is measured at this width, so its sharpness does not
-  /// depend on how large the card is in the photo.
+  /// Fixed width so portrait sharpness ignores the card's size in the photo.
   static const faceAnalysisWidth = 160;
 
-  /// Variance of the Laplacian on the portrait at [faceAnalysisWidth]. A face
-  /// has fewer hard edges than printed text, so this sits well below
-  /// [minSharpness]. Tune against real IDs if blurry portraits slip through.
+  /// Faces have fewer hard edges than text, so well below [minSharpness]; tune
+  /// on real IDs.
   static const minFaceSharpness = 20.0;
 
   /// Alphanumeric characters / text lines ML Kit must read off a side.
@@ -146,8 +137,7 @@ abstract final class IdImageQualityThresholds {
 }
 
 abstract final class IdImageQualityRules {
-  /// Decodes [bytes] and measures them. Returns null when the file is not an
-  /// image. Pure CPU work — run it off the UI isolate.
+  /// Null when not an image. CPU-bound: run off the UI isolate.
   static IdImageQualityMetrics? measure(Uint8List bytes) {
     img.Image? decoded;
     try {
@@ -205,10 +195,8 @@ abstract final class IdImageQualityRules {
     );
   }
 
-  /// Sharpness of one region of the photo — the ID portrait — in the same
-  /// orientation-corrected pixel space ML Kit reports its face box in. Null
-  /// when the file is not an image or the region is empty. Run off the UI
-  /// isolate.
+  /// Region in ML Kit's orientation-corrected face-box space. Null when not an
+  /// image or empty; run off the UI isolate.
   static double? measureRegionSharpness(
     Uint8List bytes, {
     required int left,
@@ -264,8 +252,7 @@ abstract final class IdImageQualityRules {
     return sumSq / n - mean * mean;
   }
 
-  /// Image-quality problems, most fundamental first, so the banner leads with
-  /// the one most likely to fix the rest (a dark photo is also low-contrast).
+  /// Most fundamental first (a dark photo is also low-contrast).
   static List<IdImageIssue> evaluate(IdImageQualityMetrics m) {
     final issues = <IdImageIssue>[];
     final longSide = m.width > m.height ? m.width : m.height;
@@ -294,8 +281,6 @@ abstract final class IdImageQualityRules {
   }
 }
 
-/// Checks that the on-device OCR text of a side is readable, and that the
-/// details registration needs can actually be found on the card.
 abstract final class IdTextReadabilityRules {
   static bool isReadable(IdCardSide side, String text) {
     final chars = RegExp(r'[A-Za-z0-9]').allMatches(text).length;
@@ -310,11 +295,8 @@ abstract final class IdTextReadabilityRules {
               lines >= IdImageQualityThresholds.minBackLines;
   }
 
-  /// Labels of the identifying fields that can't be read from [frontText]
-  /// and [backText] combined. With only the front available, finding either
-  /// the name or the ID number is enough to show it is the right side; once
-  /// both sides are in, both must be found. [staffId] reads the card as a
-  /// staff/faculty ID (see [RegisterOcrRawParser.parse]).
+  /// Front only: name or ID number suffices; with both sides, both are
+  /// required.
   static List<String> missingKeyFields({
     required String frontText,
     String? backText,

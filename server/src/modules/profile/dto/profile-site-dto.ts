@@ -8,16 +8,13 @@ import {
   UpdatePortalProfileSchema,
 } from '../validators/profile-site-validator';
 
-/**
- * `avatar` / `signature` are the portal's assets on the user row;
- * `avatar:<ROLE>` is a mobile role's own photo (see `UserRoleAvatar`).
- */
+/** `avatar`/`signature` are portal assets on the user row; `avatar:<ROLE>` is a mobile role's photo (`UserRoleAvatar`). */
 export type ProfileAssetKind = 'avatar' | 'signature' | `avatar:${RoleType}`;
 
 export type PortalProfileDto = z.infer<typeof PortalProfileResponseSchema>;
 export type UpdatePortalProfileDto = z.infer<typeof UpdatePortalProfileSchema>;
 
-/** Repository-facing shape — `department` is resolved to null for directors before persisting. */
+/** `department` is null for directors. */
 export interface PersistPortalProfileDto {
   firstname: string;
   lastname: string;

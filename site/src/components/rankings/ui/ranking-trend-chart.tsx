@@ -22,14 +22,10 @@ interface RankingTrendChartProps {
 
 const CHART_HEIGHT = 'h-64'
 
-/** Recharts keys rows by field, so each standing gets a stable series key. */
+/** Recharts keys rows by field, so each standing needs a stable series key. */
 const seriesKey = (rank: number) => `rank${rank}`
 
-/**
- * The top three only, each line in its own podium colour, so the chart reads as the
- * same race the podium above it shows. Points are cumulative: the line pulling ahead
- * is the one that stayed active.
- */
+/** Top three in podium colours; points are cumulative. */
 export function RankingTrendChart({ trend, loading }: RankingTrendChartProps) {
   if (loading) {
     return (
@@ -49,7 +45,7 @@ export function RankingTrendChart({ trend, loading }: RankingTrendChartProps) {
     ]),
   )
 
-  // One row per month, each standing a column — the shape Recharts charts read.
+  // One row per month, one column per standing, as Recharts expects.
   const rows = trend.labels.map((label, index) => ({
     month: label,
     ...Object.fromEntries(
@@ -81,7 +77,6 @@ export function RankingTrendChart({ trend, loading }: RankingTrendChartProps) {
             className="text-[11px]"
             tickFormatter={(value: number) => formatNumber(value)}
           />
-          {/* Shared crosshair readout, so the three standings compare at a glance. */}
           <ChartTooltip
             cursor={{ stroke: '#d1d5db', strokeDasharray: '4 4' }}
             content={
@@ -99,7 +94,7 @@ export function RankingTrendChart({ trend, loading }: RankingTrendChartProps) {
               dataKey={seriesKey(series.rank)}
               stroke={`var(--color-${seriesKey(series.rank)})`}
               strokeWidth={2}
-              // A surface ring keeps markers readable where the lines cross.
+              // A surface ring keeps markers readable where lines cross.
               dot={{ r: 4, strokeWidth: 2, stroke: '#ffffff' }}
               activeDot={{ r: 6, strokeWidth: 2, stroke: '#ffffff' }}
             />

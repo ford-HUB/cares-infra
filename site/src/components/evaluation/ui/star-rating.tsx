@@ -4,16 +4,13 @@ interface StarRatingProps {
   value: number
   max?: number
   size?: 'sm' | 'md'
-  /** Shows "4/5" beside the stars — used in table rows where the stars alone are small. */
+  /** Shows "4/5" beside the stars, for small table rows. */
   showValue?: boolean
-  /** Interactive stars for the builder preview; read-only when omitted. */
+  /** Read-only when omitted. */
   onChange?: (value: number) => void
 }
 
-/**
- * The one star renderer for the module — the builder preview, the answers row and
- * the answer modal all draw stars through here so they cannot drift apart.
- */
+/** The module's only star renderer, so builder, rows and modal can't drift apart. */
 export function StarRating({
   value,
   max = 5,

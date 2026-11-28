@@ -7,17 +7,13 @@ import {
 export const SESSIONS_DEFAULT_LIMIT = 25;
 export const SESSIONS_MAX_LIMIT = 200;
 
-/** `all` keeps the portal's filter selects a single value space. */
+/** `all` keeps the filter a single value space. */
 export const ListSessionsQuerySchema = z
   .object({
     search: z.string().trim().max(120).optional(),
     source: z.union([z.literal('all'), z.enum(LoginSource)]).default('all'),
     role: z.union([z.literal('all'), z.enum(RoleType)]).default('all'),
-    /**
-     * Keyset cursor — `{signed-in timestamp}_{session id}` of the last row already
-     * shown. Composite so a page still lands correctly when the row it points at was
-     * revoked between requests.
-     */
+    /** `{signed-in timestamp}_{session id}`; composite so it survives revocation of that row. */
     cursor: z.string().trim().min(1).max(120).optional(),
     limit: z.coerce
       .number()
@@ -34,11 +30,7 @@ export const SessionUserParamSchema = z.uuid();
 
 export const RevokeUserSessionsQuerySchema = z
   .object({
-    /**
-     * Lets an admin end their own other devices without signing the current browser
-     * out in the same click. Parsed off the literal, not coerced — `Boolean('false')`
-     * is `true`, which would silently spare a device the caller asked to end.
-     */
+    /** Parsed off the literal, not coerced: `Boolean('false')` is `true`. */
     keep_current: z
       .enum(['true', 'false'])
       .default('false')
@@ -50,7 +42,7 @@ export const ActiveSessionSchema = z.object({
   session_id: z.string(),
   user_id: z.string(),
   email: z.string(),
-  /** Null when the account was deleted while its session was still live. */
+  /** Null when the account was deleted with a live session. */
   firstname: z.string().nullable(),
   lastname: z.string().nullable(),
   avatar: z.string().nullable(),
@@ -63,15 +55,15 @@ export const ActiveSessionSchema = z.object({
   created_at: z.iso.datetime(),
   last_seen_at: z.iso.datetime(),
   expires_at: z.iso.datetime(),
-  /** True for the device that made this request, which must not be revoked blindly. */
+  /** The requesting device. */
   is_current: z.boolean(),
 });
 
 export const SessionsPageResponseSchema = z.object({
   items: z.array(ActiveSessionSchema),
-  /** Every session matching the filters, not just the rows on this page. */
+  /** Across all pages. */
   total: z.number(),
-  /** Null once the list is exhausted — that is how the scroll knows to stop. */
+  /** Null once exhausted; stops the scroll. */
   next_cursor: z.string().nullable(),
 });
 

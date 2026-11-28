@@ -1,7 +1,5 @@
-/// What a volunteer registers to do at an event — the server's
-/// `EventParticipationRole`. [regular] is confirmed on registration; the
-/// others are held pending until a Director or Coordinator approves them,
-/// on what they know of the volunteer — nothing is uploaded as proof.
+/// Server `EventParticipationRole`. [regular] is confirmed on registration;
+/// others wait for Director/Coordinator approval (no proof upload).
 enum EventParticipationRole {
   regular(
     apiValue: 'REGULAR',
@@ -35,11 +33,10 @@ enum EventParticipationRole {
   final String label;
   final String description;
 
-  /// Every role but Regular goes to a Director or Coordinator for review.
   bool get requiresApproval => this != EventParticipationRole.regular;
 
-  /// Null for a missing or unrecognised value, so an older server reads as
-  /// "no role on record" instead of failing the whole event row.
+  /// Null for missing or unknown values, so an older server reads as no role
+  /// instead of failing the row.
   static EventParticipationRole? fromApi(String? value) {
     for (final role in values) {
       if (role.apiValue == value) return role;
@@ -53,8 +50,7 @@ enum EventRoleApproval {
   approved('APPROVED'),
   pending('PENDING'),
 
-  /// Not approved: the registration stands and the volunteer takes part as
-  /// Regular.
+  /// The registration stands; the volunteer takes part as Regular.
   rejected('REJECTED');
 
   const EventRoleApproval(this.apiValue);

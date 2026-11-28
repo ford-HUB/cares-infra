@@ -2,7 +2,6 @@ import type { CSSProperties } from 'react'
 import { EVALUATION_FONT_META, EVALUATION_FONT_SIZE_META } from '../constants/evaluation'
 import type { EvaluationTypography } from '../types/evaluation'
 
-/** Inline styles for a title and its helper text under one typography setting. */
 export function typographyStyles(typography: EvaluationTypography): {
   title: CSSProperties
   body: CSSProperties

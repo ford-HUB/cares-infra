@@ -20,14 +20,7 @@ function matches(term: string, ...fields: (string | null)[]): boolean {
   return fields.some((field) => field?.toLowerCase().includes(term))
 }
 
-/**
- * Every board is loaded together and held in the store. Switching view or board is
- * a view change; switching period refetches, since the standings are counted over
- * it on the server. Saved settings rescore the standings too.
- *
- * Search and filters narrow the list client-side and never re-rank it: a row keeps
- * the standing it earned on the whole board.
- */
+/** Period refetches (counted server-side); search/filters narrow client-side without re-ranking. */
 export function useRankings() {
   const settings = useRankingStore((state) => state.settings)
   const volunteers = useRankingStore((state) => state.volunteers)
@@ -51,9 +44,7 @@ export function useRankings() {
     DEPARTMENT_RANKING_DEFAULT_BASIS,
   )
 
-  // A coordinator is ranked against their own college's event record — the server
-  // cuts the board for them — and there is no donor side to that record, so the
-  // board is pinned to volunteers and the other tabs are not offered.
+  // Server cuts the board to the coordinator's college, with no donor side.
   const isCoordinator = usePortalRole() === 'coordinator'
 
   useEffect(() => {
@@ -64,7 +55,6 @@ export function useRankings() {
     ? RANKING_BOARDS.filter((item) => item.value === 'volunteer')
     : RANKING_BOARDS
 
-  // A search typed for one board rarely makes sense on another.
   const changeBoard = (next: RankingBoard) => {
     setBoard(next)
     setSearch('')
@@ -108,8 +98,6 @@ export function useRankings() {
     [donors, donorKind, term],
   )
 
-  // The basis re-orders the whole board (the dashboard podium follows it too);
-  // search only narrows the list afterwards.
   const departments = useMemo<DisplayedDepartment[]>(
     () =>
       departmentRankings.entries
@@ -130,7 +118,6 @@ export function useRankings() {
   return {
     view,
     setView,
-    // Until the operator picks one, the board and period follow the saved defaults.
     board: isCoordinator ? 'volunteer' : (board ?? settings.defaultBoard),
     setBoard: changeBoard,
     boards,

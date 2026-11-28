@@ -6,8 +6,7 @@ interface LegalTocProps {
   activeId: string
 }
 
-/** "On this page" list. Plain hash links, so each section is deep-linkable and the
- *  browser handles the jump; the current section is marked while scrolling. */
+/** Plain hash links, so sections are deep-linkable and the browser handles the jump. */
 export function LegalToc({ sections, activeId }: LegalTocProps) {
   return (
     <ol className="space-y-0.5 text-[13px]">

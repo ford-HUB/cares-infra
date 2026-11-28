@@ -1,5 +1,4 @@
-// Unit tests for donations — a donor giving money or goods to an event that
-// accepts them, and following the donation until CARES confirms it:
+// Unit tests for donations, money and goods, through confirmation:
 //
 //   GET   /v1/events/donations            DonationService.fetchCampaigns
 //   GET   /v1/donations/me                DonationService.fetchMine
@@ -14,10 +13,9 @@
 //   DonorSummary, and DonationFlowScreen (money via QR Ph and GCash, goods
 //   pledge, status views, edit and cancel).
 //
-// The flow screen builds its own services, so the network is package:http's
-// MockClient through `http.runWithClient`. The browser hand-off for GCash goes
-// to a fake url_launcher channel. Every campaign, payment and donation is a
-// local fixture — nothing reaches a server or the payment gateway.
+// The flow builds its own services, so MockClient goes in via
+// `http.runWithClient`; the GCash hand-off goes to a fake url_launcher channel.
+// All data is local fixtures.
 
 import 'dart:async';
 import 'dart:convert';
@@ -58,10 +56,6 @@ const _campaignTitle = 'Typhoon Odette Relief Drive';
 const _qrString =
     '00020101021228580011ph.ppmi.p2m0111CARESQRPH5204000053036085802PH';
 const _gcashUrl = 'https://checkout.xendit.test/gcash/pay-1';
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 Map<String, dynamic> _eventJson({
   int id = 42,
@@ -223,10 +217,6 @@ Donation _goods({
 Donation _money({String status = 'PLEDGED'}) =>
     Donation.fromJson(_donationJson(status: status));
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 typedef _Handler = Future<http.Response> Function(http.Request request);
 
 /// Answers the donation endpoints. Each route can be replaced per test.
@@ -325,10 +315,6 @@ http.Response _fail(int status, String message) =>
 Map<String, dynamic> _bodyOf(http.Request request) =>
     jsonDecode(request.body) as Map<String, dynamic>;
 
-// ---------------------------------------------------------------------------
-// Fake browser hand-off
-// ---------------------------------------------------------------------------
-
 class _Launcher {
   static const channel = MethodChannel('plugins.flutter.io/url_launcher');
 
@@ -345,16 +331,11 @@ class _Launcher {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Flow harness
-// ---------------------------------------------------------------------------
-
 class _Outcome {
   bool closed = false;
 }
 
-/// Opens the donation flow from a launcher page, inside a ProviderScope,
-/// on a tall surface so each step is fully built.
+/// On a tall surface so each step is fully built.
 Future<_Outcome> _openFlow(
   WidgetTester tester, {
   DonationCampaign? campaign,
@@ -397,8 +378,7 @@ Future<_Outcome> _openFlow(
   return outcome;
 }
 
-/// Pumps through a step change (the 220 ms switcher) without waiting for
-/// spinners to stop.
+/// Through the 220 ms step switcher, without waiting for spinners.
 Future<void> _settle(WidgetTester tester) async {
   await tester.pump();
   for (var i = 0; i < 4; i++) {
@@ -436,7 +416,6 @@ String get _title =>
             as Text)
         .data!;
 
-/// The value next to a summary row label.
 String _row(WidgetTester tester, String label) {
   final row = find.ancestor(of: find.text(label), matching: find.byType(Row));
   return tester
@@ -526,18 +505,13 @@ void main() {
     AuthSession.onSessionEnded = null;
   });
 
-  /// A widget test with the flow's network faked, that drops the
-  /// notification follow-up timer before the test ends.
+  /// Drops the notification follow-up timer before the test ends.
   void flowTest(String description, Future<void> Function(WidgetTester) body) {
     testWidgets(description, (tester) async {
       await http.runWithClient(() => body(tester), server.client);
       NotificationSync.instance.stop();
     });
   }
-
-  // =========================================================================
-  // Formatting
-  // =========================================================================
 
   group('DonationFormat', () {
     test('peso: compact thousands for tiles', () {
@@ -582,10 +556,6 @@ void main() {
       expect(DonationFormat.isoDate(DateTime(987, 12, 31)), '0987-12-31');
     });
   });
-
-  // =========================================================================
-  // Models
-  // =========================================================================
 
   group('donation enums', () {
     test('kind from the wire, money by default', () {
@@ -1024,10 +994,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Services
-  // =========================================================================
-
   group('DonationService', () {
     DonationService service() =>
         DonationService(apiClient: ApiClient(client: server.client()));
@@ -1240,10 +1206,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Flow — choosing how to give
-  // =========================================================================
-
   group('DonationFlowScreen — start', () {
     flowTest('asks money or goods when the event takes both', (tester) async {
       await _openFlow(tester, campaign: _campaign());
@@ -1300,10 +1262,6 @@ void main() {
       }
     });
   });
-
-  // =========================================================================
-  // Flow — money amount and method
-  // =========================================================================
 
   group('DonationFlowScreen — amount', () {
     flowTest('₱500 is preselected and presets replace it', (tester) async {
@@ -1436,10 +1394,6 @@ void main() {
       expect(find.text('Paid To'), findsNothing);
     });
   });
-
-  // =========================================================================
-  // Flow — checkout
-  // =========================================================================
 
   group('DonationFlowScreen — QR Ph checkout', () {
     flowTest('opens a checkout and shows the code to scan', (tester) async {
@@ -1816,10 +1770,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Flow — goods pledge
-  // =========================================================================
-
   group('DonationFlowScreen — goods pledge', () {
     flowTest('picking a listed good asks for optional details and quantity', (
       tester,
@@ -1981,10 +1931,6 @@ void main() {
       expect(server.where('POST', _goodsPath), hasLength(1));
     });
   });
-
-  // =========================================================================
-  // Flow — an existing donation
-  // =========================================================================
 
   group('DonationFlowScreen — existing goods donation', () {
     flowTest('opens on its status and re-reads it', (tester) async {
@@ -2272,10 +2218,6 @@ void main() {
       isA<DonationPaymentService>(),
     );
   });
-
-  // =========================================================================
-  // Invalid fields
-  // =========================================================================
 
   group('DonationFlowScreen — invalid fields', () {
     const amountHint = 'Enter amount';

@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors the questionnaire table's seven columns while the first fetch settles. */
 export function EvaluationFormsTableSkeleton({ rows }: { rows: number }) {
   return (
     <tbody aria-hidden className="divide-y divide-gray-100">

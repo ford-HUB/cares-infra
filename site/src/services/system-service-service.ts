@@ -6,12 +6,7 @@ import type {
 } from '../types/system-service'
 import { apiClient, parseApiError } from './api-client'
 
-/**
- * The scheduler control plane on the server: BullMQ job schedulers, joined with the
- * run history the workers record. Every control returns the whole roster after the
- * change, so the store swaps rather than patches. Failures throw with the server's
- * message — the store turns that into the toast.
- */
+/** BullMQ schedulers plus run history; every control returns the whole roster. */
 
 interface ServiceTriggerApiResponse {
   mode: ServiceTrigger['mode']
@@ -106,7 +101,6 @@ export function fetchSystemServices(): Promise<SystemService[]> {
   return rosterRequest(() => apiClient.get('/api/v1/system-services'))
 }
 
-/** The log the worker wrote for its recent runs, newest line last. */
 export async function fetchServiceLogs(id: string): Promise<ServiceLogEntry[]> {
   try {
     const { data: body } = await apiClient.get<{
@@ -125,19 +119,19 @@ export async function fetchServiceLogs(id: string): Promise<ServiceLogEntry[]> {
   }
 }
 
-/** The 24/7 switch: pausing removes the trigger, resuming re-arms it. */
+/** Pausing removes the trigger; resuming re-arms it. */
 export function setServicePaused(id: string, paused: boolean): Promise<SystemService[]> {
   return rosterRequest(() =>
     apiClient.patch(`/api/v1/system-services/${id}/paused`, { paused }),
   )
 }
 
-/** Fires a run outside the schedule; the next trigger is left where it was. */
+/** The next trigger is left where it was. */
 export function triggerServiceRun(id: string): Promise<SystemService[]> {
   return rosterRequest(() => apiClient.post(`/api/v1/system-services/${id}/run`))
 }
 
-/** Cancels a queued manual run; a run already executing cannot be interrupted. */
+/** A run already executing can't be interrupted. */
 export function stopServiceRun(id: string): Promise<SystemService[]> {
   return rosterRequest(() => apiClient.post(`/api/v1/system-services/${id}/stop`))
 }

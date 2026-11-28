@@ -1,11 +1,10 @@
 import type { ManagedUser, ManagedUserVerificationStatus } from '../types/manage-users'
 import { LANDING_PARTNER_BARANGAYS } from './landing-home'
 
-/** Fixed row metrics — the grid measures its container against these to fill the viewport. */
 export const USER_ROW_HEIGHT_PX = 44
 export const USER_HEADER_HEIGHT_PX = 36
 
-/** The table paginates client-side, so the service pulls pages up to this ceiling. */
+/** Table paginates client-side; service fetches up to this ceiling. */
 export const MANAGE_USERS_PAGE_SIZE = 100
 export const MANAGE_USERS_MAX_LOADED = 2000
 
@@ -22,14 +21,9 @@ export const USER_STATUS_FILTERS: { value: UserStatusFilter; label: string }[] =
   { value: 'expired', label: 'Expired' },
 ]
 
-/** The role select's value for an app-side account; the actual role comes from its type. */
+/** App-side account; the actual role comes from its type. */
 export const REGULAR_USER_ROLE = 'REGULAR'
 
-/**
- * Roles an administrator can provision from the portal. The portal roles map straight to
- * a role type; "Regular User" is an app account whose role is picked from
- * `REGULAR_USER_TYPES`.
- */
 export const PROVISIONABLE_ROLES = [
   { value: 'ADMIN', label: 'Admin' },
   { value: 'DIRECTOR', label: 'Director' },
@@ -37,14 +31,9 @@ export const PROVISIONABLE_ROLES = [
   { value: REGULAR_USER_ROLE, label: 'Regular User' },
 ] as const
 
-/** The Regular User type for a volunteer from one of the adopted partner barangays. */
 export const PARTNER_BARANGAY_USER_TYPE = 'VOLUNTEER_PARTNER_BARANGAY'
 
-/**
- * The kinds of app account a Regular User can be. Student, staff, alumni and partner
- * barangay are all the `VOLUNTEER` role, told apart by `volunteerType` (the same STUDENT /
- * STAFF / ALUMNI / PARTNER_BARANGAY values the mobile app's `VolunteerType` sends).
- */
+/** All `VOLUNTEER` role, told apart by `volunteerType` (matches mobile `VolunteerType`). */
 export const REGULAR_USER_TYPES = [
   {
     value: 'VOLUNTEER_STUDENT',
@@ -92,12 +81,7 @@ export const REGULAR_USER_TYPES = [
 
 export type RegularUserType = (typeof REGULAR_USER_TYPES)[number]['value']
 
-/**
- * Departments an account can be provisioned into. Mirrors `UclmDepartments.names` in the
- * mobile app (mobile/lib/core/constants/uclm_departments.dart) — the full name is what is
- * stored on the profile, so it matches a volunteer's department in the app and a row in
- * the department statistics by name.
- */
+/** Mirrors mobile `UclmDepartments.names`; the full name is stored on the profile. */
 export const PROVISIONABLE_DEPARTMENTS = [
   'College of Maritime Engineering',
   'College of Teacher Education (BSED)',
@@ -116,16 +100,12 @@ export const PROVISIONABLE_DEPARTMENTS = [
   'Non-Teaching Personnel',
 ].map((name) => ({ value: name, label: name }))
 
-/**
- * The partner barangays a partner-barangay volunteer can belong to. Taken from the
- * landing page's partner list, which mirrors `PARTNER_BARANGAYS` on the server and
- * `PartnerBarangays.names` in the mobile app — the server accepts only these names.
- */
+/** Mirrors server `PARTNER_BARANGAYS` and mobile `PartnerBarangays.names`; server accepts only these. */
 export const PROVISIONABLE_PARTNER_BARANGAYS = LANDING_PARTNER_BARANGAYS.map(
   (partner) => ({ value: partner.name, label: partner.name }),
 )
 
-/** Mirrors CREDENTIAL_MIN_HOURS/MAX_HOURS on the server — a stricter range is a 400. */
+/** Mirrors server CREDENTIAL_MIN_HOURS/MAX_HOURS; out of range is a 400. */
 export const CREDENTIAL_MIN_HOURS = 1
 export const CREDENTIAL_MAX_HOURS = 24 * 90
 export const CREDENTIAL_DEFAULT_HOURS = 72
@@ -149,21 +129,15 @@ export const USER_COLUMNS = [
   { key: 'actions', label: '', width: 'w-14' },
 ] as const
 
-/**
- * Cell classes shared by the users table and its loading skeleton. They live here so
- * the skeleton cannot drift from the real row — a height mismatch is exactly the
- * layout jump the skeleton exists to prevent.
- */
+/** Shared with the loading skeleton so row heights can't drift. */
 export const USER_CELL_BORDER = 'border-r border-gray-100 last:border-r-0'
 export const USER_CELL_BASE =
   'h-11 truncate border-b border-gray-100 px-3 py-0 text-[13px]'
 export const USER_GUTTER_CELL =
   'sticky left-0 z-10 w-10 border-r border-gray-200 bg-gray-50 text-center text-[11px] tabular-nums text-gray-400'
 
-/** Roles that carry a portal signature — the panel only shows that section for these. */
 export const PORTAL_ROLE_VALUES = ['admin', 'director', 'coordinator']
 
-/** Labels for the single-letter verification codes the server stores. */
 export const VERIFICATION_STATUS_LABELS: Record<ManagedUserVerificationStatus, string> = {
   N: 'Pending',
   F: 'Failed',

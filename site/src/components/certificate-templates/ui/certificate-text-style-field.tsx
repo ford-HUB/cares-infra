@@ -14,24 +14,18 @@ import {
 } from '../../../constants/certificate-typography'
 import type { CertificateFontWeight } from '../../../types/certificate-template'
 
-/** Radix refuses an empty item value, so "leave it to the frame" needs a name. */
+/** Radix refuses an empty item value, so "use the frame's weight" needs a name. */
 const FRAME_WEIGHT = 'frame'
 
 interface CertificateTextStyleFieldProps {
-  /** `undefined` while the block keeps the frame's own weight. */
+  /** `undefined` keeps the frame's weight. */
   weight: CertificateFontWeight | undefined
   underline: boolean
   onWeightChange: (weight: CertificateFontWeight | undefined) => void
   onUnderlineChange: (underline: boolean) => void
-  /** No block selected — weight and underline are always a property of one block. */
   disabled?: boolean
 }
 
-/**
- * Sets how heavy the selected block's text is and whether it is underlined. Each
- * weight previews at its own weight, because "Semibold" and "Bold" are hard to tell
- * apart by name alone.
- */
 export function CertificateTextStyleField({
   weight,
   underline,

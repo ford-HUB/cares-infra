@@ -65,7 +65,7 @@ import { RegistrationApprovalGate } from './registration-approval-gate';
 import { unlockedRoles } from 'src/shared/utils/unlocked-roles';
 import { RegistrationStatusTokens } from './registration-status-tokens';
 
-/** How a manual registration's volunteer type reads in the audit log. */
+/** Audit log wording. */
 const MANUAL_VOLUNTEER_LABEL: Record<ManualRegistrationVolunteerType, string> =
   {
     STUDENT: 'Student',
@@ -74,7 +74,7 @@ const MANUAL_VOLUNTEER_LABEL: Record<ManualRegistrationVolunteerType, string> =
     PARTNER_BARANGAY: 'Partner barangay',
   };
 
-/** …and in the director's review summary ("Registered a staff volunteer …"). */
+/** Review summary wording ("Registered a staff volunteer …"). */
 const MANUAL_VOLUNTEER_ARTICLE_LABEL: Record<
   ManualRegistrationVolunteerType,
   string
@@ -85,10 +85,10 @@ const MANUAL_VOLUNTEER_ARTICLE_LABEL: Record<
   PARTNER_BARANGAY: 'a partner barangay',
 };
 
-/** Wrong codes tolerated before the reset code is thrown away. */
+/** Wrong codes before the reset code is discarded. */
 const PASSWORD_RESET_MAX_ATTEMPTS = 5;
 
-/** `errors[].code` on the 403 the app turns into the OTP screen instead of a toast. */
+/** `errors[].code` the app maps to the OTP screen. */
 const EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED';
 
 @Injectable()
@@ -113,14 +113,9 @@ export class AuthMobileService {
     private readonly registrationStatusTokens: RegistrationStatusTokens,
   ) {}
 
-  /**
-   * The bare `POST /v1/auth/register`. It creates an account that can sign in, so it
-   * needs the same email OTP as `registerFromSession` — without it the endpoint would
-   * mint accounts for addresses nobody proved.
-   */
+  /** Requires the email OTP like `registerFromSession`. */
   async registerUser(data: CreateUserDto): Promise<RegisterUserResponseDto> {
-    // A beneficiary account waits for a director's approval, which only the
-    // session flow files — this door would skip the review entirely.
+    // Beneficiaries need a director review, filed only by the session flow.
     if (data.role_type === RoleType.BENEFICIARY) {
       throw new BadRequestException(
         'Beneficiaries register through the app sign-up, which a director reviews',
@@ -165,8 +160,7 @@ export class AuthMobileService {
     const email = data.email.trim().toLowerCase();
     const attempt = { email, ipAddress, userAgent, source: 'MOBILE' as const };
 
-    // Lockout only, on this side — see `LoginPolicyEnforcer` for why the hours and
-    // allowlist rules stop at the portal.
+    // Lockout only; hours and allowlist rules are portal-only (`LoginPolicyEnforcer`).
     await this.loginPolicyEnforcer.assertLoginAllowed(attempt);
 
     const account = await this.authRepository.findAccountForLogin(email);
@@ -176,14 +170,11 @@ export class AuthMobileService {
         outcome: 'INVALID_CREDENTIALS',
         failureReason: 'No account matches this email',
       });
-      // Unattributable — no account to hang the entry on, so it stays off the
-      // app's Activity Logs. The sign-in trail still keeps it for the portal.
+      // No account to attribute; kept only in the sign-in trail.
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // A social-only account has no stored hash. Refusing here — rather than letting
-    // bcrypt.compare see a null — keeps the reply identical to a wrong password, so the
-    // form cannot be used to discover which emails signed up through a provider.
+    // Social-only accounts: same reply as a wrong password, so provider sign-ups aren't disclosed.
     if (!account.password) {
       await this.loginActivityRecorder.record({
         ...attempt,
@@ -219,8 +210,7 @@ export class AuthMobileService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // A credential an administrator issued expires wherever it is presented, not just
-    // on the portal it was minted for.
+    // Admin-issued credentials expire everywhere.
     if (
       account.credential_expires_at &&
       account.credential_expires_at.getTime() <= Date.now()
@@ -240,8 +230,7 @@ export class AuthMobileService {
       throw new ForbiddenException(message);
     }
 
-    // Directors and coordinators reach the app on the "Use the mobile app" right, which
-    // an admin can take away per role or per account in Access Control.
+    // Gated by the "Use the mobile app" right.
     if (isStaffVolunteerRole(account.user.role.type)) {
       const held = await this.accessControlSiteService.effectivePermissionsFor(
         account.user.user_id,
@@ -263,11 +252,8 @@ export class AuthMobileService {
       }
     }
 
-    // An account that never finished the sign-up OTP cannot sign in. The one way
-    // through is a code sent with `purpose: 'login'` and accepted by `verify-otp` —
-    // that code plus the password just checked are what stamp the account verified.
-    // Directors and coordinators skip it: their account was issued from the portal,
-    // which vouches for the address, and they sign in with those same credentials.
+    // Unverified accounts need a `purpose: 'login'` OTP via `verify-otp`.
+    // Directors and coordinators skip it: the portal issued their account.
     if (
       !account.email_verified_at &&
       !isStaffVolunteerRole(account.user.role.type)
@@ -295,8 +281,7 @@ export class AuthMobileService {
       await this.clearOtpState(email);
     }
 
-    // A self-registered beneficiary or alumnus stays shut out until a director
-    // accepts the sign-up; the app turns this 403 into its "under review" screen.
+    // Self-registered beneficiaries/alumni wait for approval; the app shows "under review" on this 403.
     await this.registrationApprovalGate.assertApproved(
       account.user.user_id,
       attempt,
@@ -316,7 +301,7 @@ export class AuthMobileService {
       description: 'Signed in with email and password',
     });
 
-    // The session is what makes this token revocable — see `SessionGuard`.
+    // Makes the token revocable (`SessionGuard`).
     const session = await this.sessionRegistry.create({
       userId: account.user.user_id,
       email: account.email,
@@ -345,7 +330,7 @@ export class AuthMobileService {
     };
   }
 
-  /** Ends only the calling device's session; other devices stay signed in. */
+  /** Ends only this device's session. */
   async logout(user: JwtPayload, context: RequestContextDto): Promise<void> {
     if (user.sid) {
       await this.sessionRegistry.revoke(user.sid);
@@ -365,10 +350,7 @@ export class AuthMobileService {
     });
   }
 
-  /**
-   * The app's Activity Logs entry beside the sign-in trail — `LoginActivity`
-   * feeds the portal's monitor, this row is what the account holder sees.
-   */
+  /** The holder's Activity Logs entry; `LoginActivity` feeds the portal monitor. */
   private async recordSignIn(
     account: {
       email: string;
@@ -456,13 +438,7 @@ export class AuthMobileService {
     return { registrationId };
   }
 
-  /**
-   * Opens an alumni registration. An alumni ID is not a UCLM student ID, so it is
-   * not run through the student-ID classifier or OCR. The alumnus's face is
-   * matched against it (`verifyFace`), they type their details in, and a director
-   * checks them against this ID before the account opens (an
-   * ALUMNI_REGISTRATION request).
-   */
+  /** Skips classifier and OCR; face matched, then reviewed by a director (ALUMNI_REGISTRATION). */
   async uploadAlumniID(
     front: Express.Multer.File,
     back: Express.Multer.File,
@@ -470,14 +446,7 @@ export class AuthMobileService {
     return this.uploadReviewedID(front, back, 'alumni');
   }
 
-  /**
-   * Opens a partner-barangay volunteer registration. The volunteer presents a
-   * valid ID (a barangay ID or another accepted ID) — not a UCLM school ID — so,
-   * it skips the student-ID classifier, the face matcher and OCR. They type
-   * their details in, pick their partner barangay, and a director checks them
-   * against this ID before the account opens (a PARTNER_BARANGAY_REGISTRATION
-   * request).
-   */
+  /** Skips classifier, face match and OCR; reviewed by a director (PARTNER_BARANGAY_REGISTRATION). */
   async uploadPartnerBarangayID(
     front: Express.Multer.File,
     back: Express.Multer.File,
@@ -485,14 +454,7 @@ export class AuthMobileService {
     return this.uploadReviewedID(front, back, 'partner_barangay');
   }
 
-  /**
-   * Opens a manual registration for a volunteer whose ID photo
-   * the app could not recognize (blurry, unclear, or read with low accuracy).
-   * The registrant chose to register manually, so the ID is exempt from the
-   * automatic ID validation: it is not run through the ID classifier, the face
-   * matcher or OCR. The details are typed in, and a director verifies them
-   * against this ID before the account opens (a MANUAL_REGISTRATION request).
-   */
+  /** Unrecognised ID photo: skips all automatic checks; reviewed by a director (MANUAL_REGISTRATION). */
   async uploadManualID(
     front: Express.Multer.File,
     back: Express.Multer.File,
@@ -501,7 +463,6 @@ export class AuthMobileService {
     return this.uploadReviewedID(front, back, 'manual', volunteerType);
   }
 
-  /** Stores the two sides of an ID a director reviews and opens its session. */
   private async uploadReviewedID(
     front: Express.Multer.File,
     back: Express.Multer.File,
@@ -562,11 +523,7 @@ export class AuthMobileService {
     return { registrationId };
   }
 
-  /**
-   * Starts an ID-less registration session. Beneficiaries do not present a
-   * school ID and do not scan a face; their details are typed in instead of
-   * being read off an ID by OCR, and the email OTP is what vouches for them.
-   */
+  /** Beneficiaries: no ID or face; the email OTP vouches for them. */
   async startSession(roleType: RoleType): Promise<StartSessionResponseDto> {
     if (roleType !== RoleType.BENEFICIARY) {
       throw new BadRequestException(
@@ -593,20 +550,13 @@ export class AuthMobileService {
     return { registrationId, step: 'session_started' };
   }
 
-  /**
-   * Stores the document attached to a sign-up a director reviews: a beneficiary's
-   * supporting document, or an alumnus's Certificate of Graduation. Any file type is
-   * accepted — the director opens it while reviewing the registration. A second
-   * upload replaces the first, so the form can swap the file before submitting.
-   */
+  /** Any file type; a second upload replaces the first. */
   async uploadRegistrationDocument(
     registrationId: string,
     file: Express.Multer.File,
   ): Promise<RegistrationDocumentResponseDto> {
     const session = await this.requireSession(registrationId);
-    // A manual alumni sign-up still files the alumni's Certificate of
-    // Graduation and a manual partner-barangay sign-up its supporting document;
-    // a manual student or staff sign-up may attach one.
+    // Manual alumni and partner-barangay sign-ups still require their document; other manual ones may attach one.
     const isManual = session.idKind === 'manual';
     const isAlumni =
       session.idKind === 'alumni' ||
@@ -662,16 +612,13 @@ export class AuthMobileService {
   ): Promise<VerifyFaceResponseDto> {
     const session = await this.requireSession(registrationId);
 
-    // Face verification is a volunteer-only step: it matches the selfie against
-    // the uploaded ID. Beneficiary sessions are ID-less and never enrol a face.
+    // Beneficiary sessions are ID-less and never enrol a face.
     if (!session.idFrontImageUrl) {
       throw new BadRequestException(
         'Face verification is only required for ID-backed registrations',
       );
     }
-    // A partner-barangay or manually registered ID is checked by a director,
-    // not matched against a face. An alumni ID is both: the alumnus's face is
-    // matched against it here, and a director still reviews the sign-up.
+    // Director-checked IDs, not face matched (alumni are both).
     if (session.idKind === 'partner_barangay' || session.idKind === 'manual') {
       const who = session.idKind === 'manual' ? 'Manual' : 'Partner barangay';
       throw new BadRequestException(
@@ -753,11 +700,7 @@ export class AuthMobileService {
     };
   }
 
-  /**
-   * [volunteerType] 'STAFF' reads the card as a staff / faculty ID: the OCR
-   * service then also looks for the employee number after "ID NO." and a
-   * "SURNAME, FIRST M." name.
-   */
+  /** [volunteerType] 'STAFF' also reads the employee number ("ID NO.") and a "SURNAME, FIRST M." name. */
   async extractId(
     registrationId: string,
     volunteerType?: ExtractIdDto['volunteerType'],
@@ -839,8 +782,7 @@ export class AuthMobileService {
 
     await this.requireVerifiedEmail(data.account.email);
 
-    // ID-less sessions are locked to the role that started them so an
-    // ID-backed role can never be claimed without an ID.
+    // Locked to the starting role so ID-backed roles always need an ID.
     const isIdLess = !session.idFrontImageUrl;
     if (
       isIdLess &&
@@ -852,8 +794,7 @@ export class AuthMobileService {
       );
     }
 
-    // An alumni session is locked to the Volunteer role it was opened for. It is
-    // face verified against the alumni ID and then goes to a director.
+    // Locked to Volunteer; face verified, then director-reviewed.
     const isAlumni = session.idKind === 'alumni';
     if (isAlumni && data.role_type !== RoleType.VOLUNTEER) {
       throw new BadRequestException(
@@ -861,17 +802,14 @@ export class AuthMobileService {
       );
     }
 
-    // A partner-barangay session is locked to the Volunteer role too, and must
-    // name the partner barangay the volunteer signs up through.
+    // Locked to Volunteer; must name the partner barangay.
     const isPartnerBarangay = session.idKind === 'partner_barangay';
     if (isPartnerBarangay && data.role_type !== RoleType.VOLUNTEER) {
       throw new BadRequestException(
         'A partner barangay registration can only create a volunteer account',
       );
     }
-    // A manual registration (a volunteer whose ID photo the app could not
-    // recognize) is locked to the Volunteer role too; its ID skipped the
-    // automatic checks and the face scan, so a director verifies it by hand.
+    // Locked to Volunteer; director verifies the ID by hand.
     const isManual = session.idKind === 'manual';
     if (isManual && data.role_type !== RoleType.VOLUNTEER) {
       throw new BadRequestException(
@@ -891,9 +829,7 @@ export class AuthMobileService {
     const isDirectorReviewedId = isAlumni || isPartnerBarangay || isManual;
     const requiresApproval = isIdLess || isDirectorReviewedId;
 
-    // A beneficiary on an ID-backed session is a student: their UC school ID
-    // passed the ID check, the face matched it and OCR read it — the student
-    // volunteer path — so the account opens without a director's review.
+    // Students passed ID, face and OCR checks, so no director review.
     const isStudentBeneficiary =
       data.role_type === RoleType.BENEFICIARY && !isIdLess;
     if (isStudentBeneficiary && isDirectorReviewedId) {
@@ -902,10 +838,7 @@ export class AuthMobileService {
       );
     }
 
-    // The attached document is what the director reviews before the account
-    // opens — a beneficiary's or partner-barangay volunteer's supporting
-    // document, an alumnus's Certificate of Graduation — so none of these
-    // sign-ups can be filed without one.
+    // Reviewed sign-ups can't be filed without their document.
     const supportingDocument = session.supportingDocument ?? null;
     if (isIdLess && !supportingDocument) {
       throw new BadRequestException(
@@ -933,11 +866,7 @@ export class AuthMobileService {
       );
     }
 
-    // Beneficiaries present no ID and enrol no face — their details are typed in
-    // and the email OTP is what vouches for them. Partner-barangay and manual
-    // sign-ups present an ID but enrol no face; a director checks the ID instead.
-    // Every other ID-backed role — alumni included, who are also reviewed by a
-    // director — needs the face that was matched against the ID.
+    // Partner-barangay and manual sign-ups enrol no face; other ID-backed roles need the matched face.
     const enrolsFace = !isManual && !isPartnerBarangay;
     let biometric: CreateUserDto['biometric'];
     let schoolIdUrl: string | undefined;
@@ -969,10 +898,7 @@ export class AuthMobileService {
       );
     }
 
-    // A failed attempt leaves the session and the verified-email flag intact, so
-    // the user can fix a detail and submit the same code again. Surface any
-    // uniqueness clash before the insert so the retry gets a clear 409 rather
-    // than a raw database error.
+    // Failures keep the session and verified flag for a retry; check uniqueness first for a clean 409.
     await this.assertRegistrationDetailsAvailable({
       email: data.account.email,
       phoneNumber: data.phone_number,
@@ -1038,7 +964,6 @@ export class AuthMobileService {
         account: data.account,
         school_info: { ...data.school_info, school_id_url: schoolIdUrl },
         biometric,
-        // Only a partner-barangay session keeps the barangay it was given.
         partner_barangay: keepsPartnerBarangay
           ? data.partner_barangay
           : undefined,
@@ -1049,8 +974,7 @@ export class AuthMobileService {
               : BeneficiaryType.REGULAR
             : undefined,
       },
-      // Filed in the same transaction as the account, so it can never sign in
-      // without a review on record.
+      // Same transaction as the account, so it never signs in without a review.
       registrationRequest,
     );
 
@@ -1113,12 +1037,7 @@ export class AuthMobileService {
     return { ...user, requires_approval: requiresApproval };
   }
 
-  /**
-   * Confirms a reviewed sign-up was received. The registrant cannot sign in until
-   * a director approves it, so the email carries a link to the public status page
-   * instead. A failed email never undoes the registration — the account and its
-   * review are already on record, and the decision email still follows.
-   */
+  /** Links to the public status page (no sign-in until approved). Failures never undo the registration. */
   private async sendRegistrationSubmittedEmail(
     email: string,
     details: {
@@ -1222,13 +1141,10 @@ export class AuthMobileService {
     const normalizedEmail = data.email.trim().toLowerCase();
 
     if (data.purpose === 'login') {
-      // Only an account still waiting on its OTP gets a code this way; a registration
-      // can never reach an existing address, so the verified flag it leaves behind is
-      // only ever spent by `login` together with the account's password.
+      // Only accounts awaiting OTP; the verified flag is only spent by `login` with the password.
       await this.assertAwaitingEmailVerification(normalizedEmail);
     } else {
-      // Every unique field is checked here, before any code goes out, so the form
-      // can send the user back to the clashing input instead of the OTP screen.
+      // Check unique fields before sending, so the form can point at the clash.
       await this.assertRegistrationDetailsAvailable({
         email: normalizedEmail,
         phoneNumber: data.phone_number,
@@ -1236,8 +1152,7 @@ export class AuthMobileService {
       });
     }
 
-    // An explicit resend always mails a fresh code; otherwise a still-live code is
-    // reused so re-entering the OTP screen doesn't spam the inbox.
+    // Reuse a live code unless `resend`, to avoid inbox spam.
     const existingOtp = data.resend
       ? null
       : await this.redisService.get<string>(this.otpKey(normalizedEmail));
@@ -1345,11 +1260,7 @@ export class AuthMobileService {
     };
   }
 
-  /**
-   * Step 1 of "forgot password": confirm the email belongs to an account, then mail a
-   * code. The reply says an account was found — the user asked for that, and the sign-up
-   * form already answers the same question, so it discloses nothing new.
-   */
+  /** Reveals that an account exists, which the sign-up form already does. */
   async requestPasswordReset(
     email: string,
     context: RequestContextDto = {},
@@ -1361,8 +1272,7 @@ export class AuthMobileService {
       throw new NotFoundException('No account is registered with this email');
     }
 
-    // A social-only account has no password to reset; sending a code would leave the
-    // user staring at a form that can never sign them in.
+    // Social-only accounts have no password to reset.
     if (!account.password) {
       throw new BadRequestException(
         'This account signs in through Google or Facebook. Use that provider instead.',
@@ -1413,14 +1323,13 @@ export class AuthMobileService {
       DurationUtils.TEN_MINUTES,
     );
 
-    // Someone asked to reset this password — worth a row even before the code is
-    // used, so the holder can spot a request they did not make.
+    // Logged before use so the holder can spot unrequested resets.
     await this.auditLogRecorder.record({
       action: 'auth.mobile.password-reset.requested',
       description: 'Password reset code requested by email',
       category: 'AUTHENTICATION',
       severity: 'NOTICE',
-      // The recorder re-reads the real role off the user row; see resetPassword.
+      // The recorder re-reads the real role.
       actor: {
         sub: account.user.user_id,
         email: normalizedEmail,
@@ -1442,10 +1351,7 @@ export class AuthMobileService {
     };
   }
 
-  /**
-   * Step 2: trade a correct code for a single-use reset token. The code is spent here,
-   * so the new-password screen never has to hold on to it.
-   */
+  /** Spends the code for a single-use reset token. */
   async verifyPasswordResetOtp(
     email: string,
     otp: string,
@@ -1488,7 +1394,7 @@ export class AuthMobileService {
     };
   }
 
-  /** Step 3: write the new password, then sign the account out of every device. */
+  /** Then signs out every device. */
   async resetPassword(
     data: ResetPasswordDto,
     context: RequestContextDto = {},
@@ -1529,8 +1435,7 @@ export class AuthMobileService {
     );
 
     await this.clearPasswordResetState(normalizedEmail);
-    // Anyone still holding a token issued under the old password is signed out — the
-    // reset is only worth something if a thief's session dies with it.
+    // Kill any session issued under the old password.
     await this.sessionRegistry.revokeAllForUser(account.user.user_id);
 
     await this.auditLogRecorder.record({
@@ -1539,8 +1444,7 @@ export class AuthMobileService {
         'Password reset by email code; other devices were signed out',
       category: 'AUTHENTICATION',
       severity: 'NOTICE',
-      // The recorder re-reads the real role off the user row; this is only the
-      // fallback if the account vanished in between.
+      // Fallback only; the recorder re-reads the real role.
       actor: {
         sub: account.user.user_id,
         email: normalizedEmail,
@@ -1569,7 +1473,7 @@ export class AuthMobileService {
     return `password-reset:attempts:${email}`;
   }
 
-  /** Counts wrong codes for as long as the code itself lives. */
+  /** Lives as long as the code. */
   private async recordFailedResetAttempt(email: string): Promise<number> {
     const key = this.resetAttemptsKey(email);
     const current = (await this.redisService.get<number>(key)) ?? 0;

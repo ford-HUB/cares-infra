@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 
-/// Preloads device cameras once at app start to reduce step-2 failures.
+/// Preloads cameras at app start to reduce step-2 failures.
 class CameraBootstrap {
   CameraBootstrap._();
 

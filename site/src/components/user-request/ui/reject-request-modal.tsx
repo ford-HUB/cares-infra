@@ -5,16 +5,12 @@ import { isRegistrationRequest, type UserRequest } from '../../../types/user-req
 
 interface RejectRequestModalProps {
   request: UserRequest
-  /** True while the reject call is in flight. */
   busy: boolean
   onConfirm: (reason: string) => void
   onClose: () => void
 }
 
-/**
- * Rejecting needs a reason before it can be confirmed — the beneficiary reads it in
- * the app, and it is what tells them what to fix before they apply again.
- */
+/** A reason is required; the beneficiary reads it in the app. */
 export function RejectRequestModal({ request, busy, onConfirm, onClose }: RejectRequestModalProps) {
   const registration = isRegistrationRequest(request.kind)
   const alumni = request.kind === 'alumni_registration'

@@ -36,7 +36,6 @@ import {
   type ReportFolderRow,
 } from '../repositories/monthly-reports-repository';
 
-/** What a coordinator may attach, and what the portal knows how to label. */
 const DOCUMENT_KINDS: { mimes: string[]; kind: MonthlyReportDocumentKind }[] = [
   {
     kind: MonthlyReportDocumentKind.PDF,
@@ -62,7 +61,7 @@ const DOCUMENT_KINDS: { mimes: string[]; kind: MonthlyReportDocumentKind }[] = [
   },
 ];
 
-/** A narrative plus its annexes; anything larger is a packet, not a report. */
+/** Narrative plus annexes. */
 const DOCUMENT_MAX_BYTES = 15 * 1024 * 1024;
 
 @Injectable()
@@ -88,12 +87,7 @@ export class MonthlyReportsSiteService {
     return { items: rows.map(toMonthlyReport), total };
   }
 
-  /**
-   * A submission arrives whole — figures, narrative and files in one body. The row is
-   * written first so the attachments have an id to hang off; if any file fails to
-   * store, the whole submission is rolled back rather than left as a report whose
-   * annexes are missing.
-   */
+  /** Row first so files have an id; any failed file rolls back the whole submission. */
   async submitReport(
     caller: JwtPayload,
     data: SubmitMonthlyReportDto,
@@ -141,7 +135,7 @@ export class MonthlyReportsSiteService {
       throw error;
     }
 
-    // Directors review the queue; the notice is what tells them something landed in it.
+    // Tells directors something landed in the queue.
     await this.notificationScheduler.publish({
       title: `${report.department} ${data.period} report awaits your review`,
       description: `${report.submitted_by_name} submitted "${data.title}" (${reference}) with ${
@@ -157,11 +151,7 @@ export class MonthlyReportsSiteService {
     return toMonthlyReport(await this.requireReport(report.monthly_report_id));
   }
 
-  /**
-   * The decision the whole queue exists for. Approving files the report under its
-   * college; returning sends it back with the note, which is the only thing the
-   * coordinator gets to act on.
-   */
+  /** Approving files it under its college; returning sends the note back. */
   async decideReport(
     id: string,
     caller: JwtPayload,
@@ -190,7 +180,7 @@ export class MonthlyReportsSiteService {
           : MonthlyReportTrailAction.RETURNED,
     });
 
-    // The coordinator who filed it is the only person the decision changes anything for.
+    // Only the filer is affected.
     if (row.submitted_by_user_id) {
       const approved = decision.decision === MonthlyReportStatus.APPROVED;
       const reviewerName = `${reviewer.firstname} ${reviewer.lastname}`.trim();
@@ -207,7 +197,7 @@ export class MonthlyReportsSiteService {
         tone: approved ? NotificationTone.INFO : NotificationTone.ATTENTION,
         href: approved ? '/admin/department-files' : '/admin/upload-report',
         userIds: [row.submitted_by_user_id],
-        // A report can be returned more than once; each decision is its own notice.
+        // Reports can be returned repeatedly; each decision notifies.
         dedupeKey: `report-decided:${row.monthly_report_id}:${row.updatedAt.getTime()}`,
       });
     }
@@ -215,10 +205,7 @@ export class MonthlyReportsSiteService {
     return toMonthlyReport(row);
   }
 
-  /**
-   * Filing is only ever a move between shelves, so a report that has not been approved
-   * yet cannot be filed — it still belongs to the queue.
-   */
+  /** Only approved reports can be filed. */
   async moveReport(
     id: string,
     move: MoveMonthlyReportDto,
@@ -276,11 +263,7 @@ export class MonthlyReportsSiteService {
     return { monthly_report_folder_id: id };
   }
 
-  /**
-   * Attachments sit in a private bucket, so the portal reads them through here rather
-   * than from a stored S3 URL. A content-hash ETag plus `no-cache` lets the browser
-   * revalidate instead of re-downloading a report every time the viewer is reopened.
-   */
+  /** Private bucket; content-hash ETag + `no-cache` allows revalidation. */
   async getDocument(
     reportId: string,
     documentId: string,
@@ -305,17 +288,13 @@ export class MonthlyReportsSiteService {
     };
   }
 
-  /**
-   * `MR-2026-014`. Read-then-write rather than a database sequence, so the reference
-   * stays readable and restarts each January.
-   */
+  /** `MR-2026-014`; read-then-write so it restarts yearly. */
   private async nextReference(): Promise<string> {
     const year = new Date().getFullYear();
     const highest = await this.repository.highestReferenceSequence(year);
     return `MR-${year}-${String(highest + 1).padStart(3, '0')}`;
   }
 
-  /** Decodes one `data:` URL, checks what it is, and puts the bytes in the bucket. */
   private async storeDocument(
     reportId: string,
     fileName: string,
@@ -368,11 +347,7 @@ export class MonthlyReportsSiteService {
     };
   }
 
-  /**
-   * Undoes a half-stored submission. The row goes first — that is what the portal
-   * would otherwise show — and the objects are best effort, since a leaked file costs
-   * storage while a phantom report costs a director's trust in the queue.
-   */
+  /** Row first (what the portal shows); object deletion is best effort. */
   private async discardSubmission(
     reportId: string,
     stored: CreateReportDocumentInput[],

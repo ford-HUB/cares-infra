@@ -1,15 +1,9 @@
 import { useEffect, useRef } from 'react'
 
-/** Input that browsers count as the viewer engaging with the page, which is what lets a
- *  video's sound come on. Scrolling (wheel or touch-drag) is not one of them. */
+/** Inputs browsers count as user activation; scrolling isn't one. */
 const ACTIVATION_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'] as const
 
-/** Starts a video with sound once `threshold` of it is on screen, pauses it when it
- *  scrolls away, and resumes it on return. A pause made by the viewer sticks.
- *  Browsers refuse sound until the viewer has interacted with the site, so a refused
- *  start plays muted and the speaker comes on at the viewer's very first tap, click or
- *  key press anywhere on the page. Under prefers-reduced-motion nothing starts on its
- *  own; the player controls still work. */
+/** Browsers block sound before user activation, so a refused start plays muted until the first interaction. */
 export function usePlayWhenVisible(threshold: number) {
   const ref = useRef<HTMLVideoElement>(null)
 
@@ -23,10 +17,9 @@ export function usePlayWhenVisible(threshold: number) {
     }
 
     function unmuteOnActivation(event: Event) {
-      // On the player itself, wait for the click so the native mute button acts first
-      // and isn't toggled straight back.
+      // Wait for the click so the native mute button acts first.
       if (event.target === video && event.type !== 'click') return
-      // Not every key press counts (Escape doesn't); unmuting without one would pause it.
+      // Escape etc. don't count as activation; unmuting without one would pause it.
       if (navigator.userActivation && !navigator.userActivation.isActive) return
       stopListening()
       if (video) video.muted = false
@@ -44,7 +37,6 @@ export function usePlayWhenVisible(threshold: number) {
             for (const type of ACTIVATION_EVENTS) {
               window.addEventListener(type, unmuteOnActivation, { passive: true })
             }
-            // A blocked or unsupported start leaves the poster and controls in place.
             video.play().catch(() => undefined)
           })
         } else if (!video.paused) {

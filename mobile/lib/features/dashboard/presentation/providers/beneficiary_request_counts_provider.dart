@@ -7,8 +7,6 @@ final userRequestServiceProvider = Provider<UserRequestService>(
   (ref) => UserRequestService(),
 );
 
-/// The beneficiary's event applications split the way the home stats row
-/// shows them.
 class BeneficiaryRequestCounts {
   const BeneficiaryRequestCounts({
     required this.pending,
@@ -26,10 +24,9 @@ class BeneficiaryRequestCounts {
   final int completed;
 }
 
-/// Counts off `GET /user-requests/me`: only EVENT_JOIN rows are a
-/// beneficiary's applications, and DELETED ones were dropped by a director.
-/// An accepted application moves from Approved to Completed once its event
-/// shows up in [beneficiaryCompletedEventsProvider].
+/// From `GET /user-requests/me`: only EVENT_JOIN rows count; DELETED ones were
+/// dropped by a director. Accepted moves to Completed once the event is in
+/// [beneficiaryCompletedEventsProvider].
 final beneficiaryRequestCountsProvider =
     FutureProvider.autoDispose<BeneficiaryRequestCounts>((ref) async {
       final (requests, completedEvents) = await (

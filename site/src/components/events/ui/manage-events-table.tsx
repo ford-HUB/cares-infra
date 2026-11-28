@@ -25,7 +25,6 @@ export interface EventSortConfig {
 interface ManageEventsTableProps {
   events: EventTableRow[]
   loading: boolean
-  /** False until the first fetch settles — see `event-store`. */
   initialized: boolean
   page: number
   sortConfig: EventSortConfig
@@ -34,10 +33,10 @@ interface ManageEventsTableProps {
   onSort: (key: EventSortKey) => void
   onView: (event: EventTableRow) => void
   onOpenActions: (event: EventTableRow, button: HTMLButtonElement) => void
-  /** Row whose actions menu is currently open, so its trigger can stay highlighted. */
+  /** Keeps the open menu's trigger highlighted. */
   activeActionsEventId: number | null
   onClearFilters: () => void
-  /** Omitted when the account lacks the create right — the empty state only offers Clear. */
+  /** Omitted without the create right; the empty state then only offers Clear. */
   onCreate?: () => void
 }
 
@@ -45,7 +44,7 @@ const cellBorder = EVENT_CELL_BORDER
 const cellBase = EVENT_CELL_BASE
 const gutter = EVENT_GUTTER_CELL
 
-/** The thumbnail's empty box, shared by "no photo" and a photo that failed to load. */
+/** Shared by "no photo" and a photo that failed to load. */
 function EventImagePlaceholder() {
   return (
     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
@@ -76,8 +75,7 @@ export function ManageEventsTable({
     EVENT_HEADER_HEIGHT_PX,
   )
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A refilter
-  // or refetch keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; refetches keep existing rows on screen.
   const showSkeleton = !initialized || (loading && events.length === 0)
 
   const totalPages = Math.max(1, Math.ceil(events.length / rowsPerPage))

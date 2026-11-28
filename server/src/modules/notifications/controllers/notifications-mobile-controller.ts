@@ -18,10 +18,7 @@ import {
   NotificationIdParamSchema,
 } from '../validators/notifications-mobile-validator';
 
-/**
- * The app's inbox. Mounted under `/mobile` so it never shadows the portal's
- * `GET /v1/notifications`, which carries a different role gate.
- */
+/** Under `/mobile` so it never shadows the portal's `GET /v1/notifications`. */
 @Controller('v1/notifications/mobile')
 @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
 export class NotificationsMobileController {
@@ -40,7 +37,7 @@ export class NotificationsMobileController {
     return this.notificationsMobileService.listNotifications(caller, query);
   }
 
-  /** Declared before `:id` so the literal segment wins the match. */
+  /** Declared before `:id` so the literal wins. */
   @Patch('read-all')
   @ResponseMessage('All notifications marked read')
   @ZSerialize(MobileNotificationFeedSchema)

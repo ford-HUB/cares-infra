@@ -1,28 +1,19 @@
-/**
- * Which leaderboard is being shown. Volunteers and donors are scored on different
- * criteria; the department board compares colleges on both at once.
- */
 export type RankingBoard = 'volunteer' | 'donor' | 'department'
 
-/**
- * An event role that needs approval and, once approved, earns a bonus on every
- * attended event. Regular is the plain slot and never carries one.
- */
+/** Needs approval; earns a bonus per attended event. */
 export type SpecialParticipationRole = 'ORGANIZER' | 'FACILITATOR' | 'SPEAKER'
 
-/** The two tabs: headline figures, or the full standings table. */
 export type RankingView = 'dashboard' | 'list'
 
-/** How far back the standings are counted. */
 export type RankingPeriod = 'month' | 'quarter' | 'year' | 'all'
 
 interface RankedEntry {
   id: string
-  /** 1-based standing within the board, assigned after sorting by points. */
+  /** 1-based, after sorting by points. */
   rank: number
-  /** Standing in the previous period; undefined for a first-time entrant. */
+  /** Undefined for a first-time entrant. */
   previousRank?: number
-  /** Earned points — the only value the ranking sorts on. */
+  /** The only sort key. */
   points: number
 }
 
@@ -31,21 +22,18 @@ export interface VolunteerRankingEntry extends RankedEntry {
   lastName: string
   email: string
   department: string
-  /** Credited service hours, shown for context — points never come from them. */
+  /** Context only; points never come from hours. */
   hours: number
-  /** Events attended — each one earns `pointsPerAttendance`. */
   eventsJoined: number
-  /** Registered events the volunteer skipped — each one cost an escalating penalty. */
+  /** Each cost an escalating penalty. */
   eventsMissed: number
   pointsEarned: number
-  /** The share of `pointsEarned` that came from approved participation roles. */
   rolePoints: number
-  /** Attended events served in each approved special role. */
   roleCounts: Record<SpecialParticipationRole, number>
   pointsDeducted: number
-  /** Straight misses still counting against the next one; 0 once the window passed. */
+  /** Straight misses still counting; 0 once the window passed. */
   currentStreak: number
-  /** Null when the volunteer has yet to attend anything in the period. */
+  /** Null when nothing attended in the period. */
   lastActiveAt: string | null
 }
 
@@ -53,35 +41,27 @@ export interface DonorRankingEntry extends RankedEntry {
   name: string
   email: string
   donorType: 'individual' | 'organization'
-  /** Confirmed pesos in the period — money paid plus the credited value of goods. */
+  /** Money paid plus credited value of goods. */
   amount: number
   moneyAmount: number
   goodsAmount: number
   donations: number
-  /** Null when nothing of theirs was confirmed in the period. */
+  /** Null when nothing confirmed in the period. */
   lastDonatedAt: string | null
 }
 
-/**
- * A board-agnostic row for the dashboard's podium — every board maps into this so
- * the podium doesn't have to know which criteria produced the standing.
- */
+/** Board-agnostic podium row. */
 export interface RankingLeader {
   id: string
   rank: number
   name: string
-  /** The criteria figure behind the standing: hours given, or amount donated. */
   subtitle: string
-  /** What the standing is measured in, formatted — `120 pts`, or a college's score. */
+  /** e.g. `120 pts`, or a college's score. */
   figure: string
-  /** Short text drawn in place of initials — a college's code. */
   badge?: string
 }
 
-/**
- * Which avatar frame a tier draws. The preset is the ornament only — its colours
- * come from the tier, so a director can restyle a tier without redrawing it.
- */
+/** Ornament only; colours come from the tier. */
 export type RankFrameDesignId =
   | 'aurora'
   | 'laurel'
@@ -96,42 +76,30 @@ export type RankFrameDesignId =
   | 'halo'
   | 'ring'
 
-/** One selectable frame design, as listed in the Customization gallery. */
 export interface RankFrameDesign {
   id: RankFrameDesignId
   label: string
-  /** One line on what the ornament reads as, shown under its preview. */
   description: string
 }
 
-/**
- * A rank tier — the badge frame drawn around a ranked avatar. Tiers are assigned by
- * standing, not raw points, so the ladder means the same thing on both boards even
- * though hours and pesos score on different scales.
- */
+/** Assigned by standing, not points, so the ladder means the same on both boards. */
 export interface RankingTier {
   id: string
   label: string
-  /** Highest standing still in this tier; the last tier catches everyone below. */
+  /** The last tier catches everyone below. */
   maxRank: number
-  /** The frame ornament, picked from the design gallery in Customization. */
   frame: RankFrameDesignId
-  /** Frame gradient, low stop to high stop — both are director-editable hex. */
+  /** Low stop to high stop, hex. */
   colorFrom: string
   colorTo: string
 }
 
-/**
- * What a frame needs to draw itself, independent of who is wearing it — the
- * Customization previews render straight from this without a standing.
- */
 export interface RankFrameAppearance {
   frame: RankFrameDesignId
   colorFrom: string
   colorTo: string
 }
 
-/** A named pair of gradient stops offered as a one-click colour pick. */
 export interface RankColorCombo {
   id: string
   label: string
@@ -139,34 +107,27 @@ export interface RankColorCombo {
   colorTo: string
 }
 
-/**
- * How the boards are scored and how the tier ladder is cut. Editable from
- * Rankings → Customization; the standings recompute from whatever is saved here.
- */
 export interface RankingSettings {
-  /** Points earned for every attended event. */
   pointsPerAttendance: number
-  /** What the first miss costs; each straight miss inside the window adds it again. */
+  /** Each straight miss inside the window adds it again. */
   absencePenaltyStep: number
-  /** Misses further apart than this many days restart the penalty at the first step. */
+  /** Misses further apart restart the penalty. */
   absenceResetDays: number
-  /** Extra points per attended event for an approved special role, keyed by role. */
   participationRolePoints: Record<SpecialParticipationRole, number>
   donorPesosPerPoint: number
-  /** Pesos credited per unit of each goods type, keyed by goods-type id. */
+  /** Keyed by goods-type id. */
   goodsTypeValues: Record<string, number>
   defaultBoard: RankingBoard
   defaultPeriod: RankingPeriod
-  /** Highest tier first; the last one has no cut-off and catches everyone below. */
+  /** Highest first; the last has no cut-off. */
   tiers: RankingTier[]
 }
 
-/** One line on the participation chart — the top-three race over recent months. */
 export interface RankingTrendSeries {
   id: string
   name: string
   rank: number
-  /** Cumulative points at the end of each month, aligned to `RankingTrend.labels`. */
+  /** Cumulative, aligned to `RankingTrend.labels`. */
   values: number[]
 }
 
@@ -175,32 +136,24 @@ export interface RankingTrend {
   series: RankingTrendSeries[]
 }
 
-/** What the department board is ordered on — the filter on that board. */
 export type DepartmentRankingBasis = 'overall' | 'hours' | 'donations'
 
-/** Only donors who gave this way — the filter on the donor board. */
 export type DonorKindFilter = 'all' | 'money' | 'goods'
 
-/** A college's standing on each of the department board's three orders. */
 export type DepartmentRanks = Record<DepartmentRankingBasis, number>
 
-/**
- * One college's volunteer hours and confirmed giving. Hours count toward the
- * volunteer's own college; a donation counts toward the college whose event it
- * went to.
- */
+/** Hours count toward the volunteer's college; donations toward the event's college. */
 export interface DepartmentRankingEntry {
-  /** Stable key — the college code when known, else its lowercased name. */
+  /** College code when known, else the lowercased name. */
   id: string
   name: string
-  /** Short code (`CCS`, …) when the name maps to a known college. */
   code: string | null
   volunteers: number
   eventsAttended: number
   hours: number
   donationAmount: number
   donations: number
-  /** 0–100: half the college's share of all hours, half its share of all pesos. */
+  /** 0–100: half share of hours, half share of pesos. */
   score: number
   ranks: DepartmentRanks
   /** Undefined for all time, or a college new since the previous window. */
@@ -209,11 +162,10 @@ export interface DepartmentRankingEntry {
 
 export interface DepartmentRankings {
   entries: DepartmentRankingEntry[]
-  /** Hours and pesos no college could be credited with (e.g. school-wide events). */
+  /** e.g. school-wide events. */
   unattributed: { hours: number; donationAmount: number }
 }
 
-/** A college row as shown: its standing on the order the filter picked. */
 export interface DisplayedDepartment extends DepartmentRankingEntry {
   rank: number
   previousRank?: number

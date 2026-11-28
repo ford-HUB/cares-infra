@@ -27,10 +27,7 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
-/**
- * Read-only. Nothing here is editable on purpose: attendance is decided from the
- * device's coordinates by the validation service, not by a director marking a row.
- */
+/** Read-only: attendance is ruled from device coordinates, not by hand. */
 export function LiveAttendeeDetailModal({
   attendee,
   onClose,

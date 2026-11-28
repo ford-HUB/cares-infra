@@ -1,9 +1,8 @@
 import 'package:mobile/features/auth/data/models/login_api_models.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 
-/// The verified profile the server returns for a provider account that has no CARES
-/// user yet. These values seed the donor form; the server keeps its own copy against
-/// the ticket, so editing the name here cannot change which account gets created.
+/// Seeds the donor form; the server keeps its own copy against the ticket, so
+/// edits can't change which account is created.
 class DonorOAuthProfile {
   const DonorOAuthProfile({
     required this.provider,
@@ -52,9 +51,8 @@ class DonorOAuthProfile {
   }
 }
 
-/// The outcome of `POST /v1/auth/donor/oauth`: either the donor is already known and
-/// [session] signs them in, or they are new and [profile] plus [oauthTicket] carry the
-/// verified identity into the registration call.
+/// Known donor: [session]. New donor: [profile] + [oauthTicket] for
+/// registration.
 class DonorOAuthResult {
   const DonorOAuthResult({
     required this.status,

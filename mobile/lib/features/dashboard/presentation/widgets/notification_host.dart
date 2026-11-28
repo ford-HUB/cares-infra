@@ -8,22 +8,16 @@ import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 
-/// Wraps a signed-in dashboard — Volunteer, Donor or Beneficiary alike — and
-/// keeps the notification feed alive while it is up: asks for permission
-/// once, holds the [NotificationSync] poll open, re-reads on resume, and
-/// routes taps on any device notification into the feed.
-///
-/// A pop that belongs to another side of the account carries that side in
-/// its payload; tapping it switches to that side's dashboard first, so the
-/// notification is on screen when the feed opens.
+/// Keeps the feed alive while a dashboard is up: asks permission once, holds
+/// the [NotificationSync] poll, re-reads on resume and routes taps. A pop for
+/// another side switches to that side's dashboard first.
 class NotificationHost extends StatefulWidget {
   const NotificationHost({super.key, required this.child});
 
   final Widget child;
 
-  /// Opens [roleType]'s dashboard in place of the current one, landing on its
-  /// notification feed when [openFeed]. Returns false — and does nothing —
-  /// when that side is already open or not unlocked on this account.
+  /// Lands on the feed when [openFeed]. False (no-op) when that side is already
+  /// open or not unlocked.
   static bool switchToSide(
     BuildContext context,
     String roleType, {
@@ -38,8 +32,7 @@ class NotificationHost extends StatefulWidget {
     }
     store.activate(account.roleType);
     if (openFeed) {
-      // The new side's dashboard gets its own host, which opens the feed
-      // from the tap it is handed.
+      // The new dashboard's own host opens the feed from this tap.
       LocalNotifications.instance.launchTap = const NotificationTap(
         payload: 'notifications',
       );
@@ -78,9 +71,8 @@ class _NotificationHostState extends State<NotificationHost>
     super.dispose();
   }
 
-  /// Coming back from the background is the moment a ruling, decision or
-  /// reminder most likely landed, so the feed is re-read right away rather
-  /// than on the timer.
+  /// Re-read on resume, when news most likely landed, instead of waiting for
+  /// the timer.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -88,8 +80,7 @@ class _NotificationHostState extends State<NotificationHost>
     }
   }
 
-  /// Asks for permission once the dashboard is up (not on the login screen),
-  /// starts the feed poll, and listens for taps.
+  /// Asks permission once the dashboard is up, not on login.
   Future<void> _startNotifications() async {
     if (!AuthSession.isSignedIn) return;
     NotificationSync.instance.start();

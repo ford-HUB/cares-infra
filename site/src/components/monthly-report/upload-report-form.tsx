@@ -50,12 +50,7 @@ const secondaryButtonClass =
 const primaryButtonClass =
   'inline-flex h-9 items-center gap-2 rounded-lg bg-[var(--cares-primary)] px-4 text-[13px] font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60'
 
-/**
- * Two pages: what the report says, then the files that back it. The details are
- * checked before the coordinator moves on, so the upload page never has to send
- * them back to fix a title; and the files are read while they are picked, so
- * Submit is one press.
- */
+/** Details are validated before the upload step, and files are read as picked, so Submit is one press. */
 export function UploadReportForm({
   form,
   step,

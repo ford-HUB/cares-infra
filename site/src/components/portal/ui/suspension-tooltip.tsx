@@ -4,24 +4,15 @@ import type { SessionSuspension } from '../../../types/access-control'
 import { formatSuspensionWindow } from '../../../utils/permission-rights'
 
 interface SuspensionTooltipProps {
-  /**
-   * One entry per suspended action under the trigger — a module header lists several.
-   * Takes anything shaped like a session suspension, so the admin's fuller
-   * `ActionSuspension` records fit too.
-   */
+  /** One entry per suspended action; accepts admin `ActionSuspension` records too. */
   suspensions: SessionSuspension[]
-  /** Labels the action each suspension belongs to; omitted when there is only one. */
+  /** Omitted when there is only one. */
   labelOf?: (suspension: SessionSuspension) => string
   side?: 'top' | 'bottom' | 'left' | 'right'
   children: ReactNode
 }
 
-/**
- * The hover card on a suspended action or module: why it was pulled and for how long.
- * Renders the children untouched when nothing under them is suspended, so callers can
- * wrap unconditionally. Needs a `TooltipProvider` above it — the portal layout mounts
- * one, and the Access Control panels mount their own.
- */
+/** Renders children untouched when nothing is suspended; needs a `TooltipProvider` above. */
 export function SuspensionTooltip({
   suspensions,
   labelOf,

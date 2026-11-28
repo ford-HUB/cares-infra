@@ -18,11 +18,7 @@ interface CertificateImagesFieldProps {
   onChange: (images: CertificateImage[]) => void
 }
 
-/**
- * Imports the images and lists what is on the sheet. Placement, size and shape are
- * settled on the certificate itself, so this panel stays a manifest — add, identify,
- * remove — rather than a second set of controls that could disagree with the editor.
- */
+/** A manifest only (add/identify/remove); placement is done on the sheet. */
 export function CertificateImagesField({
   images,
   onChange,

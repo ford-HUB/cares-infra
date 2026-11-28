@@ -1,12 +1,5 @@
-// Shared fixtures for the self-registration unit tests:
-//   volunteer_registration_unit_test.dart
-//   beneficiary_registration_unit_test.dart
-//
-// Not a test file itself (no `_test.dart` suffix), so `flutter test` only
-// runs it through the files that import it.
-//
-// The network is replaced with package:http's MockClient, so nothing here
-// reaches a real server. Uploads use small throwaway files in a temp folder.
+// Shared fixtures for the volunteer and beneficiary registration tests (not a
+// `_test.dart` file). MockClient only; uploads use temp files.
 
 import 'dart:convert';
 import 'dart:io';
@@ -36,10 +29,6 @@ const extractIdPath = '/v1/auth/extract-id';
 const sendVerificationPath = '/v1/auth/send-verification';
 const verifyOtpPath = '/v1/auth/verify-otp';
 const registerFromSessionPath = '/v1/auth/register-from-session';
-
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
 
 typedef MockReply = Future<http.Response> Function(http.Request request);
 
@@ -161,11 +150,6 @@ Future<http.Response> defaultReply(http.Request request) async {
   return failResponse(404, 'Not found');
 }
 
-// ---------------------------------------------------------------------------
-// Multipart helpers
-// ---------------------------------------------------------------------------
-
-/// One part of a captured multipart/form-data body.
 class FormPart {
   FormPart(this.headers, this.content);
 
@@ -211,15 +195,10 @@ Map<String, FormPart> partsOf(http.Request request) {
   return parts;
 }
 
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
-
 late Directory _tmp;
 
-/// Registers the setUp/tearDown every registration test file needs: a temp
-/// folder for uploads, a dotenv pointing at [testOrigin], and a clean
-/// [AuthSession]. Call it first thing in `main()`.
+/// Temp upload folder, dotenv pointing at [testOrigin] and a clean
+/// [AuthSession]; call first in `main()`.
 void setUpRegistrationTests() {
   setUpAll(() {
     _tmp = Directory.systemTemp.createTempSync('cares_registration_test_');

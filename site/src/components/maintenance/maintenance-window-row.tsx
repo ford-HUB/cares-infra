@@ -14,7 +14,7 @@ import { WindowStateBadge } from './ui/window-state-badge'
 
 interface MaintenanceWindowRowProps {
   window: MaintenanceWindow
-  /** Shared clock tick — the countdown reads from it, not `Date.now`. */
+  /** Shared clock tick; the countdown reads it instead of `Date.now`. */
   now: number
   busy: boolean
   onEdit: (window: MaintenanceWindow) => void

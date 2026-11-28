@@ -29,16 +29,6 @@ import {
   useAccessControlApp,
 } from '../access-control-site-support';
 
-/**
- * Access Control Module · Manage User & Role Rights — invalid inputs (field
- * validation).
- *
- * Every case here is an intentionally wrong value for a field of an Access Control
- * endpoint. A case Passes when the system refuses it exactly as stated — a refusal
- * as expected is the correct result. The valid cases live in ../valid/.
- */
-
-/** Malformed uuids, shared by every id in a path. */
 const malformedIds = (subject: string, id: string): LayerFixture<string>[] => [
   { name: `Admin ${subject} an id that is not a uuid`, input: 'user-1', expected: 'FAIL' },
   { name: `Admin ${subject} an id that is a plain number`, input: '42', expected: 'FAIL' },
@@ -50,7 +40,7 @@ const malformedIds = (subject: string, id: string): LayerFixture<string>[] => [
   { name: `Admin ${subject} a blank id`, input: ' ', expected: 'FAIL' },
 ];
 
-/** Bad `permissions` lists, shared by Rights, Suspend and Baseline (`base` keeps the rest of the body valid). */
+/** `base` keeps the rest of the body valid. */
 const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
   { name: 'Admin sends a right that does not exist (ALL)', input: { ...base, permissions: ['ALL'] }, expected: 'FAIL', field: 'permissions.0' },
   { name: 'Admin sends a right in lower case', input: { ...base, permissions: [ALL_PERMISSIONS[0].toLowerCase()] }, expected: 'FAIL', field: 'permissions.0' },
@@ -65,7 +55,6 @@ const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
   },
 ];
 
-/* ── List users ──────────────────────────────────────────────────────────── */
 {
   const queryFixtures: LayerFixture[] = [
     { name: 'Admin searches with 121 characters', input: { search: 'a'.repeat(121) }, expected: 'FAIL', field: 'search' },
@@ -101,7 +90,6 @@ const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
   });
 }
 
-/* ── User detail ─────────────────────────────────────────────────────────── */
 {
   describe('access control site — User detail field validation', () => {
     const ctx = useAccessControlApp();
@@ -129,15 +117,13 @@ const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
   });
 }
 
-/* ── Update user rights ──────────────────────────────────────────────────── */
 {
   const bodyFixtures: LayerFixture[] = [
     { name: 'Admin saves without the rights list', input: { reason: VALID_RIGHTS.reason }, expected: 'FAIL', field: 'permissions' },
     ...permissionFixtures(VALID_RIGHTS),
     { name: 'Admin writes a reason of 501 characters', input: { ...VALID_RIGHTS, reason: 'a'.repeat(501) }, expected: 'FAIL', field: 'reason' },
     { name: 'Client sends a field the rights form does not take (effect)', input: { ...VALID_RIGHTS, effect: 'GRANT' }, expected: 'FAIL' },
-    // The reason is sent to the user in their notification and kept in the audit trail,
-    // exactly like a suspension reason, so it is held to the same rule.
+    // Reaches the notification and audit trail, so it follows the suspension-reason rule.
   ];
 
   describe('access control site — Update user rights field validation', () => {
@@ -179,7 +165,6 @@ const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
   });
 }
 
-/* ── Suspend actions ─────────────────────────────────────────────────────── */
 {
   const bodyFixtures: LayerFixture[] = [
     { name: 'Admin suspends without the actions list', input: { reason: VALID_SUSPENSION.reason }, expected: 'FAIL', field: 'permissions' },
@@ -279,7 +264,6 @@ const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
   });
 }
 
-/* ── Lift suspension ─────────────────────────────────────────────────────── */
 {
   describe('access control site — Lift suspension field validation', () => {
     const ctx = useAccessControlApp();
@@ -331,7 +315,6 @@ const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
   });
 }
 
-/* ── Update role baseline ────────────────────────────────────────────────── */
 {
   const roleTypeFixtures: LayerFixture<string>[] = [
     { name: 'Admin edits the baseline of an app-side role (VOLUNTEER)', input: RoleType.VOLUNTEER, expected: 'FAIL' },

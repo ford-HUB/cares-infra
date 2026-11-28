@@ -17,7 +17,6 @@ import {
 import type { Announcement } from '../../types/maintenance'
 import { AnnouncementStateBadge } from '../maintenance/ui/announcement-state-badge'
 
-/** One day of the feed — the heading and the notices filed under it. */
 export interface NoticeDayGroup {
   key: string
   label: string
@@ -29,11 +28,6 @@ interface NoticeFeedProps {
   emptyMessage: string
 }
 
-/**
- * Every announcement the portal has made, newest first. This is the reading side of
- * the announcement board on Maintenance: no controls, because the question here is
- * "what have we told people, and when", not "what should go out next".
- */
 export function NoticeFeed({ groups, emptyMessage }: NoticeFeedProps) {
   if (groups.length === 0) {
     return (
@@ -79,7 +73,6 @@ function NoticeEntry({ notice }: { notice: Announcement }) {
 
   return (
     <li className="flex gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50/70">
-      {/* The clock reads first: this page is a chronology before it is a list. */}
       <div className="w-16 shrink-0 pt-0.5 text-right">
         <p
           className={cn(
@@ -94,7 +87,6 @@ function NoticeEntry({ notice }: { notice: Announcement }) {
         </p>
       </div>
 
-      {/* Tone reads before the title does — it is why the reader stopped on this row. */}
       <span
         aria-hidden
         className={cn(

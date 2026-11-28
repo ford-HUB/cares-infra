@@ -49,7 +49,6 @@ export function ChatComposer({
     event.target.value = ''
   }
 
-  /** Drops the emoji at the caret rather than at the end of the draft. */
   const handleEmoji = (emoji: string) => {
     const textarea = textareaRef.current
     const start = textarea?.selectionStart ?? value.length

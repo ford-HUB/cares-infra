@@ -27,16 +27,14 @@ const failed = (error: unknown): SourceStatus => ({
 
 interface SystemUsageState {
   range: SystemUsageRangeDays
-  /** Days before the last 24 h — sample until the server keeps a daily history. */
+  /** Sample data until the server keeps a daily history. */
   history: DailyUsage[]
   historyInitialized: boolean
 
-  /** The last 24 h from /system-performance?range=day — host, samples, processes. */
   snapshot: PerformanceSnapshot | null
   snapshotStatus: SourceStatus
-  /** Newest 3 s reading from /system-performance/tick. */
   liveSample: PerformanceSample | null
-  /** Highest CPU-busy tick seen while the screen is open — 3 s spikes the 20 min buckets smooth over. */
+  /** Catches 3 s spikes the 20 min buckets smooth over. */
   livePeak: { value: number; at: string } | null
 
   services: SystemService[]
@@ -51,11 +49,7 @@ interface SystemUsageState {
   fetchDiagnostics: () => Promise<void>
 }
 
-/**
- * The admin's Statistics screen. Each live source loads, refreshes and fails on its
- * own — a missing right or a down endpoint blanks one panel, never the page — and a
- * refresh keeps the last good reading on screen rather than clearing it.
- */
+/** Each source loads and fails independently; refreshes keep the last good reading. */
 export const useSystemUsageStore = create<SystemUsageState>((set, get) => ({
   range: DEFAULT_SYSTEM_USAGE_RANGE,
   history: [],
@@ -94,7 +88,7 @@ export const useSystemUsageStore = create<SystemUsageState>((set, get) => ({
         livePeak: !peak || busy > peak.value ? { value: busy, at: sample.at } : peak,
       })
     } catch {
-      // A missed tick leaves the last reading in place; the next one catches up.
+      // Missed tick: keep the last reading.
     }
   },
 

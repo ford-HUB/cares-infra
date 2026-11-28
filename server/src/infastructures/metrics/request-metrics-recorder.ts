@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-/** One finished HTTP request, as the middleware hands it over. */
 export interface RequestTiming {
   at: number;
   method: string;
@@ -25,20 +24,16 @@ export interface RouteStats {
   errorRate: number;
 }
 
-/** Requests older than this fall out of the buffer; every window reads inside it. */
+/** Buffer retention; every window reads inside it. */
 const RETENTION_MS = 15 * 60 * 1000;
 
-/** Hard cap on the buffer, so a burst cannot grow the heap without bound. */
+/** Hard cap so a burst can't grow the heap. */
 const MAX_ENTRIES = 50_000;
 
-/** How many per-minute p95 readings are kept per route — the table's sparkline. */
+/** Per-route p95 trend length (sparkline). */
 const TREND_POINTS = 12;
 
-/**
- * Where every request's timing lands, in memory, for the performance page to read.
- * Nothing here touches Redis: the numbers describe *this* process, and a request
- * that is over in 40 ms should not spend another round-trip being recorded.
- */
+/** In-memory only: per-process numbers, no Redis round-trip. */
 @Injectable()
 export class RequestMetricsRecorder {
   private entries: RequestTiming[] = [];
@@ -51,7 +46,6 @@ export class RequestMetricsRecorder {
     }
   }
 
-  /** Throughput and latency over the last `windowMs`. */
   window(windowMs: number, now = Date.now()): WindowStats {
     const recent = this.since(now - windowMs);
     const durations = recent.map((one) => one.durationMs);
@@ -62,7 +56,7 @@ export class RequestMetricsRecorder {
     };
   }
 
-  /** Per-route breakdown over the last `windowMs`, busiest first. */
+  /** Busiest first. */
   routes(windowMs: number, now = Date.now()): RouteStats[] {
     const groups = new Map<string, RequestTiming[]>();
     for (const one of this.since(now - windowMs)) {
@@ -88,10 +82,7 @@ export class RequestMetricsRecorder {
       .sort((a, b) => b.callsPerMinute - a.callsPerMinute);
   }
 
-  /**
-   * Closes a one-minute bucket: appends each route's p95 for the minute to its trend
-   * and drops entries past retention. The sampler calls this on its minute tick.
-   */
+  /** Appends each route's minute p95 and prunes expired entries. */
   rollMinute(now = Date.now()): void {
     const minute = this.routes(60_000, now);
     const seen = new Set<string>();
@@ -137,7 +128,7 @@ function routeKey(method: string, route: string): string {
   return `${method} ${route}`;
 }
 
-/** Nearest-rank percentile; zero for an empty set so an idle host reads as idle. */
+/** Nearest-rank; 0 for an empty set. */
 export function percentile(values: number[], rank: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);

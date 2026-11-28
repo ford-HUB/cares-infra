@@ -1,4 +1,3 @@
-/// Copy aligned with UCLM CARES (uclmcares.online guest portal & program materials).
 abstract final class AppCopy {
   static const String appName = 'CARES';
   static const String fullName =
@@ -21,7 +20,6 @@ abstract final class AppCopy {
   static const String filmNextCta = 'Next';
   static const String filmBackCta = 'Back';
 
-  /// Mascot-led board slides — mirrors the uclmcares.online guest overview.
   static const List<IntroSlide> filmSlides = [
     IntroSlide(
       boardTitle: 'Welcome',
@@ -105,8 +103,6 @@ abstract final class AppCopy {
   static const String loginSupportOpenFailed =
       "Couldn't open your email app. Write to careeesadmin@gmail.com.";
 
-  /// Leading story told between the splash and login — one beat per photo in
-  /// assets/images/leadings/, ordered from first light to the Christmas team.
   static const List<LeadingSlideCopy> leadingSlides = [
     LeadingSlideCopy(
       kicker: 'Meet UCLM CARES',
@@ -145,7 +141,6 @@ abstract final class AppCopy {
     ),
   ];
 
-  // --- App update (splash) ---------------------------------------------------
   static const String updateTitle = 'Update available';
   static const String updateRequiredTitle = 'Update required';
   static String updateBody(String version) =>
@@ -168,7 +163,6 @@ abstract final class AppCopy {
   static const String updateDownloadFailed =
       'The update could not be downloaded. Check your connection and try again.';
 
-  // --- Release notes (login version badge) -----------------------------------
   static const String releaseNotesTitle = 'Release notes';
   static String releaseNotesInstalledBody(String version) =>
       "You're on CARES v$version.";
@@ -190,7 +184,6 @@ abstract final class AppCopy {
   static const String releaseNotesOpenFailed = "Couldn't open GitHub.";
 }
 
-/// One beat of the leading story: a short label, a headline, and a line of body.
 class LeadingSlideCopy {
   const LeadingSlideCopy({
     required this.kicker,
@@ -203,7 +196,6 @@ class LeadingSlideCopy {
   final String body;
 }
 
-/// One beat on the welcome presentation board.
 class IntroSlide {
   const IntroSlide({
     required this.boardTitle,

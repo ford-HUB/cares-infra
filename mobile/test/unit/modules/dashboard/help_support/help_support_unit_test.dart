@@ -1,5 +1,6 @@
-// Unit tests for Help & Support — the FAQ, search, and the support tickets a
-// user files and follows up on:
+// Unit tests for Help & Support: FAQ, search and support tickets.
+// `supportTicketServiceProvider` is overridden with a MockClient-backed
+// service; all data is local.
 //
 //   kHelpArticles / searchHelpArticles     the static FAQ and its ranking
 //   GET  /v1/support-tickets/me                     SupportTicketService.fetchMine
@@ -13,10 +14,6 @@
 //   SupportRequestSubmittedScreen, MySupportRequestsScreen,
 //   SupportRequestDetailScreen, ReportBugScreen, ReportProblemScreen,
 //   ReportFormScreen, ReportSubmittedScreen
-//
-// The screens read tickets through `supportTicketServiceProvider`, which is
-// overridden with a service on package:http's MockClient. Every ticket and
-// reply is a local fixture — nothing reaches a server.
 
 import 'dart:async';
 import 'dart:convert';
@@ -42,10 +39,6 @@ import 'package:mobile/features/dashboard/widgets/help_support_widgets.dart';
 
 const _origin = 'http://api.test';
 const _mine = '/v1/support-tickets/me';
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 Map<String, dynamic> _reply({
   String author = 'Ana Cruz',
@@ -86,14 +79,9 @@ Map<String, dynamic> _ticketJson({
 SupportRequest _request(Map<String, dynamic> json) =>
     SupportTicketResponse.fromJson(json).toRequest();
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 typedef _Handler = Future<http.Response> Function(http.Request request);
 
-/// A tiny support desk: keeps tickets, answers the `me/` endpoints, and moves
-/// a ticket along the way the portal would.
+/// Answers the `me/` endpoints and moves tickets along as the portal would.
 class _Desk {
   _Desk([List<Map<String, dynamic>>? tickets]) : tickets = [...?tickets];
 
@@ -205,12 +193,7 @@ http.Response _fail(int status, String message) =>
 Map<String, dynamic> _bodyOf(http.Request request) =>
     jsonDecode(request.body) as Map<String, dynamic>;
 
-// ---------------------------------------------------------------------------
-// Screen harness
-// ---------------------------------------------------------------------------
-
-/// Pumps [home] in a ProviderScope whose ticket service talks to [desk], on a
-/// tall surface so long pages build without scrolling.
+/// On a tall surface so long pages build without scrolling.
 Future<void> _pump(WidgetTester tester, _Desk desk, Widget home) async {
   tester.view.physicalSize = const Size(900, 4200);
   tester.view.devicePixelRatio = 1.0;
@@ -295,8 +278,7 @@ void main() {
     AuthSession.onSessionEnded = null;
   });
 
-  /// A widget test that drops the notification follow-up timer before the
-  /// framework checks for pending timers.
+  /// Drops the notification follow-up timer before the pending-timer check.
   void screenTest(
     String description,
     Future<void> Function(WidgetTester) body,
@@ -306,10 +288,6 @@ void main() {
       NotificationSync.instance.stop();
     });
   }
-
-  // =========================================================================
-  // FAQ content and search
-  // =========================================================================
 
   group('help content', () {
     test('every topic has a label, short label, blurb and articles', () {
@@ -384,10 +362,6 @@ void main() {
       }
     });
   });
-
-  // =========================================================================
-  // Ticket model
-  // =========================================================================
 
   group('support statuses, types and priority', () {
     test('status labels and who has the ball', () {
@@ -610,10 +584,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Service and shared list
-  // =========================================================================
-
   group('SupportTicketService', () {
     setUp(() => AuthSession.setAccessToken('jwt.volunteer'));
 
@@ -799,10 +769,6 @@ void main() {
       );
     });
   });
-
-  // =========================================================================
-  // Help & Support home
-  // =========================================================================
 
   group('HelpSupportScreen', () {
     screenTest('shows search, quick actions, quick help, FAQ and more help', (
@@ -1015,10 +981,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Contact Support
-  // =========================================================================
-
   group('ContactSupportScreen', () {
     screenTest('offers a message or the help desk', (tester) async {
       await _pump(tester, _Desk(), const ContactSupportScreen());
@@ -1067,10 +1029,6 @@ void main() {
       expect(find.text('CARES Help Desk'), findsNothing);
     });
   });
-
-  // =========================================================================
-  // Send Us a Message
-  // =========================================================================
 
   group('SupportMessageFormScreen', () {
     screenTest('an empty submit shows every error and sends nothing', (
@@ -1292,10 +1250,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // My Support Requests
-  // =========================================================================
-
   group('MySupportRequestsScreen', () {
     final mixed = [
       _ticketJson(id: 'a', reference: 1, subject: 'Login loop', status: 'OPEN'),
@@ -1457,10 +1411,6 @@ void main() {
       expect(find.text('Support #003'), findsOneWidget);
     });
   });
-
-  // =========================================================================
-  // Request detail
-  // =========================================================================
 
   group('SupportRequestDetailScreen', () {
     Future<_Desk> openDetail(
@@ -1709,10 +1659,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Report a Bug
-  // =========================================================================
-
   group('ReportBugScreen', () {
     const titleHint = 'e.g. App closes when opening the Events tab';
     const happenedHint =
@@ -1839,10 +1785,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Report a Problem
-  // =========================================================================
-
   group('ReportProblemScreen and ReportFormScreen', () {
     screenTest('lists every reason with its hint', (tester) async {
       await _pump(tester, _Desk(), const ReportProblemScreen());
@@ -1943,10 +1885,6 @@ void main() {
       expect(find.byType(MySupportRequestsScreen), findsOneWidget);
     });
   });
-
-  // =========================================================================
-  // Invalid fields
-  // =========================================================================
 
   group('invalid fields — Send Us a Message', () {
     const shortError = 'Tell us a little more (at least 10 characters)';

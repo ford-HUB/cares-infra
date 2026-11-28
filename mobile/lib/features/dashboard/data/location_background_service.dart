@@ -9,8 +9,7 @@ import '../../../core/services/connectivity_monitor.dart';
 import 'location_capture_db.dart';
 import 'location_recorder.dart';
 
-/// Snapshot of the recorder inside the service, mirrored to the app so its
-/// screens can show what the background is doing.
+/// Mirrored from the service so app screens can show it.
 class LocationServiceState {
   const LocationServiceState({
     required this.streaming,
@@ -70,24 +69,21 @@ class LocationServiceState {
   }
 }
 
-/// App-side handle on the Android foreground service that hosts the
-/// recorder, so recording survives the app being swiped away, the screen
-/// turning off, and (with battery optimisation off) a reboot.
-///
-/// Android only. The service isolate can't see the app's memory, so
-/// everything it needs is either in SQLite (activated flag, email, joined
-/// events) or pushed to it here (the access token, "events changed").
+/// Android foreground service hosting the recorder; survives swipe-away,
+/// screen-off and (without battery optimisation) reboot. Its isolate can't see
+/// app memory: state is in SQLite (flag, email, joined events) or pushed here
+/// (token, "events changed").
 abstract final class LocationBackgroundService {
   static const int _serviceId = 4171;
   static const String notificationTitle = 'Recording your location';
 
-  /// `tracker_state` key holding the signed-in email for the service.
+  /// `tracker_state` key for the signed-in email.
   static const String emailStateKey = 'participant_email';
 
   static bool get isSupported =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
-  /// Call once at app start, on the main isolate, before [start].
+  /// Once at app start, on the main isolate, before [start].
   static void init() {
     if (!isSupported) return;
     FlutterForegroundTask.initCommunicationPort();
@@ -106,8 +102,8 @@ abstract final class LocationBackgroundService {
         playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
-        // The recorder keeps its own 1 s timer; this is just the periodic
-        // re-check of the activated flag and joined events.
+        // The recorder has its own 1 s timer; this only re-checks the flag and
+        // joined events.
         eventAction: ForegroundTaskEventAction.repeat(60000),
         autoRunOnBoot: true,
         autoRunOnMyPackageReplaced: true,
@@ -141,15 +137,12 @@ abstract final class LocationBackgroundService {
     }
   }
 
-  /// Hands the service the current access token so live posts can
-  /// authenticate. Null clears it (signed out) — the service then records
-  /// offline-style until the app signs in again.
+  /// Null (signed out) makes the service record offline-style.
   static void sendAccessToken(String? token) {
     if (!isSupported) return;
     FlutterForegroundTask.sendDataToTask({'type': 'token', 'value': token});
   }
 
-  /// Tells the service the joined events in SQLite changed.
   static void notifyEventsChanged() {
     if (!isSupported) return;
     FlutterForegroundTask.sendDataToTask({'type': 'events'});
@@ -171,9 +164,7 @@ void locationTaskCallback() {
   FlutterForegroundTask.setTaskHandler(LocationTaskHandler());
 }
 
-/// Runs on the service isolate. Owns a [LocationRecorder] for as long as the
-/// persisted activated flag is on; when the flag goes off (the app verified
-/// there is nothing left to record) the service stops itself.
+/// Runs on the service isolate; stops itself when the activated flag goes off.
 class LocationTaskHandler extends TaskHandler {
   final _db = LocationCaptureDb.instance;
   final _connectivity = ConnectivityMonitor.instance;
@@ -257,8 +248,7 @@ class LocationTaskHandler extends TaskHandler {
     _publishState(force: true);
   }
 
-  /// Mirrors the recorder to the app (if it is listening) at most once a
-  /// second, and refreshes the notification text every 30 s.
+  /// At most once a second; notification text every 30 s.
   void _publishState({bool force = false}) {
     if (!force) {
       if (_stateQueued) return;

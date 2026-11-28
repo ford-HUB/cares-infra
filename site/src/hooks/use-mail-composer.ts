@@ -19,11 +19,7 @@ interface ThreadContext {
   inReplyTo?: string
 }
 
-/**
- * Owns the compose/reply form. Thread context sits outside the form because it is never
- * edited — it only decides whether Gmail files the send as a new conversation or as a
- * reply inside the original thread.
- */
+/** Thread context lives outside the form: it only decides new conversation vs reply. */
 export function useMailComposer() {
   const send = useMailboxStore((s) => s.send)
   const sending = useMailboxStore((s) => s.sending)

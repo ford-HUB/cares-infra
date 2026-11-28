@@ -30,7 +30,7 @@ interface CertificateDesignApi {
   /** Absent on designs saved before weight and underline existed. */
   element_weights?: NonNullable<CertificateDesign['elementWeights']>
   element_underlines?: NonNullable<CertificateDesign['elementUnderlines']>
-  /** Absent on designs saved before the award name had its own wording. */
+  /** Absent on designs saved before the award-name field. */
   title?: string
   headline: string
   body: string
@@ -128,8 +128,6 @@ function mapDesign(
     sealSvgUrl: design.seal_svg_url,
     sealSvgName: design.seal_svg_name,
     images: design.images,
-    // The signature lines are their own rows on the server — they are joined back into
-    // the design here because that is the shape the sheet is drawn from.
     signatories: signatories.map(mapSignatory),
   }
 }
@@ -153,12 +151,7 @@ async function mapTemplate(
   }
 }
 
-/**
- * A save sends the whole template: the customizer edits wording, artwork and the people
- * signing it as one sheet. Signatories go up as accounts only — the server re-reads the
- * printed name and title from the directory, so the name over a coordinator's signature
- * is always that coordinator's own.
- */
+/** Signatories go up as accounts; the server re-reads printed names from the directory. */
 function toSavePayload(input: CertificateTemplateInput) {
   const design = toStoredDesignAssets(input.design)
 
@@ -268,7 +261,6 @@ export function countCertificateTemplates(
   }
 }
 
-/** The accounts offered in the signatory picker. */
 export async function listSignatoryCoordinators(): Promise<SignatoryCoordinator[]> {
   try {
     const { data: body } = await apiClient.get<{

@@ -1,13 +1,11 @@
-// Unit tests for keeping a person signed in across app restarts:
+// Unit tests for staying signed in across restarts (in-memory plugin doubles +
+// MockClient):
 //
 //   AuthSession.start / replaceAccessToken / clear   what is saved, and when
 //   SessionRestoreService.restore                     launch-time restore
 //     GET  /v1/profile/me/mobile                      the server-side check
 //   SignOutService.signOut                            explicit sign-out
 //     POST /v1/auth/logout                            server-side revoke
-//
-// The secure store and preferences are the plugins' in-memory test doubles and
-// the network is package:http's MockClient, so nothing leaves the test.
 
 import 'dart:convert';
 import 'dart:io';

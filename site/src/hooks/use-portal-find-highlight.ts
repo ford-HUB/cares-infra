@@ -11,13 +11,7 @@ import {
 
 export type PortalFindStatus = 'searching' | 'found' | 'missing'
 
-/**
- * Highlights the text the header search carried into this screen — only the typed
- * characters, wherever they appear in the module's content. Painted with the CSS
- * Custom Highlight API, so React's DOM is never touched. The module renders its
- * rows after its data arrives, so a MutationObserver repaints as content changes
- * and the first match is scrolled into view once it exists.
- */
+/** CSS Custom Highlight API, so React's DOM is untouched; a MutationObserver repaints as rows render. */
 export function usePortalFindHighlight(containerRef: RefObject<HTMLElement | null>) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -68,7 +62,6 @@ export function usePortalFindHighlight(containerRef: RefObject<HTMLElement | nul
     }
   }, [containerRef, term, nonce])
 
-  /** Drops the highlight but leaves the module's filter as the viewer has it. */
   const dismiss = useCallback(() => {
     if (!find) return
     navigate(
@@ -77,7 +70,7 @@ export function usePortalFindHighlight(containerRef: RefObject<HTMLElement | nul
     )
   }, [find, navigate, location.pathname, location.search, location.hash])
 
-  // A result from an earlier search (different nonce) is never shown for this one.
+  // Ignore results from an earlier search nonce.
   const current = result.nonce === nonce ? result : { count: 0, settled: false }
   const status: PortalFindStatus =
     current.count > 0 ? 'found' : current.settled ? 'missing' : 'searching'

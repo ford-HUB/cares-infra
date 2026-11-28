@@ -2,7 +2,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ENDPOINT_ROWS } from '../../../constants/system-performance'
 
-/** Mirrors the banner, the tile row, both charts, and the two tables below them. */
 export function SystemPerformanceSkeleton() {
   return (
     <div aria-hidden>

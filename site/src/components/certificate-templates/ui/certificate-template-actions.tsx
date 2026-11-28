@@ -25,17 +25,13 @@ interface CertificateTemplateActionsProps {
   onAction: (action: string, template: CertificateTemplate) => void
 }
 
-/**
- * Secondary actions live behind one menu so the card footer stays two buttons wide.
- * Everything that changes a template sits behind the "Manage templates" right; an
- * account without it keeps only the sample download.
- */
+/** Template-changing entries need "Manage templates"; others get only the sample download. */
 export function CertificateTemplateActions({
   template,
   onAction,
 }: CertificateTemplateActionsProps) {
   const canManage = usePermission(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
-  // Suspended rather than absent: the entries stay, locked and red, with the reason on hover.
+  // Suspended entries stay visible, locked and red, with the reason on hover.
   const manageSuspension = useSuspension(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
 
   return (
@@ -113,8 +109,7 @@ export function CertificateTemplateActions({
             )}
           </>
         )}
-        {/* Anything already printed from is archived, never deleted — the issued
-            certificates have to keep pointing at a design that still exists. */}
+        {/* Printed-from templates are archived, never deleted, so issued certificates keep their design. */}
         {canManage && template.issued === 0 && template.deployedEvents === 0 && (
           <DropdownMenuItem
             variant="destructive"

@@ -15,7 +15,6 @@ interface SystemServicesListProps {
   onViewLogs: (service: SystemService) => void
 }
 
-/** Column headings, shown once above the rows so each row need not repeat them. */
 const COLUMNS = [
   { key: 'service', label: 'Service', width: 'lg:w-[30%]' },
   { key: 'trigger', label: 'Trigger', width: 'lg:w-[22%]' },
@@ -33,8 +32,7 @@ export function SystemServicesList({
   onConfigure,
   onViewLogs,
 }: SystemServicesListProps) {
-  // One timer for the whole board: countdowns to the next trigger and the elapsed
-  // bar on a run in flight both advance from this re-render.
+  // One timer for the board; countdowns and elapsed bars advance from this re-render.
   const now = useClockTick(1000, services.some((one) => one.state !== 'paused'))
 
   if (services.length === 0) {

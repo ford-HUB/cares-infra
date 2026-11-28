@@ -37,7 +37,7 @@ export function formatTimeOfDay(timestamp: string): string {
   return dayjs(timestamp).format('h:mm A')
 }
 
-/** `Nov 18, 2026, 3:04 PM` — a date with its time, for decision timestamps. */
+/** `Nov 18, 2026, 3:04 PM` */
 export function formatDateTime(timestamp: string): string {
   return dayjs(timestamp).format('MMM D, YYYY, h:mm A')
 }
@@ -56,7 +56,7 @@ export function formatPercent(ratio: number): string {
   return `${Math.round(ratio * 100)}%`
 }
 
-/** `7:00 AM – 4:00 PM` for an event's start/end pair. */
+/** `7:00 AM – 4:00 PM` */
 export function formatTimeRange(start: string, end: string): string {
   return `${formatTimeOfDay(start)} – ${formatTimeOfDay(end)}`
 }

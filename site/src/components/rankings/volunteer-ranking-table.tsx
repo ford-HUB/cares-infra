@@ -20,15 +20,10 @@ interface VolunteerRankingTableProps {
   tiers: RankingTier[]
   settings: RankingSettings
   loading: boolean
-  /** Overrides the empty state — e.g. when a search matched nobody. */
   emptyMessage?: string
 }
 
-/**
- * Volunteers are scored on attendance only: every attended event earns points and
- * every registered event skipped costs an escalating penalty. Donations never enter
- * this board.
- */
+/** Attendance only: attended events earn points, skipped registrations cost escalating penalties. */
 export function VolunteerRankingTable({
   entries,
   tiers,
@@ -76,7 +71,7 @@ export function VolunteerRankingTable({
             {formatNumber(entry.eventsJoined)}
           </td>
 
-          {/* A live streak is flagged: the next miss costs more than the last. */}
+          {/* A live streak is flagged: the next miss costs more. */}
           <td className={`${RANKING_CELL_BORDER} ${RANKING_CELL_BASE}`}>
             <span className={entry.eventsMissed > 0 ? 'text-red-600' : 'text-gray-600'}>
               {formatNumber(entry.eventsMissed)}
@@ -95,7 +90,7 @@ export function VolunteerRankingTable({
             )}
           </td>
 
-          {/* Approved special roles on attended events — what the role bonus paid for. */}
+          {/* Approved special roles on attended events (the role bonus). */}
           <td className={`${RANKING_CELL_BORDER} ${RANKING_CELL_BASE}`}>
             {PARTICIPATION_ROLE_OPTIONS.some((role) => entry.roleCounts[role.id] > 0) ? (
               <span className="flex flex-wrap gap-1">

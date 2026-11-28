@@ -14,7 +14,7 @@ export function RestrictUserModal({
   onClose,
   onConfirm,
 }: RestrictUserModalProps) {
-  // The parent keys this component by user id, so `reason` starts fresh per target.
+  // Keyed by user id upstream, so `reason` starts fresh per target.
   const [reason, setReason] = useState('')
 
   if (!user) return null

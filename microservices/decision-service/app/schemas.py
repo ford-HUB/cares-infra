@@ -10,12 +10,10 @@ class ApiResponse(BaseModel):
     errors: dict | None = None
 
 
-# ---------------------------------------------------------------------------
-# Survey vocabulary — mirrors site/src/types/residential-needs.ts
-# ---------------------------------------------------------------------------
+# Mirrors site/src/types/residential-needs.ts
 
 NeedCategory = Literal["food", "healthcare", "education", "livelihood", "financial", "other"]
-# The named Q1 categories the model flags — "Other" is free text, so it is left out.
+# "other" is free text, so not a clustering feature.
 ClusterNeed = Literal["food", "healthcare", "education", "livelihood", "financial"]
 NeedBarrier = Literal[
     "money",
@@ -43,13 +41,11 @@ BARRIER_ORDER: list[NeedBarrier] = [
     "other",
     "none",
 ]
-# Feature order the model clusters on; the response centroid is keyed the same way.
+# Centroid keys follow this order.
 FEATURE_KEYS: list[str] = ["members", "seriousness", *CLUSTER_NEEDS]
 
 
-# ---------------------------------------------------------------------------
-# Request (camelCase on the wire, as the portal's Household rows are shaped)
-# ---------------------------------------------------------------------------
+# Request: camelCase, as the portal's Household rows.
 
 
 class HouseholdSurvey(BaseModel):
@@ -82,40 +78,36 @@ class ClusterBody(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     households: list[Household] = Field(default_factory=list)
-    # Groups to find. Omitted → Settings.default_k. Clamped to the row count.
+    # Omitted → Settings.default_k; clamped to the row count.
     k: int | None = Field(default=None, ge=1, le=50)
-    # Random start for k-means++; the same seed over the same rows is reproducible.
+    # Same seed + same rows is reproducible.
     seed: int = Field(default=0, ge=0)
     max_iterations: int | None = Field(default=None, alias="maxIterations", ge=1, le=1000)
 
 
-# ---------------------------------------------------------------------------
-# Response (camelCase — the portal's NeedsClusteringResult, field for field)
-# ---------------------------------------------------------------------------
+# Response: mirrors the portal's NeedsClusteringResult.
 
 
 class ClusterBarangay(BaseModel):
     name: str
     count: int
-    # `count` over the cluster's size — how concentrated the group is there.
+    # count / cluster size.
     share: float
 
 
 class NeedsCluster(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    # 0-based, ordered highest need first — cluster 0 is the group to serve first.
+    # 0 = highest need.
     index: int
     household_ids: list[str] = Field(..., alias="householdIds")
-    # Mean of every feature over the members, in original units; a need category
-    # is the share of members (0–1) who ticked it.
+    # Feature means in original units; need flags are member shares (0–1).
     centroid: dict[str, float]
     dominant_need: ClusterNeed = Field(..., alias="dominantNeed")
     top_barrier: NeedBarrier = Field(..., alias="topBarrier")
     priority: NeedPriority = Field(...)
     barangay: ClusterBarangay
-    # Mean seriousness weighted by how many needs the members ticked — the number
-    # the clusters are ranked on. Higher means a group in deeper need.
+    # Ranking key; higher = deeper need.
     need_level: float = Field(..., alias="needLevel")
 
 
@@ -125,7 +117,7 @@ class ClusterResult(BaseModel):
     k: int
     clusters: list[NeedsCluster]
     assignments: dict[str, int]
-    # Sum of squared distances to centroids in standardised feature space.
+    # In standardised feature space.
     inertia: float
     iterations: int
     converged: bool

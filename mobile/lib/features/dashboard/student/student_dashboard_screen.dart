@@ -23,7 +23,6 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
   int _refreshVersion = 0;
 
-  /// Pull-to-refresh: remount every tab so each reloads from scratch.
   Future<void> _refreshAll() async {
     if (!mounted) return;
     setState(() => _refreshVersion++);

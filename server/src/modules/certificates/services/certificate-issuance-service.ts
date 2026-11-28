@@ -16,7 +16,6 @@ import {
 } from '../repositories/certificates-repository';
 import { recipientNameOf } from './certificate-fill';
 
-/** What one sweep did for one deployment, for the run log. */
 export interface CertificateIssuanceSummary {
   deploymentId: string;
   reference: string;
@@ -28,16 +27,7 @@ export interface CertificateIssuanceSummary {
   completed: boolean;
 }
 
-/**
- * The certificate generator. Once an event is over, every deployment queued on it is
- * walked and a certificate is cut for each participant the geofence ruling marked
- * COMPLETED who has also answered the post-event questionnaire. The sheet is the
- * deployment's frozen design; the row carries the values its placeholders are filled
- * with and, per signature line, the coordinator's signature image as of today.
- *
- * Idempotent: a participant holds at most one certificate per deployment, so the
- * sweep can run every few minutes and only ever adds the people who newly qualify.
- */
+/** Idempotent: one certificate per participant per deployment, so the sweep only adds new qualifiers. */
 @Injectable()
 export class CertificateIssuanceService {
   private readonly logger = new Logger(CertificateIssuanceService.name);
@@ -56,7 +46,7 @@ export class CertificateIssuanceService {
       try {
         summaries.push(await this.issueFor(deployment, now));
       } catch (error) {
-        // One bad deployment must not hold the rest of the roster back.
+        // One bad deployment must not block the rest.
         this.logger.error(
           `certificate issue failed for ${deployment.reference}: ${
             error instanceof Error ? error.message : String(error)
@@ -106,8 +96,7 @@ export class CertificateIssuanceService {
     const covered = await this.repository.countCoveredParticipants(
       deployment.event_id,
     );
-    // The deploy snapshotted the event's headcount; the roster the ruling settled on
-    // is the true denominator, but never shrink below what is already handed out.
+    // Ruled roster is the true denominator, but never below what's distributed.
     const participants = Math.max(
       covered,
       deployment.distributed + certificates.length,
@@ -141,11 +130,7 @@ export class CertificateIssuanceService {
     };
   }
 
-  /**
-   * Pins each signature line to the image the coordinator has on file right now. A
-   * line whose coordinator has no signature prints without one rather than holding
-   * the whole batch — the director sees `has_signature` on the live page.
-   */
+  /** A missing signature prints blank instead of blocking the batch. */
   private async freezeIssuedDesign(
     templateId: string,
     design: StoredDeploymentDesign,

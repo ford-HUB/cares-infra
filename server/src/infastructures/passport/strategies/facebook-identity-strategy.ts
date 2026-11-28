@@ -47,19 +47,8 @@ interface FacebookProfileResponse {
 }
 
 /**
- * Signs a donor in from the access token Facebook Login handed the mobile app.
- *
- * A custom strategy rather than `passport-facebook` for the same reason as its Google
- * counterpart: consent already happened natively on the phone, so there is no redirect
- * leg — only a token to verify.
- *
- * Facebook has no ID token to check offline, so verification is two calls: `debug_token`
- * proves the token is live *and was minted for this app* — without that check any valid
- * Facebook token from any app would sign someone in — and `/me` then reads the profile.
- *
- * The app id and secret are read per call rather than in the constructor so the server
- * still boots with Facebook unconfigured; only a Facebook sign-in fails, and it fails
- * with a message saying so.
+ * Verifies the native-login token: `debug_token` (live and minted for this app), then `/me`.
+ * Credentials read per call so the server boots without Facebook configured.
  */
 @Injectable()
 export class FacebookIdentityStrategy extends PassportStrategy(
@@ -109,8 +98,7 @@ export class FacebookIdentityStrategy extends PassportStrategy(
     return {
       providerUserId: profile.id,
       email,
-      // The Graph API exposes no verification flag, and Facebook only returns an address
-      // it has confirmed — treating it as verified here matches what the API can tell us.
+      // Graph returns only confirmed addresses.
       emailVerified: true,
       firstname: normalizeName(profile.first_name),
       middleName: normalizeName(profile.middle_name),
@@ -119,7 +107,6 @@ export class FacebookIdentityStrategy extends PassportStrategy(
     };
   }
 
-  /** Rejects a token that is expired, revoked, or minted for a different Facebook app. */
   private async assertTokenBelongsToThisApp(
     accessToken: string,
   ): Promise<void> {

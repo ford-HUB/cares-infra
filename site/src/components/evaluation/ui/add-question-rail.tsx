@@ -6,10 +6,7 @@ interface AddQuestionRailProps {
   onAdd: (type: EvaluationQuestionType) => void
 }
 
-/**
- * The vertical toolbar beside the form — one button per question type. It sticks to
- * the viewport so it is always at hand while scrolling a long questionnaire.
- */
+/** Sticky, so it stays at hand while scrolling a long questionnaire. */
 export function AddQuestionRail({ onAdd }: AddQuestionRailProps) {
   return (
     <TooltipProvider delayDuration={200}>

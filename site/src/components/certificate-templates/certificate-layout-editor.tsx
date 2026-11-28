@@ -56,10 +56,7 @@ import { CertificateFrameOrnament } from './ui/certificate-frame-ornament'
 import { CertificateRuler } from './ui/certificate-ruler'
 import { CertificateTextStyleField } from './ui/certificate-text-style-field'
 
-/**
- * Where a block can be grabbed. Corners carry both axes, so one drag resizes the box
- * as a whole and the text inside follows it down.
- */
+/** Corner handles carry both axes, so one drag resizes the whole box. */
 const BLOCK_HANDLES = [
   {
     id: 'nw',
@@ -119,17 +116,16 @@ interface CertificateLayoutEditorProps {
   title: string
   onLayoutChange: (layout: CertificateLayout) => void
   onImagesChange: (images: CertificateImage[]) => void
-  /** Sets the sheet font when no block is selected, that block's font otherwise. */
+  /** `null` target sets the sheet font. */
   onFontChange: (target: CertificateElementId | null, font: CertificateFontId) => void
-  /** Text size, in points, of one block. */
+  /** Size in points. */
   onSizeChange: (target: CertificateElementId, size: number) => void
-  /** Width of one block, as a percentage of the sheet. */
+  /** Percent of sheet width. */
   onWidthChange: (target: CertificateElementId, width: number) => void
-  /** Where one block's text sits inside its box. */
   onAlignChange: (target: CertificateElementId, align: CertificateTextAlign) => void
-  /** Height of one block, as a percentage of the sheet. */
+  /** Percent of sheet height. */
   onHeightChange: (target: CertificateElementId, height: number) => void
-  /** Text weight of one block; `undefined` hands it back to the frame. */
+  /** `undefined` falls back to the frame's weight. */
   onWeightChange: (
     target: CertificateElementId,
     weight: CertificateFontWeight | undefined,
@@ -137,12 +133,7 @@ interface CertificateLayoutEditorProps {
   onUnderlineChange: (target: CertificateElementId, underline: boolean) => void
 }
 
-/**
- * The certificate as a working surface: every block is dragged into place against
- * rulers on all four edges, snaps to the sheet centre and to the other blocks' axes,
- * and can be squared up in one press. Positions are percentages of the sheet, so a
- * layout holds however large the certificate is finally printed.
- */
+/** Positions are sheet percentages, so a layout holds at any print size. */
 export function CertificateLayoutEditor({
   design,
   orientation,
@@ -256,10 +247,7 @@ export function CertificateLayoutEditor({
     window.addEventListener('pointerup', onUp, { once: true })
   }
 
-  /**
-   * Dragging a grip outward grows the image and inward shrinks it, with the opposite
-   * edge held still — so the corner under the pointer is the one that moves.
-   */
+  /** The opposite edge stays fixed; the grabbed corner moves. */
   const startImageResize =
     (image: CertificateImage) =>
     (handle: ResizeHandle) =>
@@ -291,8 +279,7 @@ export function CertificateLayoutEditor({
         patchImage(image.id, {
           width,
           height,
-          // The centre shifts by half of what the dragged edge moved, which keeps the
-          // opposite edge pinned where it was.
+          // Centre shifts by half the edge delta, pinning the opposite edge.
           x: clampPosition(origin.x + (handle.dx * (width - origin.width)) / 2),
           y: clampPosition(origin.y + (handle.dy * (height - origin.height)) / 2),
         })
@@ -303,14 +290,7 @@ export function CertificateLayoutEditor({
       window.addEventListener('pointerup', onUp, { once: true })
     }
 
-  /**
-   * One drag for every grip: a corner changes width and height together, an edge only
-   * its own dimension. The box grows and shrinks around its own centre, so the grip
-   * under the pointer keeps up while the block stays on the axis it was placed on.
-   *
-   * A block is as tall as its text until a grip is dragged, so the first drag starts
-   * from whatever it measures right now rather than jumping to a guess.
-   */
+  /** Resizes around the centre; the first drag starts from the measured text height. */
   const startBoxResize =
     (id: CertificateElementId, handle: BlockHandle) => (event: React.PointerEvent) => {
       if (event.button !== 0) return
@@ -381,8 +361,7 @@ export function CertificateLayoutEditor({
           Layout editor
         </p>
         <div className="flex flex-wrap items-center gap-1.5">
-          {/* The picker follows the selection: pick a block to change just its face,
-              deselect to change the whole sheet. */}
+          {/* Targets the selected block, or the whole sheet when none is selected. */}
           <CertificateFontPicker
             target={selected}
             value={
@@ -392,7 +371,6 @@ export function CertificateLayoutEditor({
             }
             onChange={(font) => onFontChange(selected, font)}
           />
-          {/* Sizing needs a block; with none picked the field says so by being off. */}
           <CertificateFontSizeField
             value={elementFontSize(design, selected ?? 'body')}
             disabled={!selected}
@@ -442,9 +420,7 @@ export function CertificateLayoutEditor({
         </div>
       </div>
 
-      {/* Rulers frame the sheet on all four edges and share its exact width and height:
-          the sheet is sized off the space actually available, so the whole certificate
-          stays in view instead of running past the pane. */}
+      {/* Sized to the available space so the whole certificate stays in view. */}
       <div className="flex min-h-0 flex-1 justify-center">
         <div className="grid h-full grid-cols-[1.25rem_auto_1.25rem] grid-rows-[1.25rem_minmax(0,1fr)_1.25rem]">
           <span />
@@ -519,8 +495,7 @@ export function CertificateLayoutEditor({
                   onPointerEnter={() => setHovered(id)}
                   onPointerLeave={() => setHovered((one) => (one === id ? null : one))}
                   className={cn(
-                    // No padding: the box must wrap its text exactly as the printed
-                    // sheet does, so the selection ring is offset rather than inset.
+                    // No padding: the box wraps text like the printed sheet; ring is offset, not inset.
                     'absolute -translate-x-1/2 -translate-y-1/2 cursor-move rounded-md ring-offset-2 outline-none',
                     (dragging === id || resizing === id) && 'opacity-90',
                     isSelected
@@ -548,10 +523,7 @@ export function CertificateLayoutEditor({
                     fixedHeight={height !== undefined}
                   />
 
-                  {/* Corner grips resize both dimensions at once, edge grips just
-                      their own. They surface on hover as well as on the selected
-                      block, so an edge is grabbable the moment the pointer reaches
-                      it. */}
+                  {/* Grips also show on hover, so an edge is grabbable before selecting. */}
                   {(isSelected || hovered === id || resizing === id) &&
                     BLOCK_HANDLES.map((handle) => (
                       <span

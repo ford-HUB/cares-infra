@@ -38,22 +38,9 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 setCaseUnit({ module: 'Support Tickets Module', unit: 'List / Update / Reply to Ticket', prefix: 'TICKET' });
 
 /**
- * Shared by every spec in this folder — field validation for the portal Support
- * Tickets queue:
- *
- *   GET   /api/v1/support-tickets              List    status · type · priority · limit (query)
- *   PATCH /api/v1/support-tickets/:id          Update  id (uuid) · status · note · assignee_id
- *   POST  /api/v1/support-tickets/:id/replies  Reply   id (uuid) · body
- *
- * The app runs the REAL `SupportTicketsSiteController` and
- * `SupportTicketsSiteService`, so the 404 for an unknown ticket and what is written
- * for a note or reply come from production code. Only `SupportTicketsRepository`
- * (Prisma) and `NotificationScheduler` are mocked.
- *
- * The ticket-id schema is a private const in the controller, so id cases run
- * through the API layer only.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix).
+ * Real controller + service; only SupportTicketsRepository and NotificationScheduler
+ * are mocked. The ticket-id schema is private to the controller, so id cases are
+ * API-layer only.
  */
 export const CALLER = {
   sub: '0f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f',
@@ -85,7 +72,7 @@ export const MESSAGES = {
   ticketNotFound: 'Support ticket not found',
 };
 
-/** A ticket as `SupportTicketsRepository.findTicket` returns it. */
+/** `SupportTicketsRepository.findTicket` row. */
 export const storedTicket = (overrides: Record<string, unknown> = {}) => ({
   support_ticket_id: VALID_TICKET_ID,
   reference_number: 10,
@@ -110,7 +97,7 @@ export const storedTicket = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-/** What `updateTicket` would return after applying `data` to the stored ticket. */
+/** What `updateTicket` returns after applying `data`. */
 const applyUpdate = (data: UpdateSupportTicketInput) => {
   const ticket = storedTicket();
   return {
@@ -133,13 +120,9 @@ const applyUpdate = (data: UpdateSupportTicketInput) => {
   };
 };
 
-/* ───────────────────────────── app ───────────────────────────── */
-
 /**
- * Boots the support tickets controller on the real service for the enclosing
- * `describe`. A stand-in for the global JWT guard puts `CALLER` on the request.
- * Before each test every mock goes back to the happy default: an OPEN ticket
- * exists, the caller's name resolves, writes and notifications succeed.
+ * Stub guard sets `CALLER`. Mocks reset to the happy path before each test: an OPEN
+ * ticket exists, the caller's name resolves, writes and notifications succeed.
  */
 export const useSupportTicketsApp = () => {
   const ctx = {
@@ -184,8 +167,6 @@ export const useSupportTicketsApp = () => {
 
 export type TicketsCtx = ReturnType<typeof useSupportTicketsApp>;
 
-/* ───────────────────────────── requests ───────────────────────────── */
-
 export const listTickets = (ctx: TicketsCtx, query?: Record<string, string>) =>
   runApiLayer(ctx.app, { method: 'get', path: LIST_PATH, query });
 
@@ -195,22 +176,17 @@ export const updateTicket = (ctx: TicketsCtx, body: unknown, id = VALID_TICKET_I
 export const replyToTicket = (ctx: TicketsCtx, body: unknown, id = VALID_TICKET_ID) =>
   runApiLayer(ctx.app, { method: 'post', path: replyPath(id), body });
 
-/* ───────────────────────────── shared checks ───────────────────────────── */
-
-/** A refusal from the service: exact status + message in the `{ ok: false }` envelope. */
 export const expectRefusal = (outcome: LayerOutcome, status: number, message: string) => {
   expect(outcome.status).toBe(status);
   expectSafeErrorEnvelope(outcome);
   expect(outcome.body.message).toBe(message);
 };
 
-/** A refused update or reply wrote nothing and told no one. */
 export const expectNothingWritten = (ctx: TicketsCtx) => {
   expect(ctx.repository.updateTicket).not.toHaveBeenCalled();
   expect(ctx.notifications.publish).not.toHaveBeenCalled();
 };
 
-/** The single write the update or reply made. */
 export const writtenUpdate = (ctx: TicketsCtx): UpdateSupportTicketInput => {
   expect(ctx.repository.updateTicket).toHaveBeenCalledTimes(1);
   const [id, data] = ctx.repository.updateTicket.mock.calls[0] as unknown as [string, UpdateSupportTicketInput];
@@ -218,7 +194,6 @@ export const writtenUpdate = (ctx: TicketsCtx): UpdateSupportTicketInput => {
   return data;
 };
 
-/** The staff note a write carries, authored by the caller. */
 export const staffNote = (body: string) => ({
   authorId: CALLER.sub,
   authorName: STAFF_NAME,
@@ -226,13 +201,7 @@ export const staffNote = (body: string) => ({
   body,
 });
 
-/* ───────────────────────────── fixture tables ───────────────────────────── */
-
-/**
- * List query fixtures (the fixture `input` is the query string as sent) through
- * both layers. A FAIL must come back in the validation envelope without a
- * database read; a PASS must read the queue once.
- */
+/** `input` is the query string as sent. FAIL: no database read. PASS: one queue read. */
 export const describeListQueryTable = (ctx: TicketsCtx, fixtures: LayerFixture<Record<string, string>>[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {
@@ -254,11 +223,7 @@ export const describeListQueryTable = (ctx: TicketsCtx, fixtures: LayerFixture<R
   });
 };
 
-/**
- * Update body fixtures through both layers against an existing ticket. A FAIL must
- * come back in the validation envelope without the ticket being read or written;
- * a PASS must write it once.
- */
+/** FAIL: validation envelope, ticket never read or written. PASS: written once. */
 export const describeUpdateBodyTable = (ctx: TicketsCtx, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {
@@ -281,11 +246,7 @@ export const describeUpdateBodyTable = (ctx: TicketsCtx, fixtures: LayerFixture[
   });
 };
 
-/**
- * Reply body fixtures through both layers against an existing ticket. A FAIL must
- * come back in the validation envelope without the ticket being read or written;
- * a PASS must write it once.
- */
+/** FAIL: validation envelope, ticket never read or written. PASS: written once. */
 export const describeReplyBodyTable = (ctx: TicketsCtx, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {
@@ -310,11 +271,7 @@ export const describeReplyBodyTable = (ctx: TicketsCtx, fixtures: LayerFixture[]
 
 export type TicketRoute = 'update' | 'reply';
 
-/**
- * Ticket-id fixtures (the fixture `input` is the raw id, URL-encoded into the path)
- * through the API layer, with a valid body so the id is the only thing under test.
- * A FAIL must name the ticket-id rule and never read or write the ticket.
- */
+/** `input` is the raw id (URL-encoded); the body stays valid so only the id is tested. */
 export const describeTicketIdTable = (ctx: TicketsCtx, route: TicketRoute, fixtures: LayerFixture<string>[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 2 — api', async () => {

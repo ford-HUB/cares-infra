@@ -2,11 +2,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface SystemServicesSkeletonProps {
-  /** Roughly what the loaded roster will show, so the swap causes no jump. */
   rows: number
 }
 
-/** Mirrors the duty banner and the service rows — same heights, same columns. */
 export function SystemServicesSkeleton({ rows }: SystemServicesSkeletonProps) {
   return (
     <div aria-hidden>

@@ -7,11 +7,7 @@ interface LoadedImage {
   failed: boolean
 }
 
-/**
- * Fetches an image behind the bearer token and hands back an object URL.
- * Pass `null` to skip the request; the URL is revoked on unmount or path change.
- * State is keyed by path so a stale result never paints under a new one.
- */
+/** Keyed by path so a stale result never paints under a new one; URL revoked on unmount. */
 export function useAuthenticatedImage(path: string | null) {
   const [loaded, setLoaded] = useState<LoadedImage | null>(null)
 

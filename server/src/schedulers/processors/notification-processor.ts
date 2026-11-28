@@ -16,13 +16,12 @@ import { SCHEDULER_QUEUES, SchedulerRunRecorder } from '../scheduler-registry';
 import { SchedulerRepository } from '../scheduler-repository';
 import { CatalogedProcessor } from './base-processor';
 
-/** How far ahead the event sweep looks; matches "starts in 2 hours" on the row. */
+/** Matches "starts in 2 hours" on the row. */
 const EVENT_LOOKAHEAD_HOURS = 2;
 
-/** Days before month-end on which a missing report is chased. */
+/** Days before month-end to chase a missing report. */
 const REPORT_REMINDER_DAYS_LEFT = new Set([5, 3, 1]);
 
-/** A credential lapsing inside this window is flagged. */
 const CREDENTIAL_LOOKAHEAD_HOURS = 24;
 
 const DEPARTMENT_LABELS: Record<ReportDepartment, string> = {
@@ -34,11 +33,7 @@ const DEPARTMENT_LABELS: Record<ReportDepartment, string> = {
   CCJE: 'College of Criminal Justice Education',
 };
 
-/**
- * Turns a `publish` request into one row per recipient and pushes each over the
- * socket, and runs the scheduled sweeps that decide what to publish on their own.
- * Sweeps are idempotent through the dedupe key: running one twice writes nothing new.
- */
+/** Sweeps are idempotent via the dedupe key. */
 @Processor(SCHEDULER_QUEUES.notification)
 export class NotificationProcessor extends CatalogedProcessor {
   protected readonly logger = new Logger(NotificationProcessor.name);
@@ -71,9 +66,6 @@ export class NotificationProcessor extends CatalogedProcessor {
     }
   }
 
-  // ------------------------------------------------------------------- publish
-
-  /** Resolves the audience to people, writes their rows, and pushes each one live. */
   private async publish(input: PublishNotificationInput): Promise<number> {
     const byRole = await this.notificationsRepository.findRecipientIdsByRoles(
       input.roles ?? [],
@@ -99,8 +91,6 @@ export class NotificationProcessor extends CatalogedProcessor {
     }
     return rows.length;
   }
-
-  // -------------------------------------------------------------------- sweeps
 
   private async remindEventStarts(job: Job): Promise<void> {
     const now = new Date();
@@ -135,8 +125,7 @@ export class NotificationProcessor extends CatalogedProcessor {
         dedupeKey: `event-start:${event.event_id}`,
       });
 
-      // The volunteers who signed up get their own wording: what to do, and that
-      // a no-show now costs points. The app turns this row into a device pop.
+      // Volunteers: what to do, and that a no-show costs points.
       const volunteers =
         await this.schedulerRepository.findRegisteredVolunteerIds(
           event.event_id,
@@ -154,8 +143,7 @@ export class NotificationProcessor extends CatalogedProcessor {
         });
       }
 
-      // Accepted beneficiaries are expected too — they receive rather than
-      // serve, so their reminder is about getting there, not the geofence.
+      // Beneficiaries receive rather than serve, so no geofence wording.
       const beneficiaries =
         await this.schedulerRepository.findAcceptedBeneficiaryIds(
           event.event_id,
@@ -269,8 +257,7 @@ export class NotificationProcessor extends CatalogedProcessor {
   }
 }
 
-// ------------------------------------------------------------ date helpers
-// The server has no date library; these cover exactly what the sweeps say.
+// No date library; these cover exactly what the sweeps need.
 
 const TIME_ZONE = process.env.TZ || 'Asia/Manila';
 
@@ -282,7 +269,7 @@ function daysInMonth(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 }
 
-/** `YYYY-MM`, the shape `MonthlyReport.period` is stored in. */
+/** `MonthlyReport.period` format. */
 function periodOf(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
@@ -302,7 +289,7 @@ function formatTimeOfDay(date: Date): string {
   }).format(date);
 }
 
-/** "in 45 minutes", "in 2 hours", "in 3 days" — a person reads this, not a parser. */
+/** e.g. "in 45 minutes", "in 2 hours", "in 3 days". */
 function relativeFromNow(date: Date, now: Date): string {
   const minutes = Math.round((date.getTime() - now.getTime()) / 60000);
   const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });

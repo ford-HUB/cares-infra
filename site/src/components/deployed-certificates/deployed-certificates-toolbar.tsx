@@ -12,14 +12,13 @@ export const EVENT_FILTER_ALL = 'all' as const
 
 interface DeployedCertificatesToolbarProps {
   search: string
-  /** Event id, or `all`. Status filtering lives in the summary bar instead. */
+  /** Event id, or `all`; status filtering lives in the summary bar. */
   event: string
   eventOptions: { value: string; label: string }[]
   sort: DeploymentSort
   view: DeploymentViewMode
   shown: number
   total: number
-  /** False until the first fetch settles, so the count doesn't flash "0 of 0". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onEventChange: (value: string) => void
@@ -97,7 +96,6 @@ export function DeployedCertificatesToolbar({
           ))}
         </select>
 
-        {/* One choice of two, so a toggle group rather than two ad-hoc buttons. */}
         <ToggleGroup
           type="single"
           value={view}

@@ -14,7 +14,6 @@ export const ServiceTriggerModeSchema = z.enum([
   'manual',
 ]);
 
-/** Local `HH:mm`, 24-hour. */
 const DailyAtSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use a 24-hour HH:mm time');
@@ -23,8 +22,7 @@ const CronSchema = z
   .string()
   .trim()
   .regex(
-    // Five fields, or six with a leading seconds field — how "every 30 seconds" is
-    // said. BullMQ validates the semantics when the scheduler is upserted.
+    // Five fields, or six with leading seconds; BullMQ validates semantics.
     /^\S+(?:\s+\S+){4,5}$/,
     'Use a five- or six-field cron expression',
   );

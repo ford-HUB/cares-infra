@@ -32,10 +32,6 @@ interface EventCalendarProps {
   onSelect: (event: CalendarEvent | null) => void
 }
 
-/**
- * The schedule for one range, in whichever of the three grids is selected.
- * Everything below is presentational — navigation state lives in the hook.
- */
 export function EventCalendar({
   view,
   cursor,
@@ -54,8 +50,6 @@ export function EventCalendar({
   onOpenDay,
   onSelect,
 }: EventCalendarProps) {
-  // The days on screen decide both the counts and the legend, so they are derived
-  // once here rather than in each grid.
   const visibleDays = useMemo(() => {
     if (view === 'month') return monthGridDays(cursor)
     if (view === 'day') return [cursor]

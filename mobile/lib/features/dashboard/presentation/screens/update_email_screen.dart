@@ -12,12 +12,8 @@ import 'package:mobile/features/auth/presentation/widgets/registration_form_card
 import 'package:mobile/features/dashboard/presentation/widgets/account_security_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Step 2 of the email update, reached only after the OTP on the current
-/// address passed. The current email is shown locked; the person types the
-/// replacement and confirms.
-///
-/// `PUT /account/mobile/email` writes the address and hands back a token
-/// re-signed with it, which replaces the session token before returning.
+/// Step 2. `PUT /account/mobile/email` returns a token re-signed with the new
+/// address, which replaces the session token.
 class UpdateEmailScreen extends StatefulWidget {
   const UpdateEmailScreen({
     super.key,
@@ -27,7 +23,7 @@ class UpdateEmailScreen extends StatefulWidget {
 
   final String currentEmail;
 
-  /// Issued by the OTP step; single-use and short-lived on the server.
+  /// Single-use and short-lived.
   final String changeToken;
 
   static Future<String?> open(
@@ -59,7 +55,7 @@ class _UpdateEmailScreenState extends State<UpdateEmailScreen> {
   bool _saving = false;
   bool _touched = false;
 
-  /// Server rejection of the address (already on another account).
+  /// Already on another account.
   String? _serverError;
 
   @override
@@ -92,9 +88,8 @@ class _UpdateEmailScreenState extends State<UpdateEmailScreen> {
         changeToken: widget.changeToken,
         newEmail: _value,
       );
-      // The old token still carries the old address; swap before anything
-      // else on the stack makes a call. The saved session takes the new
-      // token too, or the next launch would restore the retired one.
+      // The old token carries the old address: swap it (and the saved
+      // session's) before any other call.
       if (result.accessToken.isNotEmpty) {
         AuthSession.replaceAccessToken(result.accessToken, email: result.email);
       }
@@ -105,8 +100,7 @@ class _UpdateEmailScreenState extends State<UpdateEmailScreen> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        // 409 is about the address itself, so it belongs under the field;
-        // anything else (expired token, network) goes to the snackbar.
+        // 409 belongs under the field; anything else goes to the snackbar.
         if (e.statusCode == 409) {
           _serverError = e.message;
         }

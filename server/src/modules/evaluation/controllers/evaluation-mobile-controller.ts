@@ -32,7 +32,6 @@ import {
   SubmitEvaluationSchema,
 } from '../validators/evaluation-mobile-validator';
 
-/** The volunteer app's side of the post-event questionnaire. */
 @Controller('v1/evaluation')
 @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
 export class EvaluationMobileController {
@@ -59,11 +58,7 @@ export class EvaluationMobileController {
     return this.evaluationMobileService.getForEvent(user.sub, id);
   }
 
-  /**
-   * JSON, or multipart when the form asks for photos: `answers` as a JSON string
-   * plus `image_<questionId>` files. The per-question cap is checked in the
-   * service; the interceptor only bounds the request as a whole.
-   */
+  /** JSON, or multipart with `answers` (JSON string) + `image_<questionId>` files. Per-question cap checked in the service. */
   @Post('events/:id/responses')
   @HttpCode(201)
   @ResponseMessage('Feedback submitted')

@@ -22,20 +22,13 @@ import { CertificateFrameOrnament } from './certificate-frame-ornament'
 interface CertificateCanvasProps {
   design: CertificateDesign
   orientation: CertificateOrientation
-  /** Award line — the template's own name stands in for the recipient's award. */
+  /** The template name stands in for the recipient's award. */
   title: string
-  /**
-   * `thumb` sits in a table row, `tile` in the frame control, `card` in the gallery,
-   * `full` in the detail preview.
-   */
+  /** `thumb`: table row, `tile`: frame control, `card`: gallery, `full`: detail preview. */
   variant?: 'thumb' | 'tile' | 'card' | 'full'
 }
 
-/**
- * The static certificate. `full` honours the saved layout element for element, so the
- * detail panel and the frame picker show exactly what the editor produced; the smaller
- * variants stay schematic because a 96px sheet cannot carry real positioning.
- */
+/** Only `full` honours the saved layout; smaller variants stay schematic. */
 export function CertificateCanvas({
   design,
   orientation,
@@ -77,9 +70,7 @@ export function CertificateCanvas({
       <div className="flex h-full w-full items-center justify-center bg-gray-50 p-4">
         <div
           className={cn(
-            // `leading-normal` is a ratio: the page's own line-height is a fixed 24px,
-            // which would make every block's height depend on how large the sheet is
-            // drawn. The app sets the same 1.5.
+            // `leading-normal` is a ratio; the page's fixed 24px would tie block height to sheet size.
             'relative @container max-h-full w-full overflow-hidden rounded-xl cares-light-surface bg-white bg-contain bg-center bg-no-repeat text-center leading-normal shadow-sm',
             !uploaded && preset.sheet,
             !uploaded && accent.frame,
@@ -107,7 +98,6 @@ export function CertificateCanvas({
                   style={{
                     left: `${position.x}%`,
                     top: `${position.y}%`,
-                    // The seal is drawn at its own diameter, so it stays auto-width.
                     width: id === 'seal' ? 'auto' : `${elementWidth(design, id)}%`,
                     height: height === undefined ? 'auto' : `${height}%`,
                     zIndex: 0,
@@ -128,8 +118,7 @@ export function CertificateCanvas({
     )
   }
 
-  // The sheet keeps its true proportion at every size; the height is what changes, so
-  // a row of gallery cards still lines up.
+  // Fixed sheet proportion; only height varies, so gallery cards line up.
   const tile = variant === 'tile'
 
   return (
@@ -144,7 +133,6 @@ export function CertificateCanvas({
           'relative flex w-auto flex-col items-center justify-center overflow-hidden rounded-lg cares-light-surface bg-white bg-contain bg-center bg-no-repeat text-center shadow-sm',
           !uploaded && preset.sheet,
           !uploaded && accent.frame,
-          // The royal panel eats the left edge, so the card copy clears it too.
           !uploaded && design.frame === 'royal' && 'pl-6',
           tile ? 'h-16 gap-1 px-2 py-1.5' : 'h-28 gap-2 px-4 py-3',
           portrait ? 'aspect-[3/4]' : 'aspect-[4/3]',

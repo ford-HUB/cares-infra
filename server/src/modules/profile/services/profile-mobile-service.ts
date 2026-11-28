@@ -56,11 +56,7 @@ import {
 import { RankingsBoardService } from '../../rankings/services/rankings-board-service';
 import { unlockedRoles } from '../../../shared/utils/unlocked-roles';
 
-/**
- * The side a profile read or write is scoped to: [viewRole] if the app named
- * one, else the side the registered role lands on. Directors and coordinators
- * only have the Volunteer side in the app, so any other side is refused.
- */
+/** [viewRole] if given, else the registered role's side. Staff only have the Volunteer side. */
 function resolveProfilingRole(
   registeredRole: RoleType,
   viewRole?: MobileRoleType,
@@ -89,18 +85,7 @@ export class ProfileMobileService {
     private readonly rankingsBoardService: RankingsBoardService,
   ) {}
 
-  /**
-   * The signed-in person's profile with only the section that matches the
-   * role being shown filled in — a donor's payload carries `donor` and null
-   * `volunteer` / `beneficiary`, so the app never has to guess which fields
-   * apply.
-   *
-   * [viewRole] is the side the app has open. The role switcher is local to
-   * the app, so a volunteer-registered account can be on its beneficiary
-   * dashboard; completion and the section are then measured against the
-   * beneficiary's requirements, not the volunteer's. Defaults to the
-   * registered role.
-   */
+  /** Only the [viewRole] section is filled; completion is measured for that side (default: registered role). */
   async getMyProfile(
     userId: string,
     viewRole?: MobileRoleType,
@@ -110,7 +95,7 @@ export class ProfileMobileService {
       throw new NotFoundException('User not found');
     }
 
-    // Already narrowed by the controller's role gate; resolveProfilingRole re-checks.
+    // Narrowed by the controller; resolveProfilingRole re-checks.
     const roleType = row.role.type as MobileSignInRoleType;
     const profilingRole = resolveProfilingRole(roleType, viewRole);
 
@@ -163,11 +148,7 @@ export class ProfileMobileService {
     };
   }
 
-  /**
-   * Writes the editable fields and, when one is attached, a new avatar. Returns
-   * the re-read profile so the app replaces its copy with the server's, the
-   * same way the portal's edit does.
-   */
+  /** Returns the re-read profile. */
   async updateMyProfile(
     userId: string,
     data: UpdateMobileProfileDto,
@@ -190,11 +171,8 @@ export class ProfileMobileService {
       throw new ConflictException('Phone number is already in use');
     }
 
-    // The photo belongs to the side being edited, never to the whole
-    // account: a donor picture must not show up on the volunteer dashboard.
-    // The registered role also mirrors onto `User.avatar` so the portal
-    // (staff views, chat) keeps seeing the primary picture. A director's or
-    // coordinator's Volunteer side never matches, so their portal photo stays.
+    // Per-side photo. The registered role mirrors onto `User.avatar` for portal views;
+    // staff's Volunteer side never matches, so their portal photo stays.
     const avatarUrl = avatar
       ? await this.uploadAvatar(userId, avatarRole, avatar)
       : undefined;
@@ -213,8 +191,7 @@ export class ProfileMobileService {
       );
     }
 
-    // The avatar stream reads through the portal-row cache, so both the row
-    // and the bytes go stale the moment the write lands.
+    // The avatar stream reads through the portal-row cache.
     await this.profileCacheService.invalidateProfile(userId);
     if (avatarUrl !== undefined) {
       await this.profileCacheService.invalidateAsset(
@@ -250,11 +227,7 @@ export class ProfileMobileService {
     return this.getMyProfile(userId, viewRole);
   }
 
-  /**
-   * The photo for one side of the account, for `GET me/mobile/avatar?role=`.
-   * Falls back to `User.avatar` for the registered role so accounts that
-   * uploaded before per-role photos existed keep their picture.
-   */
+  /** Falls back to `User.avatar` for the registered role (pre per-role uploads). */
   async getRoleAvatar(
     userId: string,
     viewRole?: MobileRoleType,
@@ -280,7 +253,6 @@ export class ProfileMobileService {
     return this.profileCacheService.setAsset(userId, kind, asset);
   }
 
-  /** Per-role photo first; the account-wide `avatar` only covers the registered role. */
   private roleAvatarUrl(
     row: MobileProfileRow,
     role: MobileRoleType,
@@ -289,7 +261,7 @@ export class ProfileMobileService {
     if (own) {
       return own;
     }
-    // Staff land on the Volunteer side, so their portal photo stands in there.
+    // Staff land on the Volunteer side.
     return role === toMobileRole(row.role.type) ? row.avatar : null;
   }
 
@@ -297,14 +269,7 @@ export class ProfileMobileService {
     return `avatar:${role}`;
   }
 
-  /**
-   * Replaces the volunteer's school record with what OCR read off a freshly
-   * uploaded ID. The session is the same one registration uses (`upload-id`
-   * → `verify-face` → `extract-id`), so the ID has already been validated as a
-   * UCLM card and matched against the caller's face before anything here
-   * runs. Department, program and year level are taken verbatim from the OCR
-   * result — there is no manual input by design.
-   */
+  /** Same session as registration, so the ID and face are already validated. Values are OCR-only by design. */
   async applySchoolRecordFromSession(
     userId: string,
     registrationId: string,
@@ -314,7 +279,7 @@ export class ProfileMobileService {
     if (!existing) {
       throw new NotFoundException('User not found');
     }
-    // A student beneficiary's Volunteer side stands on the same school record.
+    // A student beneficiary's Volunteer side shares the school record.
     const isStudentBeneficiary =
       existing.role.type === RoleType.BENEFICIARY &&
       existing.beneficiary_type === BeneficiaryType.STUDENT;
@@ -380,12 +345,7 @@ export class ProfileMobileService {
     return this.getMyProfile(userId);
   }
 
-  /**
-   * Changes the address from a proof-of-residency file instead of typed text.
-   * The OCR service reads the address off the document; if it can't, nothing
-   * is stored and the person is told to retake it. On success the file is
-   * kept on S3 and listed under the profile's `residency_documents`.
-   */
+  /** Unreadable documents store nothing; on success the file is kept in S3. */
   async applyResidencyDocument(
     userId: string,
     file: Express.Multer.File,
@@ -441,8 +401,7 @@ export class ProfileMobileService {
     const key = `mobile-profiles/${userId}/residency-${Date.now()}-${safeName}`;
     const fileUrl = await this.s3Service.uploadToS3(key, file.buffer, mime);
 
-    // The new address shows at once, but the beneficiary profile only reads
-    // as complete once a director accepts the document (see buildCompletion).
+    // Profile completes only once a director accepts the document (buildCompletion).
     const actorName =
       `${existing.firstname ?? ''} ${existing.lastname ?? ''}`.trim() ||
       'Requester';
@@ -482,7 +441,6 @@ export class ProfileMobileService {
     return this.getMyProfile(userId, viewRole);
   }
 
-  /** The stored file, for the app's private document viewer. */
   async getResidencyDocument(
     userId: string,
     documentId: string,
@@ -502,7 +460,7 @@ export class ProfileMobileService {
     };
   }
 
-  /** PDFs arrive with their own type; anything else goes through the image sniff. */
+  /** PDFs keep their type; others are sniffed as images. */
   private resolveResidencyMime(file: Express.Multer.File): string {
     const isPdf =
       file.mimetype === 'application/pdf' ||
@@ -553,12 +511,7 @@ export class ProfileMobileService {
     return this.s3Service.uploadToS3(key, file.buffer, mime);
   }
 
-  /**
-   * Completion measured against the stored record only. Every step maps to a
-   * column the app can actually fill, so a fully registered volunteer who has
-   * picked interests reads 100% instead of sitting at a fixed fraction.
-   */
-  /** Steps for the side being shown ([roleType] is the profiling role, not necessarily the registered one). */
+  /** Steps for the profiling role, measured only against stored columns. */
   private buildCompletion(
     row: MobileProfileRow,
     roleType: MobileRoleType,
@@ -574,9 +527,7 @@ export class ProfileMobileService {
       row.phone_number?.trim() &&
       hasAddress,
     );
-    // A volunteer's ID check is the verification that owns their biometric (the
-    // face matched against the ID at registration). Beneficiaries register
-    // ID-less, so they have no verification step at all.
+    // Beneficiaries register ID-less, so no verification step.
     const biometricSubmitted = row.user_verifications.length > 0;
     const selected = row.user_interest?.selected;
     const hasInterests = Array.isArray(selected) && selected.length > 0;
@@ -587,11 +538,9 @@ export class ProfileMobileService {
     const pendingReview: string[] = [];
 
     if (roleType === RoleType.VOLUNTEER) {
-      // Directors and coordinators sign in with their portal account: they were
-      // vetted as staff, never registered with a school ID or a face match.
+      // Staff were vetted, not ID/face registered.
       const staff = isStaffVolunteerRole(row.role.type);
-      // A director-approved volunteer side, and a partner-barangay volunteer from
-      // outside the school, have no school record to fill in.
+      // Director-approved and partner-barangay volunteers have no school record.
       if (
         !staff &&
         !this.isDirectorGrantedVolunteer(row) &&
@@ -605,9 +554,7 @@ export class ProfileMobileService {
       steps.interests = hasInterests;
     } else if (roleType === RoleType.BENEFICIARY) {
       steps.household_size = row.household_size != null;
-      // A proof of residency uploaded from the profile must be accepted by a
-      // director before the profile counts as complete. Accounts that never
-      // uploaded one (address from the approved sign-up) have no such step.
+      // Profile-uploaded residency proofs need director acceptance.
       const review = this.latestResidencyReview(row);
       if (review && review.status !== UserRequestStatus.ACCEPTED) {
         steps.residency_document = false;
@@ -635,7 +582,7 @@ export class ProfileMobileService {
     };
   }
 
-  /** The newest RESIDENCY_VERIFICATION request, whatever its status. */
+  /** Any status. */
   private latestResidencyReview(row: MobileProfileRow) {
     return (
       row.user_requests.find(
@@ -652,8 +599,7 @@ export class ProfileMobileService {
     return {
       status: review.status,
       rejection_reason: review.rejection_reason,
-      // A re-upload replaces the file on the open request, so the latest
-      // touch is when the file under review arrived.
+      // Re-uploads replace the open request's file.
       submitted_at: (review.status === UserRequestStatus.PENDING
         ? review.updatedAt
         : review.createdAt
@@ -693,7 +639,7 @@ export class ProfileMobileService {
     };
   }
 
-  /** Registered as donor / beneficiary, Volunteer side opened by an accepted role-access request. */
+  /** Donor/beneficiary whose Volunteer side was opened by role-access approval. */
   private isDirectorGrantedVolunteer(row: MobileProfileRow): boolean {
     return (
       row.role.type !== RoleType.VOLUNTEER &&
@@ -713,20 +659,17 @@ export class ProfileMobileService {
   }
 }
 
-/** Who is acting and from where, for the Activity Logs entry a mobile write leaves. */
 export interface MobileAuditContext {
   actor: JwtPayload;
   context: RequestContextDto;
 }
 
-/** Field names whose submitted value differs from the stored one — the app sends
- *  every field each time, so this is what makes "Profile updated" say what changed. */
+/** The app sends every field, so this names what changed. */
 function diffProfileFields(
   existing: Record<string, unknown>,
   data: Record<string, unknown>,
 ): string[] {
-  // Profile fields are scalars; anything else is compared by JSON so an object
-  // never collapses to "[object Object]".
+  // JSON-compare non-scalars to avoid "[object Object]".
   const asText = (value: unknown): string =>
     typeof value === 'string' || typeof value === 'number'
       ? String(value)

@@ -30,7 +30,6 @@ function Row({ icon: Icon, label, value }: { icon: LucideIcon; label: string; va
   )
 }
 
-/** Read-only event detail — scheduling itself stays in Manage Event. */
 export function CalendarEventModal({ event, onClose }: CalendarEventModalProps) {
   if (!event) return null
 

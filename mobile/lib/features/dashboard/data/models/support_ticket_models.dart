@@ -1,8 +1,7 @@
 import 'package:mobile/features/dashboard/data/help_center_data.dart';
 
-/// Wire shape of `GET /support-tickets/me` and its siblings, translated into
-/// the [SupportRequest] the screens render. Enum strings come back
-/// SCREAMING_SNAKE from the server and are mapped here, in one place.
+/// SCREAMING_SNAKE server enums are mapped to [SupportRequest] here, in one
+/// place.
 class SupportTicketResponse {
   const SupportTicketResponse({
     required this.id,

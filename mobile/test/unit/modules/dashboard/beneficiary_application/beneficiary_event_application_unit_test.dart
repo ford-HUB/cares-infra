@@ -1,5 +1,4 @@
-// Unit tests for a beneficiary applying for an event — the "Apply as
-// Beneficiary" button on the event details screen:
+// Unit tests for "Apply as Beneficiary" on the event details screen:
 //
 //   POST /v1/user-requests/me/event-join?role=BENEFICIARY
 //                                    UserRequestService.applyForEvent
@@ -9,10 +8,8 @@
 //                                    submit, and resolve to true / false
 //   CaresEvent application status    Pending → Accepted / Rejected → Apply again
 //
-// The network is replaced with package:http's MockClient (through
-// `http.runWithClient`, since the dialog builds its own service) and the
-// native file picker with a fake, so nothing here reaches a real server or
-// opens a real file chooser. The proof PDFs are small throwaway files.
+// MockClient via `http.runWithClient` (the dialog builds its own service) and a
+// fake file picker; proof PDFs are temp files.
 
 import 'dart:async';
 import 'dart:convert';
@@ -36,10 +33,6 @@ import 'package:mobile/features/dashboard/domain/cares_event.dart';
 const _origin = 'http://api.test';
 const _applyPath = '/v1/user-requests/me/event-join';
 const _proofName = 'barangay-certificate.pdf';
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 late Directory _tmp;
 late String _proofPath;
@@ -89,10 +82,6 @@ Map<String, dynamic> _filedRequest({String status = 'PENDING'}) => {
   'created_at': '2031-03-01T02:30:00.000Z',
 };
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 class _Recorder {
   _Recorder([Future<http.Response> Function(http.Request request)? reply])
     : reply = reply ?? ((_) async => _ok(_filedRequest()));
@@ -123,7 +112,6 @@ http.Response _ok(Map<String, dynamic> data) =>
 http.Response _fail(int status, String message) =>
     _json(status, {'ok': false, 'message': message});
 
-/// One part of a captured multipart/form-data body.
 class _Part {
   _Part(this.headers, this.content);
 
@@ -165,12 +153,8 @@ Map<String, _Part> _partsOf(http.Request request) {
   return parts;
 }
 
-// ---------------------------------------------------------------------------
-// Fake file picker
-// ---------------------------------------------------------------------------
-
-/// Stands in for the native chooser. Extending [FilePicker] (rather than
-/// implementing it) passes the platform-interface token check.
+/// Extends [FilePicker] (rather than implementing it) to pass the
+/// platform-interface token check.
 class _FakePicker extends FilePicker {
   FilePickerResult? next;
   Object? error;
@@ -217,17 +201,12 @@ class _FakePicker extends FilePicker {
 
 late _FakePicker _picker;
 
-// ---------------------------------------------------------------------------
-// Dialog harness
-// ---------------------------------------------------------------------------
-
 class _DialogOutcome {
   bool closed = false;
   bool? applied;
 }
 
-/// Pumps a page with an "Apply" button that opens the dialog the way the
-/// event details screen does, and records what the dialog resolved to.
+/// Opens the dialog as the event details screen does and records the result.
 Future<_DialogOutcome> _openDialog(
   WidgetTester tester, {
   CaresEvent? event,
@@ -272,9 +251,8 @@ Future<void> _choosePdf(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Taps Submit and lets the real file read and the mock upload finish.
-/// Reading the proof is real disk I/O, which only completes on the real
-/// clock, so the tap and the wait both run inside `runAsync`.
+/// Reading the proof is real disk I/O, so the tap and the wait run inside
+/// `runAsync`.
 Future<void> _submit(WidgetTester tester) async {
   await tester.runAsync(() async {
     await tester.tap(_submitButton);
@@ -328,10 +306,6 @@ void main() {
     AuthSession.clear();
     AuthSession.onSessionEnded = null;
   });
-
-  // -------------------------------------------------------------------------
-  // Service
-  // -------------------------------------------------------------------------
 
   group('POST /user-requests/me/event-join', () {
     test('uploads the event id and the PDF, always as the beneficiary side',
@@ -529,10 +503,6 @@ void main() {
       expect(request.createdAt.isBefore(before), isFalse);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Dialog
-  // -------------------------------------------------------------------------
 
   group('application dialog — before a PDF is chosen', () {
     testWidgets('explains what to attach and that a director will review it',
@@ -821,10 +791,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Where the application stands on the event
-  // -------------------------------------------------------------------------
-
   group('application status on the event', () {
     test('a fresh application reads as pending approval', () {
       final applied = _event().withApplicationStatus('PENDING');
@@ -883,10 +849,6 @@ void main() {
       expect(event.isApplicationRejected, isFalse);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Invalid fields
-  // -------------------------------------------------------------------------
 
   group('application dialog — invalid proof files', () {
     testWidgets('disguised or missing extensions are refused', (tester) async {

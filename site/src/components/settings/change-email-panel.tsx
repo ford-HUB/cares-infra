@@ -7,7 +7,7 @@ interface ChangeEmailPanelProps {
   onSubmit: () => void
   submitting: boolean
   currentEmail?: string
-  /** The root operator account — the server refuses to change its sign-in email. */
+  /** The root operator account; the server refuses to change its email. */
   locked?: boolean
 }
 

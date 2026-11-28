@@ -31,21 +31,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Certificate Module · Certificate Template — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * New Template — error handling: unexpected service errors and a response the serializer
-   * refuses are masked as a generic 500 with nothing leaked, and the service's deliberate
-   * HttpExceptions keep their status and message through the envelope.
-   */
   describe('certificate templates site · new template — error handling', () => {
     const ctx = useCertificateTemplatesApp();
 
@@ -78,12 +64,7 @@ import {
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * New Template — input validation: required, empty and length rules on the name and
-   * description, the category and orientation lists, plus legitimate inputs that must pass.
-   */
   const textRules = (field: string, min: number, max: number): LayerFixture[] => [
     { name: `${field} missing`, input: { ...VALID, [field]: undefined }, expected: 'FAIL', field },
     { name: `${field} empty`, input: { ...VALID, [field]: '' }, expected: 'FAIL', field },
@@ -117,16 +98,10 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   /**
-   * New Template — security, per field class:
-   *   category, orientation  constrained: every hostile string FAILs
-   *   name                   short label, printed on the certificate: SQLi, special-char
-   *                          series, control chars, XSS FAIL
-   *   description            free text, trimmed: control characters FAIL, line breaks stay
-   * plus type confusion, mass assignment, prototype pollution, and what the real service
-   * builds, since creation takes four fields and writes the rest itself.
+   * category/orientation: constrained, every hostile string FAILs. name: printed
+   * label, SQLi/special/control/XSS FAIL. description: free text, control chars FAIL.
    */
   const typeConfusion = (field: string): LayerFixture[] =>
     OPERATOR_INJECTION_PAYLOADS.map((p) => ({
@@ -144,7 +119,7 @@ import {
       field,
     }));
 
-  /** Padded past the minimum, so a payload is judged on its content and not on its length. */
+  /** Padded past the minimum so only the payload's content is judged. */
   const asDescription = (value: unknown) => `Used for ${value as string}`;
 
   const fixtures: LayerFixture[] = [
@@ -162,8 +137,7 @@ import {
       }),
     ),
     ...typeConfusion('name'),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. A description can run over several lines, so line breaks are the exception.
+    // Trimmed field rejects control characters; line breaks are allowed.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => !(p.label === 'CRLF injection')).map((p): LayerFixture => ({
       name: `description ← ${p.category}: ${p.label}`,
       input: { ...VALID, description: asDescription(p.value) },
@@ -177,8 +151,7 @@ import {
       input: { ...VALID, ...extra },
       expected: 'FAIL',
     })),
-    // A template starts as a draft from the server's defaults, signed by its creator; the
-    // customizer is the one screen that changes any of this.
+    // Status, defaults and signer are server-set; only the customizer changes them.
     { name: 'mass assignment: status', input: { ...VALID, status: 'published' }, expected: 'FAIL' },
     { name: 'mass assignment: design', input: { ...VALID, design: {} }, expected: 'FAIL' },
     { name: 'mass assignment: signatories', input: { ...VALID, signatories: [{ coordinator_id: CALLER.sub }] }, expected: 'FAIL' },
@@ -220,7 +193,7 @@ import {
       });
     });
 
-    // The controller's service is mocked above; what a new template is made of lives in the real one.
+    // The controller's service is mocked; creation rules live in the real one.
     describe('createTemplate (real service)', () => {
       const AUTHOR = {
         user_id: CALLER.sub,

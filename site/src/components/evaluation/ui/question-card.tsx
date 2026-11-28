@@ -17,7 +17,7 @@ interface QuestionCardProps {
   index: number
   total: number
   active: boolean
-  /** True while another card is being dragged over this one — draws the drop line. */
+  /** Another card is dragged over this one; draws the drop line. */
   dropTarget: boolean
   onActivate: () => void
   onPatch: (patch: Partial<EvaluationQuestion>) => void
@@ -37,11 +37,6 @@ interface QuestionCardProps {
 const iconButtonClass =
   'rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30'
 
-/**
- * One question, Forms-style: a collapsed card reads like the finished form; the active
- * card grows the title/description inputs, the type picker, the option editor and the
- * footer controls. The grip on top is the drag handle.
- */
 export function QuestionCard({
   question,
   index,
@@ -80,7 +75,7 @@ export function QuestionCard({
           : 'border-gray-200 hover:border-gray-300'
       } ${dropTarget ? 'ring-2 ring-[var(--cares-primary)]/40' : ''}`}
     >
-      {/* Drag handle — the whole strip, not just the icon, so it is easy to grab. */}
+      {/* The whole strip is the drag handle, so it's easy to grab. */}
       <div
         draggable
         onDragStart={onDragStart}

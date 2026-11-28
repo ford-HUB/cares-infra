@@ -42,12 +42,7 @@ function isMobileRole(role: RoleType): boolean {
   return (MOBILE_PROFILE_ROLE_TYPES as readonly RoleType[]).includes(role);
 }
 
-/**
- * Sign-in details for the app's roles. The email change is gated by a code mailed to
- * the *current* address (proof the person still owns the mailbox they registered with)
- * before the replacement is accepted; the password change is gated by the current
- * password. Both keep the calling device signed in and end every other one.
- */
+/** Email change needs a code sent to the current address; password change needs the current password. Both end other devices. */
 @Injectable()
 export class AccountSettingsVolunteerService {
   constructor(
@@ -60,16 +55,12 @@ export class AccountSettingsVolunteerService {
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
   ) {}
 
-  // ------------------------------------------------------------ email change
-
-  /** Step 1: mail a code to the address currently on the account. */
   async sendEmailChangeOtp(
     caller: JwtPayload,
   ): Promise<SendEmailChangeOtpResponseDto> {
     const account = await this.requireAccount(caller.sub);
 
-    // A social-only account's email is the address the provider vouched for;
-    // changing it here would detach the sign-in identity from the account.
+    // Social-only emails belong to the provider identity.
     if (!account.password) {
       throw new BadRequestException(
         'This account signs in through Google or Facebook. Its email is managed by that provider.',
@@ -126,10 +117,7 @@ export class AccountSettingsVolunteerService {
     };
   }
 
-  /**
-   * Step 2: trade a correct code for a single-use change token, so the screen that
-   * collects the new address never has to replay the code.
-   */
+  /** Spends the code for a single-use change token. */
   async verifyEmailChangeOtp(
     caller: JwtPayload,
     otp: string,
@@ -164,7 +152,7 @@ export class AccountSettingsVolunteerService {
     return { changeToken, expiresInSeconds: DurationUtils.FIFTEEN_MINUTES };
   }
 
-  /** Step 3: write the new address and re-sign the caller's token with it. */
+  /** Then re-signs the caller's token. */
   async changeEmail(
     caller: JwtPayload,
     data: ChangeEmailDto,
@@ -201,8 +189,7 @@ export class AccountSettingsVolunteerService {
     await this.clearEmailChangeState(caller.sub);
     await this.profileCacheService.invalidateProfile(caller.sub);
 
-    // Other devices carry tokens stamped with the old address; the caller keeps its
-    // session and gets a re-signed token instead.
+    // Others hold old-address tokens; the caller gets a re-signed one.
     await this.sessionRegistry.revokeAllForUser(caller.sub, caller.sid);
     await this.sessionRegistry.updateEmailForUser(caller.sub, updated.email);
 
@@ -217,15 +204,13 @@ export class AccountSettingsVolunteerService {
     };
   }
 
-  // --------------------------------------------------------- password change
-
   async changePassword(
     caller: JwtPayload,
     data: ChangePasswordDto,
   ): Promise<ChangePasswordResponseDto> {
     const account = await this.requireAccount(caller.sub);
 
-    // A social-only account has no password to confirm against.
+    // Social-only accounts have no password.
     if (!account.password) {
       throw new BadRequestException(
         'This account signs in through Google or Facebook and has no password to change.',
@@ -264,8 +249,6 @@ export class AccountSettingsVolunteerService {
     return { updated: true, revoked_sessions: revoked };
   }
 
-  // -------------------------------------------------------- connected devices
-
   async listOwnSessions(caller: JwtPayload): Promise<OwnSessionsResponseDto> {
     const owned = await this.ownedSessions(caller.sub);
     return {
@@ -283,8 +266,7 @@ export class AccountSettingsVolunteerService {
 
     const session = await this.sessionRegistry.find(sessionId);
     if (!session || session.user_id !== caller.sub) {
-      // Same reply for "not yours" and "gone" — the list is the caller's own, so
-      // there is nothing to learn from telling them apart.
+      // Same reply for "not yours" and "gone".
       throw new NotFoundException('That device has already been signed out');
     }
 
@@ -301,8 +283,6 @@ export class AccountSettingsVolunteerService {
     );
     return { revoked };
   }
-
-  // ------------------------------------------------------------------ helpers
 
   private async requireAccount(userId: string) {
     const account =
@@ -331,7 +311,7 @@ export class AccountSettingsVolunteerService {
     return `email-change:attempts:${userId}`;
   }
 
-  /** Counts wrong codes for as long as the code itself lives. */
+  /** Lives as long as the code. */
   private async recordFailedAttempt(userId: string): Promise<number> {
     const key = this.attemptsKey(userId);
     const next = ((await this.redisService.get<number>(key)) ?? 0) + 1;

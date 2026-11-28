@@ -17,15 +17,7 @@ import { useThemeStore } from '../../../store/theme-store'
 const isPortalTheme = (value: string): value is PortalTheme =>
   PORTAL_THEME_OPTIONS.some((option) => option.value === value)
 
-/**
- * shadcn's mode toggle: the sun turns away and shrinks as the moon turns in, driven
- * by the `dark` class on <html> — so it animates the same whether the change came
- * from this menu, the header search or the OS (under System). The `dark:` variants
- * here are that built-in animation; the palette itself still needs none.
- *
- * Picking a theme runs the switch transition (hooks/use-theme-switch.ts): the new
- * palette spreads from this button across the screen.
- */
+/** Driven by the `dark` class on <html>, so it animates whatever changed the theme; picking runs `use-theme-switch`. */
 export function ModeToggle() {
   const theme = useThemeStore((s) => s.theme)
   const switchTheme = useThemeSwitch()

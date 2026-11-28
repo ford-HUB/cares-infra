@@ -14,17 +14,13 @@ const PATH_BY_VIEW: Record<AuthModalView, string> = {
   'request-access': REQUEST_ACCESS_PATH,
 }
 
-/**
- * The sign-in and request-access modals are driven by the URL, so /login still works for
- * redirects and bookmarks while the landing page stays mounted underneath. Every move
- * keeps the scroll where it is.
- */
+/** URL-driven so /login works for redirects and bookmarks while the landing stays mounted. */
 export function useAuthModalRoute() {
   const location = useLocation()
   const navigate = useNavigate()
   const routeView = VIEW_BY_PATH[location.pathname] ?? null
 
-  // The last form shown stays rendered while the card animates out after the URL clears.
+  // Keeps the last form rendered while the card animates out.
   const [view, setView] = useState<AuthModalView>(routeView ?? 'login')
   if (routeView && routeView !== view) setView(routeView)
 
@@ -33,7 +29,6 @@ export function useAuthModalRoute() {
   )
 
   const close = useCallback(() => {
-    // Opened by a click on the page: step back to the entry it was opened from.
     if (openedFromLanding) {
       navigate(-1)
       return

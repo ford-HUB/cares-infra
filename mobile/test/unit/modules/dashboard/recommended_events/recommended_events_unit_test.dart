@@ -1,5 +1,5 @@
-// Unit tests for recommended events — the interest-matched feed on the
-// volunteer home tab, and the sibling feeds that share its row shape:
+// Unit tests for the interest-matched feed and its sibling feeds (local
+// fixtures, MockClient):
 //
 //   GET /v1/events/recommended?limit=N     RecommendedEventsService.fetch
 //   GET /v1/events/beneficiary             .fetchForBeneficiaries
@@ -12,12 +12,8 @@
 //   RecommendedEventTile                   one row: title, organizer,
 //                                          schedule, match %, slots
 //
-// Every event is a local fixture and the network is replaced with
-// package:http's MockClient, so nothing reaches a real server.
-//
-// The feed rows here are all unregistered on purpose: a registered row makes
-// the provider write to the registration store, which mirrors to SQLite and
-// schedules device reminders — platform plugins a unit test can't run.
+// Feed rows are all unregistered on purpose: a registered row writes to the
+// registration store, which needs the SQLite and reminder plugins.
 
 import 'dart:async';
 import 'dart:convert';
@@ -46,10 +42,6 @@ const _recommendedPath = '/v1/events/recommended';
 const _beneficiaryPath = '/v1/events/beneficiary';
 const _beneficiaryDonePath = '/v1/events/beneficiary/completed';
 const _registeredPath = '/v1/events/registered';
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 /// One `GET /events/recommended` row, as the server sends it.
 Map<String, dynamic> _row({
@@ -96,10 +88,6 @@ Map<String, dynamic> _page({
   List<Map<String, dynamic>>? events,
 }) => {'has_interests': hasInterests, 'events': events ?? [_row()]};
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 class _Recorder {
   _Recorder(this.reply);
 
@@ -133,10 +121,6 @@ http.Response _ok(Map<String, dynamic> data) =>
 http.Response _fail(int status, String message) =>
     _json(status, {'ok': false, 'message': message});
 
-// ---------------------------------------------------------------------------
-// Widget harness
-// ---------------------------------------------------------------------------
-
 Future<void> _pumpSection(
   WidgetTester tester,
   _Recorder rec, {
@@ -163,8 +147,8 @@ Future<void> _pumpSection(
   );
 }
 
-/// Lets the mount-time refetch and the mock network finish. The skeleton
-/// shimmer never goes idle, so `pumpAndSettle` is only safe once data is in.
+/// The skeleton shimmer never idles, so `pumpAndSettle` is only safe once data
+/// is in.
 Future<void> _load(WidgetTester tester) async {
   await tester.pump();
   await tester.pump();
@@ -205,10 +189,6 @@ void main() {
     AuthSession.clear();
     AuthSession.onSessionEnded = null;
   });
-
-  // -------------------------------------------------------------------------
-  // Service
-  // -------------------------------------------------------------------------
 
   group('GET /events/recommended', () {
     test('asks for the default 10 with the volunteer’s token', () async {
@@ -314,10 +294,6 @@ void main() {
       });
     }
   });
-
-  // -------------------------------------------------------------------------
-  // Models
-  // -------------------------------------------------------------------------
 
   group('RecommendedEvent parsing', () {
     test('reads the row and converts the UTC times to local', () {
@@ -427,10 +403,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Provider
-  // -------------------------------------------------------------------------
-
   group('recommendedEventsProvider', () {
     ProviderContainer containerFor(_Recorder rec) {
       final container = ProviderContainer(
@@ -503,10 +475,6 @@ void main() {
       );
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Home-tab section
-  // -------------------------------------------------------------------------
 
   group('RecommendedEventsSection', () {
     testWidgets('shows the header and a skeleton while loading',
@@ -669,10 +637,6 @@ void main() {
       expect(rec.callsTo(_recommendedPath), greaterThan(firstMount));
     });
   });
-
-  // -------------------------------------------------------------------------
-  // One row
-  // -------------------------------------------------------------------------
 
   group('RecommendedEventTile', () {
     testWidgets('shows title, organizer, schedule, match and slots',

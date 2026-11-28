@@ -9,7 +9,6 @@ import type {
 } from '../types/monthly-report'
 import { apiClient } from './api-client'
 
-/** Wire shapes. The server speaks snake_case and Prisma's uppercase enums. */
 interface MonthlyReportApiResponse {
   monthly_report_id: string
   reference: string
@@ -158,10 +157,8 @@ export async function fetchMonthlyReports(): Promise<MonthlyReport[]> {
   return body.data.items.map(mapReport)
 }
 
-/** One attachment on the way in — the bytes ride along as a base64 data URL. */
 export interface MonthlyReportAttachment {
   fileName: string
-  /** `data:<mime>;base64,...` as produced by `FileReader.readAsDataURL`. */
   content: string
 }
 
@@ -179,10 +176,7 @@ export interface MonthlyReportSubmission {
   documents: MonthlyReportAttachment[]
 }
 
-/**
- * The coordinator's half: one JSON body carrying the figures and every file, so a
- * submission lands whole or not at all. Returns the report as the board now holds it.
- */
+/** One JSON body so a submission lands whole or not at all. */
 export async function submitMonthlyReport(
   submission: MonthlyReportSubmission,
 ): Promise<MonthlyReport> {
@@ -211,11 +205,10 @@ export async function submitMonthlyReport(
 
 export interface MonthlyReportDecision {
   decision: 'approved' | 'returned'
-  /** Required when returning — it is the only thing the coordinator gets back. */
+  /** Required when returning. */
   note?: string
 }
 
-/** Returns the decided report alone; the store merges it into the board it holds. */
 export async function decideMonthlyReport(
   id: string,
   { decision, note }: MonthlyReportDecision,
@@ -231,16 +224,7 @@ export async function decideMonthlyReport(
   return mapReport(body.data)
 }
 
-/* -------------------------------------------------------------------------- */
-/* Folders                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Approved reports file under their college on their own — those folders are derived
- * from the report's department and are not stored. These are the director's own
- * shelves on top of that: a packet for accreditation, a set pulled for a board
- * meeting, named freely and holding reports from any college.
- */
+/** Director-made shelves on top of the derived per-college folders. */
 export async function fetchReportFolders(): Promise<ReportFolder[]> {
   const { data: body } = await apiClient.get<{
     ok: true
@@ -271,15 +255,12 @@ export async function renameReportFolder(
   return mapFolder(body.data)
 }
 
-/** Deleting a folder only empties the shelf — the reports fall back to their college. */
+/** Reports fall back to their college folder. */
 export async function deleteReportFolder(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/monthly-reports/folders/${id}`)
 }
 
-/**
- * A report lives in at most one folder, so moving it into one takes it out of every
- * other. Passing `null` sends it back to its department folder.
- */
+/** A report lives in at most one folder; `null` returns it to its department. */
 export async function moveReportToFolder(
   reportId: string,
   folderId: string | null,

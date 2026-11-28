@@ -8,12 +8,8 @@ import '../widgets/notification_feed_widgets.dart';
 import 'package:mobile/shared/widgets/empty_illustration.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// The feed for the side of the account that is open — event news, rulings
-/// and reminders, certificates, donation and payment updates, request
-/// decisions, support replies and announcements — plus anything about the
-/// account itself. Read through [NotificationSync], which also pops new rows
-/// as device notifications. Unread news on the account's other sides is
-/// flagged at the top with a way to switch to it.
+/// Read through [NotificationSync]; unread news on other sides is flagged at
+/// the top with a way to switch.
 class DashboardNotificationsScreen extends StatefulWidget {
   const DashboardNotificationsScreen({super.key});
 
@@ -57,7 +53,7 @@ class _DashboardNotificationsScreenState
     if (mounted) setState(() {});
   }
 
-  /// Kinds present on this side, in the enum's order, for the chip row.
+  /// In enum order.
   List<NotificationType> _typesIn(List<AppNotification> feed) {
     final present = feed.map((item) => item.type).toSet();
     return NotificationType.values.where(present.contains).toList();
@@ -167,7 +163,6 @@ class _DashboardNotificationsScreenState
   }
 }
 
-/// Small text link over the feed that clears every unread dot.
 class _MarkAllReadLink extends StatelessWidget {
   const _MarkAllReadLink({required this.onTap});
 
@@ -191,8 +186,6 @@ class _MarkAllReadLink extends StatelessWidget {
   }
 }
 
-/// Deep green band: back arrow, title, and which side of the account the
-/// feed is showing.
 class _NotificationsHeader extends StatelessWidget {
   const _NotificationsHeader({required this.sideLabel});
 

@@ -1,14 +1,11 @@
 import 'package:flutter/foundation.dart';
 
-/// Device reminder preference for one event: on by default once the
-/// volunteer registers, with a lead time they can change or switch off.
-/// `EventReminderScheduler` turns it into scheduled notifications.
+/// On by default after registering; `EventReminderScheduler` schedules it.
 class EventReminder {
   const EventReminder({required this.enabled, required this.daysBefore});
 
   final bool enabled;
 
-  /// How many days before the event starts the reminder fires.
   final int daysBefore;
 
   EventReminder copyWith({bool? enabled, int? daysBefore}) => EventReminder(
@@ -17,8 +14,7 @@ class EventReminder {
   );
 }
 
-/// In-memory reminder preferences keyed by event id. Reminders are scheduled
-/// on the device, so nothing here needs the server.
+/// Device-only; nothing here needs the server.
 class EventReminderStore extends ChangeNotifier {
   EventReminderStore._();
 

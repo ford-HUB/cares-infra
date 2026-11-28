@@ -1,8 +1,4 @@
-/**
- * The page GCash and Xendit's hosted checkout land on once the donor is done.
- * There is nothing to do here but send them back to the app, which is already
- * polling the payment status.
- */
+/** The app is already polling, so this only sends the donor back. */
 export function renderPaymentReturnPage(success: boolean): string {
   const title = success ? 'Payment received' : 'Payment not completed';
   const body = success

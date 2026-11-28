@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-/** Drives a horizontal scroll-snap track: tracks which slide is leftmost and
- *  scrolls to a slide on demand. The track's direct children are the slides. */
 export function useCarousel(slideCount: number) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)

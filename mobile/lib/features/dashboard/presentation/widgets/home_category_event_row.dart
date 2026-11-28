@@ -4,8 +4,6 @@ import 'package:mobile/features/dashboard/data/models/recommended_event_models.d
 import 'package:mobile/features/dashboard/presentation/utils/home_event_format.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_event_image.dart';
 
-/// Compact row card under the category chips: square thumbnail, title with
-/// date • place, and a right column with the slots-left tag over "JOIN NOW".
 class HomeCategoryEventRow extends StatelessWidget {
   const HomeCategoryEventRow({
     super.key,

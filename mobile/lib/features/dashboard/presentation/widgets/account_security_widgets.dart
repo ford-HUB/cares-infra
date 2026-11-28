@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Row-style entry on the Account Security landing screen: icon, label, a
-/// one-line hint underneath, then a chevron. Same border/radius language as
-/// the Profile tab menu so the two screens read as one list.
 class SecurityActionTile extends StatelessWidget {
   const SecurityActionTile({
     super.key,
@@ -18,8 +15,7 @@ class SecurityActionTile extends StatelessWidget {
   final String label;
   final String hint;
 
-  /// Null renders the row disabled — muted text, no chevron, no ripple — for
-  /// actions the account cannot take (a social sign-in changing its password).
+  /// Null renders it disabled, for actions the account can't take.
   final VoidCallback? onTap;
 
   @override
@@ -101,7 +97,6 @@ class SecurityActionTile extends StatelessWidget {
   }
 }
 
-/// Soft green note used above a form to explain what the step is for.
 class SecurityInfoNote extends StatelessWidget {
   const SecurityInfoNote({
     super.key,
@@ -145,8 +140,6 @@ class SecurityInfoNote extends StatelessWidget {
   }
 }
 
-/// Sticky bottom action bar shared by the security forms — mirrors the
-/// "Save changes" bar on the profile edit screen.
 class SecurityActionBar extends StatelessWidget {
   const SecurityActionBar({
     super.key,
@@ -189,7 +182,6 @@ class SecurityActionBar extends StatelessWidget {
   }
 }
 
-/// Eye toggle for password fields.
 class PasswordVisibilityToggle extends StatelessWidget {
   const PasswordVisibilityToggle({
     super.key,
@@ -214,8 +206,7 @@ class PasswordVisibilityToggle extends StatelessWidget {
   }
 }
 
-/// The current sign-in email, shown up top so the person knows which address
-/// the OTP will go to before they start the update flow.
+/// Shows which address the OTP will go to.
 class SignInEmailCard extends StatelessWidget {
   const SignInEmailCard({super.key, required this.email});
 
@@ -298,8 +289,6 @@ class SignInEmailCard extends StatelessWidget {
   }
 }
 
-/// "Connected devices" title with the session count and a "Sign out others"
-/// shortcut when there is more than this device.
 class DevicesSectionHeader extends StatelessWidget {
   const DevicesSectionHeader({
     super.key,

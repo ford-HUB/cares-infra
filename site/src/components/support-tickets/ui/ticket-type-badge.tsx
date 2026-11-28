@@ -25,7 +25,6 @@ const typeStyles: Record<SupportTicketType, { icon: LucideIcon; className: strin
   other: { icon: HelpCircle, className: 'bg-gray-100 text-gray-600' },
 }
 
-/** Ticket type is the first thing triage reads, so it carries an icon as well as a label. */
 export function TicketTypeBadge({ type }: { type: SupportTicketType }) {
   const style = typeStyles[type] ?? typeStyles.other
   const Icon = style.icon

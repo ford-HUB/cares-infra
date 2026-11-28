@@ -40,9 +40,8 @@ class InterestsService {
         .toList();
   }
 
-  /// Replaces the saved interests. [otherInterest] is what the volunteer
-  /// typed under "Others"; leave it null to keep the text already on file
-  /// (code-only saves such as the profile form).
+  /// Full replace. A null [otherInterest] keeps the text on file (code-only
+  /// saves such as the profile form).
   Future<void> saveInterests({
     required Set<UserInterest> interests,
     String? otherInterest,

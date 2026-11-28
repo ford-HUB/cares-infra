@@ -15,7 +15,6 @@ import { formatDateShort, formatNumber } from '../../constants/formatting'
 import type { AssignableEvent, EvaluationForm } from '../../types/evaluation'
 
 interface AssignFormDialogProps {
-  /** Null keeps the dialog closed; a questionnaire opens it on that questionnaire. */
   form: EvaluationForm | null
   events: AssignableEvent[]
   loading: boolean
@@ -26,11 +25,7 @@ interface AssignFormDialogProps {
 
 const SKELETON_ROWS = 5
 
-/**
- * Picks the event a questionnaire is assigned to. An event asks one questionnaire, so
- * choosing an event that already carries one replaces it — the copy says so rather
- * than hiding the row, since replacing is a normal thing to want here.
- */
+/** An event asks one questionnaire, so picking one that has one replaces it. */
 export function AssignFormDialog({
   form,
   events,
@@ -52,7 +47,7 @@ export function AssignFormDialog({
     )
   }, [events, search])
 
-  // Each open starts clean: the dialog is one decision, not a running draft.
+  // Each open starts clean; no running draft.
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setSearch('')

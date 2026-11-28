@@ -5,35 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Splash intro: the CARES poster (outreach photos, the seal and the
-/// wordmark) fades up out of the brand green, a quick glass shine crosses the
-/// seal, then a pane of frosted glass slides up over it and closes the splash.
+/// Splash: the poster fades up from [splashGround], a shine crosses the seal,
+/// then a frosted glass pane slides up to close. The seal's position is in
+/// poster pixels ([_sealCentre]), mapped through the cover fit by [_PosterMap].
 ///
-/// The fade-in happens against [splashGround] — the poster's own ground
-/// colour, painted behind it here rather than left to the caller's gradient,
-/// so there is no colour shift as the poster arrives. The pane is clear glass:
-/// it never tints or goes solid, so the splash hands off with the poster still
-/// there, frosted, behind it.
+/// Beats: 0–0.30 fade in; 0–0.90 settle from zoom; 0.40–0.60 seal halo, dome
+/// and shine; 0.58–0.72 rim glint; 0.76–1.00 pane rises and frosts.
 ///
-/// The seal is baked into the poster, so the shine sits on top of it. Its
-/// position is kept in the image's own pixels ([_sealCentre], [_sealRadius])
-/// and mapped through the cover fit by [_PosterMap], so it stays on the seal
-/// whatever the screen's aspect ratio. The wordmark gets no light pass — it is
-/// already pure white, so nothing would read.
-///
-/// Beats:
-///   0.00-0.30  poster fades in
-///   0.00-0.90  poster settles from a slight zoom, one continuous ease
-///   0.40-0.58  soft halo blooms around the seal and fades
-///   0.44-0.56  glass dome highlight on the seal
-///   0.46-0.60  shine band sweeps across the seal
-///   0.58-0.72  glint twinkles on the seal's rim
-///   0.76-0.96  glass pane slides up from the bottom over the poster
-///   0.93-1.00  its frosting deepens as it settles home
-///
-/// The close is held off while an update panel is up ([contentBottomInset]) —
-/// the splash is holding for the user to read the panel, so the poster behind
-/// it should stay sharp rather than blur away under them.
+/// The close holds while an update panel is up ([contentBottomInset]) so the
+/// poster stays sharp.
 class AppEntryIntro extends StatelessWidget {
   const AppEntryIntro({
     super.key,
@@ -41,17 +21,14 @@ class AppEntryIntro extends StatelessWidget {
     this.contentBottomInset = 0,
   });
 
-  /// Poster's ground green, sampled from its edges.
+  /// Sampled from the poster's edges.
   static const Color splashGround = Color(0xFF035B34);
 
-  /// Master animation value in [0, 1].
   final double progress;
 
-  /// Lifts the poster (and hides the loader) to keep the seal and wordmark
-  /// clear of a panel covering the foot of the splash.
+  /// Keeps the seal and wordmark clear of a panel over the foot.
   final double contentBottomInset;
 
-  /// Poster size in pixels, and where the seal sits on it.
   static const Size _imageSize = Size(941, 1671);
   static const Offset _sealCentre = Offset(468.5, 614.5);
   static const double _sealRadius = 193;
@@ -73,22 +50,17 @@ class AppEntryIntro extends StatelessWidget {
   Widget build(BuildContext context) {
     final zoom = 1.0 + 0.08 * (1 - _seg(progress, 0, 0.90));
 
-    // Close, unless a panel has risen over the foot of the splash: the splash
-    // then holds, and the poster behind the panel should stay sharp. The hold
-    // ramps in over the panel's first few pixels so neither one pops.
+    // Hold the close while a panel is up; ramped over the panel's first pixels
+    // so nothing pops.
     final panelHold = (contentBottomInset / 40).clamp(0.0, 1.0);
     final fadeIn = _seg(progress, 0, 0.30, Curves.easeOut);
 
-    // The close runs on its own 0-1 clock so the pane's travel and its
-    // frosting can be shaped separately without one re-easing the other.
+    // Separate 0–1 clock so travel and frosting ease independently.
     final closeT = ((progress - 0.76) / 0.24).clamp(0.0, 1.0) * (1 - panelHold);
-    // easeInOutCubic: the pane takes up slack, runs, and settles into the
-    // frame — a sash sliding home, not a sheet thrown up.
     final rise = Curves.easeInOutCubic.transform(
       (closeT / 0.84).clamp(0.0, 1.0),
     );
-    // Frosting deepens a little as the pane settles home. It never tints or
-    // goes opaque — the poster stays readable through the glass.
+    // Never tints or goes opaque; the poster stays readable.
     final frost = Curves.easeIn.transform(
       ((closeT - 0.70) / 0.30).clamp(0.0, 1.0),
     );
@@ -96,8 +68,8 @@ class AppEntryIntro extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // The poster's own ground, so the fade-in resolves to the same green
-        // instead of to whatever the caller paints behind the splash.
+        // So the fade-in resolves to the poster's green, not the caller's
+        // background.
         const ColoredBox(color: splashGround, child: SizedBox.expand()),
 
         Opacity(
@@ -137,7 +109,6 @@ class AppEntryIntro extends StatelessWidget {
           ),
         ),
 
-        // Hairline loader so the wait reads as progress, not lag.
         Positioned(
           left: 0,
           right: 0,
@@ -171,7 +142,6 @@ class AppEntryIntro extends StatelessWidget {
           ),
         ),
 
-        // Slides up over everything, loader included, to shut the splash.
         if (rise > 0)
           IgnorePointer(
             child: ClipPath(
@@ -181,13 +151,11 @@ class AppEntryIntro extends StatelessWidget {
                   sigmaX: 8 + 12 * frost,
                   sigmaY: 8 + 12 * frost,
                 ),
-                // Nothing painted on the glass itself — only the blur.
                 child: const SizedBox.expand(),
               ),
             ),
           ),
 
-        // The pane's own edge and sheen, over the glass it belongs to.
         if (rise > 0)
           IgnorePointer(child: CustomPaint(painter: _GlassPanePainter(rise))),
       ],
@@ -195,19 +163,11 @@ class AppEntryIntro extends StatelessWidget {
   }
 }
 
-/// Depth of the lime crest band riding the closing pane's wave.
 const double _kCrestBand = 26;
 
-/// The brand wave carried on the leading edge of the closing pane — the same
-/// dip-then-climb curve `BrandWave` paints elsewhere, so the splash closes
-/// with the shape the rest of the app is built on.
-///
-/// [rise] is the pane's travel, 0 (clear of the screen) to 1 (home). The
-/// travel overshoots by the wave's amplitude and the crest band at the top,
-/// and by the amplitude at the bottom: at 0 the trough is clear of the foot,
-/// and at 1 the wave and its band have gone off the head, leaving flat green
-/// for the curtain that slides away next. [drop] pushes the whole curve down,
-/// which is how the bands along the edge are cut.
+/// Same dip-then-climb curve as `BrandWave`. [rise]: 0 clear of the screen, 1
+/// home; travel overshoots so both ends are clear. [drop] pushes the curve down
+/// to cut the edge bands.
 Path _paneCrest(Size size, double rise, {double drop = 0}) {
   final w = size.width;
   final amp = math.min(22.0, size.width * 0.062);
@@ -218,15 +178,13 @@ Path _paneCrest(Size size, double rise, {double drop = 0}) {
     ..cubicTo(w * 0.30, y + amp, w * 0.64, y - amp * 0.9, w, y - amp * 0.55);
 }
 
-/// [_paneCrest] closed down to the foot of the screen — the pane's body.
 Path _paneBody(Size size, double rise, {double drop = 0}) =>
     _paneCrest(size, rise, drop: drop)
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
 
-/// Shapes the frosted pane so the blur stops at the wave, not at a straight
-/// line.
+/// So the blur stops at the wave, not a straight line.
 class _GlassPaneClipper extends CustomClipper<Path> {
   const _GlassPaneClipper({required this.rise});
 
@@ -239,22 +197,15 @@ class _GlassPaneClipper extends CustomClipper<Path> {
   bool shouldReclip(_GlassPaneClipper oldClipper) => oldClipper.rise != rise;
 }
 
-/// What makes the rising pane read as glass rather than an area of blur: the
-/// brand wave on its leading edge with a bold border along it, the light it
-/// gathers just inside that edge, and a broad diagonal sheen across the face.
-///
-/// The frosting itself is a [BackdropFilter] in the widget tree — this only
-/// paints the pane's own edge and highlights, over the glass they belong to.
+/// Edge and highlights only; the frosting is a [BackdropFilter] in the tree.
 class _GlassPanePainter extends CustomPainter {
   const _GlassPanePainter(this.rise);
 
-  /// How far the pane has travelled, 0 (out of frame) to 1 (home).
+  /// 0 out of frame, 1 home.
   final double rise;
 
-  /// Depth of the glow gathered below the crest band.
   static const double _edgeGlow = 34;
 
-  /// The slice of pane between the crest pushed down [from] and [to].
   Path _slice(Size size, double from, double to) => Path.combine(
     PathOperation.difference,
     _paneBody(size, rise, drop: from),
@@ -266,8 +217,6 @@ class _GlassPanePainter extends CustomPainter {
     if (rise <= 0) return;
     final rect = Offset.zero & size;
 
-    // Lime crest riding the wave, the brand band the app closes every photo
-    // hero with.
     canvas.drawPath(
       _slice(size, 0, _kCrestBand),
       Paint()
@@ -276,7 +225,6 @@ class _GlassPanePainter extends CustomPainter {
         ).createShader(rect),
     );
 
-    // Light gathered just inside the edge, falling away into the pane.
     canvas.drawPath(
       _slice(size, _kCrestBand, _kCrestBand + _edgeGlow),
       Paint()
@@ -290,8 +238,6 @@ class _GlassPanePainter extends CustomPainter {
         ).createShader(rect),
     );
 
-    // Sheen: one broad, soft diagonal band down the face of the pane, the way
-    // a window catches the light in a room.
     canvas.save();
     canvas.clipPath(_paneBody(size, rise, drop: _kCrestBand));
     canvas.translate(size.width * 0.5, size.height * (1 - rise * 0.7));
@@ -314,8 +260,6 @@ class _GlassPanePainter extends CustomPainter {
     );
     canvas.restore();
 
-    // The bold border along the wave: a soft bloom under a heavy white rule,
-    // so the closing edge has real weight against the photos behind it.
     final crest = _paneCrest(size, rise);
     canvas.drawPath(
       crest,
@@ -339,9 +283,8 @@ class _GlassPanePainter extends CustomPainter {
   bool shouldRepaint(_GlassPanePainter oldDelegate) => oldDelegate.rise != rise;
 }
 
-/// Maps poster pixels onto the screen. The poster is cover-fitted and centred,
-/// then scaled by `zoom` about the centre of the area — the same transform the
-/// [Image] gets, so painted effects land on the artwork.
+/// Same cover-fit + zoom transform as the [Image], so painted effects land on
+/// the artwork.
 class _PosterMap {
   const _PosterMap({required this.origin, required this.scale});
 
@@ -364,16 +307,12 @@ class _PosterMap {
   double size(double v) => v * scale;
 }
 
-/// Everything that plays on the seal while the poster is up: halo, glass
-/// highlight, shine sweep and rim glint. All white, kept light so the seal's
-/// colours read through.
 class _PosterShinePainter extends CustomPainter {
   const _PosterShinePainter({required this.progress, required this.map});
 
   final double progress;
   final _PosterMap map;
 
-  /// Sweep direction: tilted so the band crosses top-left to bottom-right.
   static const double _bandAngle = math.pi / 7;
 
   Offset get _centre => map.point(AppEntryIntro._sealCentre);
@@ -394,7 +333,6 @@ class _PosterShinePainter extends CustomPainter {
     _paintGlint(canvas);
   }
 
-  /// Soft white bloom just outside the rim, rising and falling once.
   void _paintHalo(Canvas canvas) {
     final t = ((progress - 0.40) / 0.18).clamp(0.0, 1.0);
     if (t <= 0 || t >= 1) return;
@@ -410,7 +348,6 @@ class _PosterShinePainter extends CustomPainter {
     );
   }
 
-  /// Curved reflection across the upper half, like light on a glass dome.
   void _paintDome(Canvas canvas) {
     final t = ((progress - 0.44) / 0.12).clamp(0.0, 1.0);
     if (t <= 0 || t >= 1) return;
@@ -434,8 +371,6 @@ class _PosterShinePainter extends CustomPainter {
     );
   }
 
-  /// The shine: a bright band with a thinner one trailing it, flicked across
-  /// the seal in one quick pass.
   void _paintSweep(Canvas canvas) {
     final raw = ((progress - 0.46) / 0.14).clamp(0.0, 1.0);
     if (raw <= 0 || raw >= 1) return;
@@ -445,7 +380,6 @@ class _PosterShinePainter extends CustomPainter {
     canvas.translate(_centre.dx, _centre.dy);
     canvas.rotate(_bandAngle);
 
-    // Travel from fully left of the seal to fully right of it.
     final travel = _radius * 1.5;
     final x = -travel + 2 * travel * t;
     _band(canvas, x, _radius * 0.55, 0.75);
@@ -474,7 +408,6 @@ class _PosterShinePainter extends CustomPainter {
     );
   }
 
-  /// Four-point sparkle on the upper-right rim, where the sweep exits.
   void _paintGlint(Canvas canvas) {
     final t = ((progress - 0.58) / 0.14).clamp(0.0, 1.0);
     if (t <= 0 || t >= 1) return;

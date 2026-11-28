@@ -19,7 +19,7 @@ import {
   type PaymentSettingsRow,
 } from '../repositories/payments-repository';
 
-/** One channel with every "unset" already resolved to the value that applies. */
+/** Defaults already resolved. */
 export interface PaymentChannelConfig {
   method: DonationPaymentMethod;
   enabled: boolean;
@@ -31,31 +31,21 @@ export interface PaymentChannelConfig {
   minAmount: number;
   maxAmount: number;
   sortOrder: number;
-  /** Where the channel stands with the gateway — see `PaymentActivationService`. */
+  /** See `PaymentActivationService`. */
   verification: PaymentMethodVerification;
-  /**
-   * Whether a donor may be offered this channel: on, and not one the gateway has
-   * refused. PENDING still counts — nothing can be charged without credentials
-   * anyway, and a channel must not vanish from the portal's promise the moment the
-   * account is connected but not yet checked.
-   */
+  /** On and not refused; PENDING still counts. */
   offerable: boolean;
 }
 
-/** What the donations module needs to know to open a checkout. */
 export interface PaymentGatewayConfig {
   mode: PaymentGatewayMode;
-  /** The director's master switch. */
+  /** Master switch. */
   enabled: boolean;
-  /** Null when no key is stored and none is in the environment either. */
+  /** Null when no key is stored or in the environment. */
   credentials: XenditCredentials | null;
-  /** True while the key in use came from `XENDIT_SECRET_KEY` rather than the portal. */
+  /** Key came from `XENDIT_SECRET_KEY`, not the portal. */
   usingEnvCredentials: boolean;
-  /**
-   * Whether the key in use is a Xendit *development* key. Read off the key itself
-   * rather than off `mode`, which is only a label the director picks — a live key must
-   * never be treated as a sandbox one because someone left the dropdown on Test.
-   */
+  /** Read off the key itself, not the `mode` label. */
   sandbox: boolean;
   webhookToken: string | null;
   statementName: string | null;
@@ -64,20 +54,10 @@ export interface PaymentGatewayConfig {
   methods: PaymentChannelConfig[];
 }
 
-/**
- * How long one API instance may serve a cached copy of the gateway config. Every
- * checkout reads it, so it is not fetched per request — but it is held in process
- * memory rather than in Redis on purpose: the resolved config carries the decrypted
- * secret key, which has no business being written to a shared cache. A save clears
- * the copy on the instance that handled it; another instance follows within the TTL.
- */
+/** In-process cache, not Redis: it holds the decrypted secret. Other instances catch up within the TTL. */
 const CONFIG_TTL_MS = 60_000;
 
-/**
- * The single source of truth for "can CARES take money right now, through which
- * channel, into whose account". The portal writes it (`PaymentsSiteService`), the
- * donations module reads it, and nothing else touches the stored credentials.
- */
+/** Single source of truth; only `PaymentsSiteService` writes the stored credentials. */
 @Injectable()
 export class PaymentSettingsService {
   private readonly logger = new Logger(PaymentSettingsService.name);
@@ -86,11 +66,7 @@ export class PaymentSettingsService {
 
   constructor(private readonly paymentsRepository: PaymentsRepository) {}
 
-  /**
-   * Never throws: a database blip must not take donations down in a way that looks
-   * like a misconfiguration. It falls back to the environment key with every channel
-   * open — which is exactly how the module behaved before it was configurable.
-   */
+  /** Never throws: on DB error, falls back to the env key with every channel open. */
   async getConfig(): Promise<PaymentGatewayConfig> {
     if (this.cache && this.cache.expiresAt > Date.now()) {
       return this.cache.config;
@@ -111,21 +87,16 @@ export class PaymentSettingsService {
     return config;
   }
 
-  /** Dropped after a save so the next checkout reads the new credentials. */
   invalidate(): void {
     this.cache = null;
   }
 
-  /** The token a Xendit callback must carry, or null when none is configured. */
+  /** Null when none configured. */
   async callbackToken(): Promise<string | null> {
     return (await this.getConfig()).webhookToken;
   }
 
-  /**
-   * The credentials and channel a checkout may use, or a 400 explaining why not. The
-   * refusals here are the server half of what the portal shows the donor: a method the
-   * director never enabled must not become payable by posting its name directly.
-   */
+  /** Refuses methods the director never enabled, even if posted directly. */
   async resolveCheckout(
     method: DonationPaymentMethod,
     amount: number,
@@ -161,20 +132,12 @@ export class PaymentSettingsService {
     return { credentials: config.credentials, channel, config };
   }
 
-  /**
-   * Reading a settled payment back does not go through `resolveCheckout`: a row opened
-   * while a channel was enabled still has to be reconciled after the director switches
-   * it off, so only the credentials are required here.
-   */
+  /** Credentials only: rows opened before a channel was disabled still reconcile. */
   async credentialsOrNull(): Promise<XenditCredentials | null> {
     return (await this.getConfig()).credentials;
   }
 
-  /**
-   * Turns the stored row — or the absence of one — into the resolved config. With no
-   * row, every channel is on and the environment key is used, so an install that
-   * never opens the Payments module keeps working.
-   */
+  /** No row: every channel on with the env key. */
   private toConfig(row: PaymentSettingsRow | null): PaymentGatewayConfig {
     const storedKey = decryptSecret(row?.secret_key_cipher);
     const envKey = process.env.XENDIT_SECRET_KEY?.trim() || null;
@@ -186,8 +149,7 @@ export class PaymentSettingsService {
     const envToken = process.env.XENDIT_WEBHOOK_TOKEN?.trim() || null;
 
     if (row?.secret_key_cipher && !storedKey) {
-      // The row was written under a different CREDENTIAL_ENCRYPTION_KEY. Saying so is
-      // the only way the director can tell this from "no key saved".
+      // Different CREDENTIAL_ENCRYPTION_KEY; distinguishes this from "no key saved".
       this.logger.error(
         'The stored Xendit secret key could not be decrypted — check CREDENTIAL_ENCRYPTION_KEY',
       );
@@ -195,7 +157,7 @@ export class PaymentSettingsService {
 
     return {
       mode: row?.mode ?? PaymentGatewayMode.TEST,
-      // No row means "as it was before the module existed": on when a key exists.
+      // No row: on when a key exists.
       enabled: row ? row.enabled : Boolean(secretKey),
       credentials: secretKey ? { secretKey, apiUrl } : null,
       usingEnvCredentials: !storedKey && Boolean(envKey),
@@ -216,8 +178,7 @@ export class PaymentSettingsService {
 
       return {
         method: descriptor.method,
-        // A channel with no row yet follows the same rule as the settings row: open
-        // before the director has said otherwise.
+        // No row yet: open by default.
         enabled: saved ? saved.enabled : !row,
         label: saved?.display_name?.trim() || descriptor.label,
         description: saved?.instructions?.trim() || descriptor.description,
@@ -239,7 +200,6 @@ export class PaymentSettingsService {
     }).sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
-  /** The catalog copy for a channel, for callers that only need its defaults. */
   descriptorFor(method: DonationPaymentMethod) {
     return paymentMethodDescriptor(method);
   }

@@ -1,8 +1,8 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 
-/// Open events the server matched to the caller's interests by reading each
-/// event's title and description through nlp-service.
+/// Matched server-side by running event titles and descriptions through
+/// nlp-service.
 class RecommendedEventsService {
   RecommendedEventsService({ApiClient? apiClient})
     : _api = apiClient ?? ApiClient();
@@ -26,8 +26,7 @@ class RecommendedEventsService {
     );
   }
 
-  /// Open events an operator flagged as applicable to beneficiaries. Same row
-  /// shape as the feed; no interest matching, the flag is the whole criterion.
+  /// Flagged for beneficiaries by an operator; no interest matching.
   Future<List<RecommendedEvent>> fetchForBeneficiaries() async {
     final response = await _api.getJson('/events/beneficiary');
     final data = response['data'] as Map<String, dynamic>;
@@ -45,8 +44,7 @@ class RecommendedEventsService {
         .toList();
   }
 
-  /// Every event the caller holds a slot on — upcoming, ongoing and finished.
-  /// Same row shape as the feed, minus interest matching.
+  /// Upcoming, ongoing and finished; no interest matching.
   Future<List<RecommendedEvent>> fetchRegistered() async {
     final response = await _api.getJson('/events/registered');
     final data = response['data'] as Map<String, dynamic>;

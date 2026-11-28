@@ -7,11 +7,9 @@ import {
 } from '../../../constants/access-control'
 
 interface AccessControlTableSkeletonProps {
-  /** Same row count the loaded table will render, so the swap causes no jump. */
   rows: number
 }
 
-/** Column-shaped placeholders — each cell mirrors the real content's box model. */
 function CellContent({
   columnKey,
 }: {
@@ -46,10 +44,7 @@ function CellContent({
   return <Skeleton className="h-3.5 w-4/5" />
 }
 
-/**
- * Renders into the table's existing `<tbody>`, so the header, borders, and column
- * widths above it stay exactly where they are while rows load.
- */
+/** Renders rows only, into the table's existing `<tbody>`. */
 export function AccessControlTableSkeleton({
   rows,
 }: AccessControlTableSkeletonProps) {

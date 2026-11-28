@@ -15,7 +15,6 @@ interface TextFieldProps {
   registration: Record<string, unknown>
 }
 
-/** The module's one field: a labelled input with its hint or its error underneath. */
 export function TextField({
   id,
   label,

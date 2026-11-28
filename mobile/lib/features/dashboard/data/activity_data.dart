@@ -52,7 +52,6 @@ class ActivityEntry {
   }
 }
 
-/// Demo attended activities shown on the Attended tab.
 final kMockAttendedActivities = [
   ActivityEntry(
     id: 'attended-1',
@@ -72,7 +71,7 @@ final kMockAttendedActivities = [
   ),
 ];
 
-/// Fallback joined activities when the user has not registered yet.
+/// Fallback when the user has not registered yet.
 final kMockJoinedActivities = [
   ActivityEntry.fromEvent(kMockUpcomingEvents[0], ActivityStatus.registered),
   ActivityEntry.fromEvent(kMockFeaturedEvents[0], ActivityStatus.registered),

@@ -16,7 +16,7 @@ export interface RecordAuditEntryInput {
   category: AuditCategory;
   severity: AuditSeverity;
   outcome: AuditOutcome;
-  /** Null for background jobs, and for actors whose account was later deleted. */
+  /** Null for background jobs and deleted actors. */
   actorUserId: string | null;
   actorName: string;
   actorEmail: string;
@@ -38,17 +38,14 @@ export interface ListAuditLogsInput {
   category: AuditCategory | 'all';
   severity: AuditSeverity | 'all';
   outcome: AuditOutcome | 'all';
-  /** Null means "all time" — the range filter is left off entirely. */
+  /** Null = all time. */
   since: Date | null;
-  /** Id of the last row already returned; the page starts after it. */
+  /** Last returned id; the page starts after it. */
   cursor?: string;
   limit: number;
 }
 
-/**
- * Append-only: there is no update or delete here, and there should never be one. A
- * trail that can be edited answers no question it was written to answer.
- */
+/** Append-only: never add update or delete. */
 @Injectable()
 export class AuditLogRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -80,10 +77,7 @@ export class AuditLogRepository {
     });
   }
 
-  /**
-   * The actor's display name, denormalised into every entry at write time so a later
-   * rename cannot rewrite history. Null when the account is already gone.
-   */
+  /** Denormalised at write time so renames don't rewrite history. Null if gone. */
   async findActor(userId: string) {
     return this.prisma.user.findUnique({
       where: { user_id: userId },
@@ -95,17 +89,11 @@ export class AuditLogRepository {
     });
   }
 
-  /**
-   * Keyset paging, matching the sign-in trail: the cursor is the last row already
-   * shown, so an entry written while the operator scrolls cannot shift a row into the
-   * next page and hide it. The id tiebreaker orders rows written in the same
-   * millisecond.
-   */
+  /** Keyset paging so new rows can't shift into the next page; id breaks same-ms ties. */
   async listLogs(input: ListAuditLogsInput) {
     const where = buildWhere(input);
 
-    // Two independent reads — a paged read needs no atomicity, so they run
-    // concurrently rather than holding a transaction slot open.
+    // Concurrent reads; a paged read needs no transaction.
     const [rows, total] = await Promise.all([
       this.prisma.auditLog.findMany({
         where,
@@ -121,19 +109,14 @@ export class AuditLogRepository {
     return { rows, total };
   }
 
-  /**
-   * One account's trail, for the app. Same keyset paging as [listLogs]. Covers
-   * every entry that concerns the account, not only the ones it wrote: a staff
-   * restriction, a permission change or a revoked session targets the user rather
-   * than being performed by them, and the holder should still see it.
-   */
+  /** Includes entries targeting the account (restrictions, revoked sessions), not just its own actions. */
   async listForAccount(input: ListForAccountInput) {
     return this.prisma.auditLog.findMany({
       where: {
         OR: [
           { actor_user_id: input.userId },
           { target_type: 'user', target_id: input.userId },
-          // Entries whose target is another record (a session) name the owner here.
+          // Entries targeting another record name the owner here.
           { metadata: { path: ['subject_user_id'], equals: input.userId } },
         ],
       },
@@ -150,7 +133,7 @@ export type AuditLogRow = Prisma.AuditLogGetPayload<object>;
 
 export interface ListForAccountInput {
   userId: string;
-  /** Id of the last row already returned; the page starts after it. */
+  /** Last returned id; the page starts after it. */
   cursor?: string;
   limit: number;
 }

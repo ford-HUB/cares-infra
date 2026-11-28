@@ -10,16 +10,11 @@ import type {
   SystemDiagnosticsDto,
 } from '../dto/system-diagnostics-site-dto';
 
-/**
- * The Diagnostics screen's view of the health sweep: the last report the minutely
- * job wrote, or a fresh one when staff press "Check now". The probes themselves
- * live with the schedulers, because that is what they exist to watch over.
- */
+/** Last minutely report, or a fresh one on "Check now". Probes live with the schedulers. */
 @Injectable()
 export class SystemDiagnosticsSiteService {
   constructor(private readonly checker: SystemDiagnosticsChecker) {}
 
-  /** The last sweep's report, with the strip of past verdicts under it. */
   async getDiagnostics(): Promise<SystemDiagnosticsDto> {
     const [latest, history] = await Promise.all([
       this.checker.latest(),
@@ -28,7 +23,6 @@ export class SystemDiagnosticsSiteService {
     return toDiagnosticsDto(latest, history);
   }
 
-  /** Runs every probe now and answers with the fresh report. */
   async runDiagnostics(): Promise<SystemDiagnosticsDto> {
     const report = await this.checker.run('manual');
     return toDiagnosticsDto(report, await this.checker.history());
@@ -49,7 +43,7 @@ function toDiagnosticsDto(
           checks: report.checks.map(toCheckDto),
         }
       : null,
-    // Stored newest first; the strip reads oldest to newest.
+    // Stored newest first; the strip reads oldest first.
     history: [...history].reverse().map((entry) => ({
       checked_at: entry.checkedAt,
       overall: entry.overall,

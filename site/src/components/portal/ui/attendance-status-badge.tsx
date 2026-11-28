@@ -8,10 +8,7 @@ interface AttendanceStatusBadgeProps {
   status: AttendanceStatus
 }
 
-/**
- * The post-event ruling, shared by the Attendees roster and the live Attendance
- * monitor — hence portal/ui rather than either module's own ui/ folder.
- */
+/** Shared by Attendees and the live Attendance monitor, hence portal/ui. */
 export function AttendanceStatusBadge({ status }: AttendanceStatusBadgeProps) {
   return (
     <span

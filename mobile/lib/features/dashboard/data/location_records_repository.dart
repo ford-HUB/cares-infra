@@ -3,8 +3,7 @@ import '../domain/location_records.dart';
 import 'location_capture_db.dart';
 import 'location_sync_service.dart';
 
-/// Read model for the Geolocation Records screens: one [LocationRecordFile]
-/// per day, built from the SQLite rows (counts, titles, sync state).
+/// One [LocationRecordFile] per day, built from the SQLite rows.
 class LocationRecordsRepository {
   LocationRecordsRepository({LocationCaptureDb? db, LocationSyncService? sync})
     : _db = db ?? LocationCaptureDb.instance,
@@ -40,7 +39,7 @@ class LocationRecordsRepository {
     return files;
   }
 
-  /// First [limit] rows of a day, in CSV column order.
+  /// In CSV column order.
   Future<List<LocationCapture>> preview(String dayKey, {int limit = 25}) async {
     final rows = await _db.rowsForDay(dayKey, _email, limit: limit);
     return rows.map((r) => r.toCapture()).toList();
@@ -51,11 +50,9 @@ class LocationRecordsRepository {
     return rows.where((r) => r.inArea).length;
   }
 
-  /// Removes the day's rows.
   Future<void> deleteDay(String dayKey) => _db.deleteDay(dayKey, _email);
 
-  /// Pushes every event that still has pending rows. Returns the number of
-  /// rows accepted and the first error, if any event failed.
+  /// Returns rows accepted and the first error, if any.
   Future<({int uploaded, String? error})> uploadPending() =>
       _sync.syncPending(email: _email);
 }

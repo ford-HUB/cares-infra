@@ -27,11 +27,7 @@ interface DepartmentRankingTableProps {
 const ACTIVE_FIGURE = 'font-semibold text-[var(--cares-primary)]'
 const IDLE_FIGURE = 'text-gray-900'
 
-/**
- * Colleges on volunteer hours and confirmed donations. Whichever figure the board
- * is ordered on is drawn in the accent colour, so the rank column always reads
- * against the number that produced it.
- */
+/** The ordering figure is drawn in the accent colour, so rank reads against it. */
 export function DepartmentRankingTable({
   entries,
   basis,

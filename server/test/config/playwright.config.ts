@@ -1,13 +1,7 @@
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Client-side validation suites for the staff portal (site/). Specs live in
- * `test/integration/modules/` (plus the `app-integration-spec.ts` entry
- * check) and run against the Vite dev server; every
- * `/api/**` call is intercepted by `config/portal-validation.ts`, so no
- * server, database or microservice needs to be running.
- */
+/** Portal validation suites on the Vite dev server; `/api/**` is stubbed, so no backend runs. */
 const PORTAL_URL = process.env.PORTAL_URL ?? 'http://localhost:5173';
 const SITE_DIR = path.resolve(__dirname, '../../../site');
 

@@ -47,10 +47,7 @@ export class RedisService implements OnModuleDestroy {
     return this.redis.del(...keys);
   }
 
-  /**
-   * Collects every key matching `pattern` with SCAN rather than KEYS, so a large
-   * keyspace is walked in batches instead of blocking the server on one call.
-   */
+  /** SCAN, not KEYS, to avoid blocking Redis. */
   async scanKeys(pattern: string, batch = 200): Promise<string[]> {
     const found = new Set<string>();
     let cursor = '0';
@@ -70,7 +67,7 @@ export class RedisService implements OnModuleDestroy {
     return [...found];
   }
 
-  /** Reads many keys in one round-trip. Missing or unparsable entries are dropped. */
+  /** One round-trip; missing or unparsable entries are dropped. */
   async getMany<T>(keys: string[]): Promise<T[]> {
     if (keys.length === 0) {
       return [];
@@ -84,16 +81,12 @@ export class RedisService implements OnModuleDestroy {
       try {
         parsed.push(JSON.parse(value) as T);
       } catch {
-        // A malformed entry is treated as absent rather than failing the whole read.
       }
       return parsed;
     }, []);
   }
 
-  /**
-   * Prepends to a capped list — newest first, trimmed to `max` entries. Used for
-   * short histories (a scheduler's recent runs) where only the tail matters.
-   */
+  /** Newest first, trimmed to `max`. */
   async pushCapped(key: string, value: unknown, max: number): Promise<void> {
     await this.redis
       .multi()
@@ -102,20 +95,18 @@ export class RedisService implements OnModuleDestroy {
       .exec();
   }
 
-  /** Reads a list written by `pushCapped`, newest first. Unparsable entries are dropped. */
+  /** Newest first; unparsable entries are dropped. */
   async listAll<T>(key: string): Promise<T[]> {
     const values = await this.redis.lrange(key, 0, -1);
     return values.reduce<T[]>((parsed, value) => {
       try {
         parsed.push(JSON.parse(value) as T);
       } catch {
-        // A malformed entry is treated as absent rather than failing the whole read.
       }
       return parsed;
     }, []);
   }
 
-  /** Round-trip to the server — the diagnostics check's liveness probe. */
   async ping(): Promise<void> {
     await this.redis.ping();
   }

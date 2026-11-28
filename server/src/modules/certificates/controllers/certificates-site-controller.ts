@@ -22,10 +22,7 @@ import {
   RemindRecipientsResponseSchema,
 } from '../validators/certificates-site-validator';
 
-/**
- * The recipient roll behind one row on the live certificates page — who the sweep
- * has issued to and who has opened theirs.
- */
+/** Who the sweep issued to and who opened theirs. */
 @Controller('v1/certificate-deployments')
 @Roles(...PORTAL_ROLE_TYPES)
 export class CertificatesSiteController {
@@ -40,7 +37,7 @@ export class CertificatesSiteController {
     return this.certificatesService.listRecipients(id);
   }
 
-  /** Nudges everyone the deployment covers who has not earned their sheet yet. */
+  /** Everyone covered who hasn't earned their sheet. */
   @Post(':id/remind')
   @HttpCode(200)
   @RequirePermission(PermissionKey.CERTIFICATES_ISSUE)

@@ -21,20 +21,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Users Module · Assistance Request Decision — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Assistance requests approve / decline — input validation: the request id path param,
-   * the optional approval note, and the decline reason's required, empty and length rules,
-   * plus legitimate inputs that must pass.
-   */
   const requestIdFixtures: LayerFixture<string>[] = [
     { name: 'valid uuid', input: VALID_REQUEST_ID, expected: 'PASS' },
     { name: 'upper-case uuid', input: VALID_REQUEST_ID.toUpperCase(), expected: 'PASS' },
@@ -89,13 +76,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Assistance requests approve / decline — normalisation: the service receives the
-   * validated id and the trimmed text, and the response schema keeps stored file
-   * locations off the wire.
-   */
   describe('assistance requests site · approve and decline — normalisation', () => {
     const ctx = useAssistanceRequestsApp();
 
@@ -151,11 +132,10 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /** The two free-text fields hold to one rule; only `note` may also be null. */
+  /** Shared rule for both free-text fields; only `note` may be null. */
   const freeTextFixtures = (field: 'note' | 'reason', valid: object): LayerFixture[] => [
-    // Free text: stored as data through Prisma and escaped by the portal and app when rendered.
+    // Free text: Prisma parameterises it and clients escape it on render.
     ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...UNICODE_CONFUSABLE_PAYLOADS, ...XSS_PAYLOADS, ...PATH_TRAVERSAL_PAYLOADS].map(
       (p): LayerFixture => ({
         name: `${field} ← ${p.category}: ${p.label}`,
@@ -163,8 +143,7 @@ import {
         expected: 'PASS',
       }),
     ),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. It can run over several lines, so line breaks are the exception.
+    // Trimmed field rejects control characters; line breaks are allowed.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => p.label === 'CRLF injection').map((p): LayerFixture => ({
       name: `${field} ← ${p.category}: ${p.label}`,
       input: { [field]: p.value },

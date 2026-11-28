@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** How far back the statistics reach; each value is a whole number of months. */
+/** Whole months. */
 export const STATISTICS_RANGES = ['3m', '6m', '12m'] as const;
 
 export const STATISTICS_RANGE_MONTHS: Record<
@@ -10,36 +10,32 @@ export const STATISTICS_RANGE_MONTHS: Record<
 
 export const STATISTICS_DEFAULT_RANGE = '6m';
 
-/** The "every category" / "every department" choice — mirrors the portal's sentinel. */
+/** Must match the portal's sentinel. */
 export const STATISTICS_ALL = 'all';
 
-/** Rows the top-events table shows — enough to rank, not a full list. */
 export const STATISTICS_TOP_EVENTS = 6;
 
 export const StatisticsQuerySchema = z
   .object({
     range: z.enum(STATISTICS_RANGES).default(STATISTICS_DEFAULT_RANGE),
-    /** An event category, or `all`. Matched case-insensitively. */
+    /** Case-insensitive. */
     category: z.string().trim().max(120).default(STATISTICS_ALL),
-    /**
-     * Admin / director only: the college to narrow the system to, or `all`. A
-     * coordinator's scope comes from their profile and this is ignored.
-     */
+    /** Admin/director only; ignored for coordinators. */
     department: z.string().trim().max(160).default(STATISTICS_ALL),
   })
   .strict();
 
-/** A headline number with its movement against the previous period of the same length. */
+/** Compared to the previous equal-length period. */
 export const StatisticSummarySchema = z.object({
   value: z.number(),
-  /** Same measure over the previous period; null when there is nothing to compare to. */
+  /** Null when nothing to compare. */
   previous: z.number().nullable(),
-  /** One point per month, oldest first — the sparkline behind the number. */
+  /** Monthly, oldest first (sparkline). */
   trend: z.array(z.number()),
 });
 
 export const MonthlyActivitySchema = z.object({
-  /** `YYYY-MM`, the grouping key; `label` is what the axis shows. */
+  /** `YYYY-MM` grouping key; `label` is for display. */
   period: z.string(),
   label: z.string(),
   events_held: z.number(),
@@ -74,11 +70,10 @@ export const MonthlyReportActivitySchema = z.object({
 export const YearLevelParticipationSchema = z.object({
   year_level: z.string(),
   volunteers: z.number(),
-  /** Volunteers with at least one completed attendance in the period. */
+  /** At least one completed attendance. */
   active: z.number(),
 });
 
-/** One college's share of the system, for the director-level view. */
 export const DepartmentActivitySchema = z.object({
   department: z.string(),
   events: z.number(),
@@ -98,7 +93,7 @@ export const TopEventSchema = z.object({
 });
 
 export const StatisticsResponseSchema = z.object({
-  /** The college the numbers are scoped to; null means every department. */
+  /** Null means every department. */
   department: z.string().nullable(),
   range: z.enum(STATISTICS_RANGES),
   summary: z.object({
@@ -112,7 +107,7 @@ export const StatisticsResponseSchema = z.object({
   reports: z.array(MonthlyReportActivitySchema),
   year_levels: z.array(YearLevelParticipationSchema),
   top_events: z.array(TopEventSchema),
-  /** Per-college breakdown; empty when the scope is one department. */
+  /** Empty when scoped to one department. */
   departments: z.array(DepartmentActivitySchema),
   generated_at: z.string(),
 });

@@ -1,4 +1,3 @@
-/** Recipient for administrator access requests. */
 export const ADMIN_REQUEST_EMAIL =
   import.meta.env.VITE_ADMIN_REQUEST_EMAIL ?? 'careeesadmin@gmail.com'
 
@@ -28,18 +27,15 @@ export const REGISTRATION_GUIDELINES = [
   'Once approved, return to the login page and sign in with your credentials.',
 ] as const
 
-/** Default visible rows before expanding the message body field. */
 export const REQUEST_ACCESS_MESSAGE_COLLAPSED_ROWS = 7
 
-/** Per-file limit (5 MB). */
 export const REQUEST_ACCESS_MAX_FILE_BYTES = 5 * 1024 * 1024
 
-/** Combined attachment limit (15 MB). */
 export const REQUEST_ACCESS_MAX_TOTAL_BYTES = 15 * 1024 * 1024
 
 export const REQUEST_ACCESS_MAX_FILES = 5
 
-/** Shown when the form is submitted with no ID attached; matches the server's refusal. */
+/** Matches the server's refusal. */
 export const REQUEST_ACCESS_ATTACHMENT_REQUIRED_MESSAGE =
   'Attach at least one ID document for verification'
 

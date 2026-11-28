@@ -26,19 +26,6 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Payments Module', unit: 'Payment Gateway Settings', prefix: 'PAY' });
 
-/**
- * Shared by every spec in this folder — the four POSTs on the portal's Payments module:
- *   POST /api/v1/payments/settings/methods/:method/verify                (verifyMethod)
- *   POST /api/v1/payments/settings/methods/:method/account-proof         (startAccountProof)
- *   POST /api/v1/payments/settings/methods/:method/account-proof/confirm (confirmAccountProof + ConfirmAccountProofSchema)
- *   POST /api/v1/payments/settings/test                                  (testConnection + TestPaymentGatewaySchema)
- *
- * `@Roles` and `@RequirePermission` are not exercised: the global guards are out of
- * scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const VALID_METHOD = DonationPaymentMethod.GCASH;
 export const CALLER = { sub: 'caller-user-id' };
 
@@ -82,7 +69,6 @@ export const TEST_ENDPOINT = {
   validBody: VALID_TEST,
 } as const;
 
-/** The endpoints that take `:method`. */
 export const METHOD_ENDPOINTS = [VERIFY_ENDPOINT, PROOF_ENDPOINT, CONFIRM_ENDPOINT];
 export const BODY_ENDPOINTS = [CONFIRM_ENDPOINT, TEST_ENDPOINT];
 export const ENDPOINTS = [VERIFY_ENDPOINT, PROOF_ENDPOINT, CONFIRM_ENDPOINT, TEST_ENDPOINT];
@@ -134,11 +120,7 @@ export const SETTINGS_RESPONSE = {
   updated_at: '2026-10-30T08:00:00.000Z',
 };
 
-/**
- * Boots `PaymentsSiteController` with a mocked service for the enclosing `describe`.
- * The controller passes the caller through, so a stand-in for the global JWT guard
- * puts `CALLER` on the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the controller passes it on); `app` is assigned in `beforeAll`. */
 export const usePaymentsApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -172,12 +154,7 @@ export const usePaymentsApp = () => {
   return ctx;
 };
 
-/**
- * `:method` fixtures (the fixture `input` is the raw value, URL-encoded into the path)
- * through both layers, with a valid body where the endpoint reads one so the param is
- * the only thing under test. A FAIL must come back in the validation envelope without
- * reaching the service; a PASS must reach it exactly once.
- */
+/** `input` is the raw value (URL-encoded); the body stays valid so only the param is tested. */
 export const describeMethodTable = (
   ctx: ReturnType<typeof usePaymentsApp>,
   endpoint: (typeof METHOD_ENDPOINTS)[number],
@@ -206,7 +183,6 @@ export const describeMethodTable = (
   });
 };
 
-/** Body fixtures through both layers, against a valid `:method` where the endpoint has one. */
 export const describeBodyTable = (
   ctx: ReturnType<typeof usePaymentsApp>,
   endpoint: (typeof BODY_ENDPOINTS)[number],

@@ -6,7 +6,6 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/features/auth/domain/id_image_quality.dart';
 
-/// Outcome of pre-validating one side of an ID before it is accepted.
 class IdImageCheckResult {
   const IdImageCheckResult({
     required this.side,
@@ -18,8 +17,7 @@ class IdImageCheckResult {
   final IdCardSide side;
   final List<IdImageIssue> issues;
 
-  /// What on-device OCR read off this side; kept so the server's extraction
-  /// can be cross-checked and its blanks filled later.
+  /// On-device OCR text, used later to cross-check the server's extraction.
   final String recognizedText;
 
   /// For [IdImageIssue.missingIdDetails]: which fields weren't found.
@@ -32,23 +30,19 @@ class IdImageCheckResult {
       issues.isNotEmpty && issues.every((issue) => issue.overridable);
 }
 
-/// Checks an ID photo on-device: pixel quality first (blur, exposure, glare,
-/// size), then whether its text is readable and the identifying details can be
-/// found, and — on the front — whether the portrait can be found and is sharp.
-/// Nothing is uploaded here.
+/// On-device only: pixel quality, then text readability and key details, then
+/// (front) portrait sharpness.
 class IdImagePreValidator {
   IdImagePreValidator({this.checkPortrait = true, this.staffId = false});
 
-  /// Look for the ID portrait on the front. A blurry face fails the face scan
-  /// later even when the text reads fine, so it is caught here.
+  /// A blurry ID portrait later fails the face scan, so catch it here.
   final bool checkPortrait;
 
-  /// The card is a staff/faculty ID: its ID number and name are printed
-  /// differently from a student ID's.
+  /// Staff IDs print the number and name differently.
   final bool staffId;
 
-  /// [frontText] is the front's recognised text; pass it when checking the
-  /// back so the name / ID number can be looked for across both sides.
+  /// Pass the front's text when checking the back, so fields can span both
+  /// sides.
   Future<IdImageCheckResult> check(
     XFile file,
     IdCardSide side, {
@@ -102,8 +96,7 @@ class IdImagePreValidator {
     );
   }
 
-  /// Finds the largest face on the front of the ID and measures how sharp it
-  /// is. A detector failure is not held against the photo.
+  /// Detector failures aren't held against the photo.
   Future<IdImageIssue?> _portraitIssue(XFile file, Uint8List bytes) async {
     final detector = FaceDetector(
       options: FaceDetectorOptions(

@@ -6,10 +6,8 @@ import 'package:mobile/features/dashboard/presentation/utils/home_event_format.d
 import 'package:mobile/features/dashboard/presentation/widgets/home_event_image.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/popular_event_deck.dart';
 
-/// Horizontal deck of white poster cards for the donor home — the same
-/// footprint and look as [PopularEventDeck], with what the event accepts
-/// over the photo and the raised figure beside a "DONATE" pill instead of
-/// slots and "JOIN NOW".
+/// Same footprint as [PopularEventDeck], with accepted types and the raised
+/// amount instead of slots.
 class DonorCampaignDeck extends StatelessWidget {
   const DonorCampaignDeck({
     super.key,
@@ -148,9 +146,7 @@ class DonorCampaignCard extends StatelessWidget {
   }
 }
 
-/// "Money & goods" over the photo, in the same pill as the volunteer deck's
-/// slots badge; goods-only campaigns take the warm accent so they stand out
-/// from the money majority.
+/// Goods-only campaigns take the warm accent so they stand out.
 class DonationAcceptsBadge extends StatelessWidget {
   const DonationAcceptsBadge({super.key, required this.campaign});
 
@@ -179,8 +175,7 @@ class DonationAcceptsBadge extends StatelessWidget {
   }
 }
 
-/// "₱12k raised · 4 donations" for a money campaign, the donation count
-/// alone for goods-only — there is no peso figure to show for those.
+/// Goods-only shows just the count; there's no peso figure.
 class _RaisedLine extends StatelessWidget {
   const _RaisedLine({required this.campaign});
 
@@ -272,9 +267,6 @@ class _DonatePill extends StatelessWidget {
   }
 }
 
-/// Compact row card under the category chips — the donor twin of the
-/// volunteer's category row: square thumbnail, title with date • place, and
-/// a right column with what the event accepts over "DONATE".
 class DonorCampaignRow extends StatelessWidget {
   const DonorCampaignRow({
     super.key,
@@ -393,7 +385,6 @@ class DonorCampaignRow extends StatelessWidget {
   }
 }
 
-/// Three row-card outlines while the list loads.
 class DonorCampaignListSkeleton extends StatelessWidget {
   const DonorCampaignListSkeleton({super.key});
 

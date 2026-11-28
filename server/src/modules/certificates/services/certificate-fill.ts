@@ -1,10 +1,6 @@
 import type { IssuedCertificateRow } from '../repositories/certificates-repository';
 
-/**
- * What each placeholder on the sheet stands for. Kept in step with
- * `CERTIFICATE_TOKENS` in the templates validator, which is what the customizer
- * lets a director type.
- */
+/** Must match `CERTIFICATE_TOKENS` in the templates validator. */
 export interface CertificateFillValues {
   recipient: string;
   event: string;
@@ -15,7 +11,7 @@ export interface CertificateFillValues {
 
 const DATE_TIME_ZONE = process.env.TZ || 'Asia/Manila';
 
-/** `September 21, 2026` — the form a certificate reads a date in. */
+/** e.g. `September 21, 2026`. */
 export function formatCertificateDate(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
     month: 'long',
@@ -25,7 +21,7 @@ export function formatCertificateDate(date: Date): string {
   }).format(date);
 }
 
-/** `4 hours`, `1 hour`, `2.5 hours` — never a bare number on the sheet. */
+/** e.g. `4 hours`, `1 hour`, `2.5 hours`. */
 export function formatCertificateHours(hours: number): string {
   const rounded = Math.round(hours * 10) / 10;
   const label = Number.isInteger(rounded)
@@ -34,7 +30,6 @@ export function formatCertificateHours(hours: number): string {
   return `${label} ${rounded === 1 ? 'hour' : 'hours'}`;
 }
 
-/** The full name as it prints: first, middle (when held), last. */
 export function recipientNameOf(user: {
   firstname: string;
   middle_name?: string | null;
@@ -58,7 +53,7 @@ export function fillValuesOf(row: IssuedCertificateRow): CertificateFillValues {
   };
 }
 
-/** Swaps every `{{token}}` in the text for its value; unknown tokens are left as typed. */
+/** Unknown tokens are left as typed. */
 export function fillCertificateText(
   text: string,
   values: CertificateFillValues,

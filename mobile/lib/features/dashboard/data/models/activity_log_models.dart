@@ -79,8 +79,7 @@ class ActivityLogItem {
 }
 
 extension on ActivityLogItem {
-  /// " (Admin)" after a staff name — the account holder may not know who
-  /// the person is, but the role says why they could act.
+  /// Shows why staff could act, even if the holder doesn't know them.
   String _roleSuffix() {
     final role = actorRole;
     if (role == null || role.isEmpty) return '';

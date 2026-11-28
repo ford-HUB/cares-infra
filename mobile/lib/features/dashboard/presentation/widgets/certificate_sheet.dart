@@ -7,27 +7,21 @@ import '../utils/certificate_palette.dart';
 import 'certificate_frame_ornament.dart';
 import 'certificate_seal_mark.dart';
 
-/// Point size is set on an 11in-wide sheet in the portal; the same point
-/// converts to a fraction of whatever width the sheet is drawn at here.
+/// Portal type sizes are points on an 11in sheet; converted to a fraction of
+/// the drawn width.
 const _sheetWidthPt = 792.0;
 
 /// Top to bottom, the blocks the portal's editor places.
 const _elementOrder = ['headline', 'title', 'body', 'seal', 'signatures'];
 
-/// Line heights the portal sets each block in — `leading-normal` on the sheet,
-/// `leading-tight` on the award name, `leading-relaxed` on the award text. A
-/// block is centred on its layout point, so any difference here moves its
-/// edges and lets it run into its neighbours.
+/// Portal `leading-normal` / `-tight` (award name) / `-relaxed` (award text).
+/// Blocks centre on their point, so a mismatch pushes edges into neighbours.
 const _lineHeightNormal = 1.5;
 const _lineHeightTitle = 1.25;
 const _lineHeightBody = 1.625;
 
-/// The issued certificate, drawn as the director designed it: the frame and
-/// accent, every block at the position and size it was dragged to, the placed
-/// images in their own stacking order, the seal, and the signature lines with
-/// the images they were issued with. Everything is relative to the sheet's
-/// width, so the same layout reads identically on the phone, in the export
-/// and on the portal.
+/// Everything is relative to the sheet width, so phone, export and portal
+/// match.
 class CertificateSheet extends StatelessWidget {
   const CertificateSheet({super.key, required this.certificate});
 
@@ -126,8 +120,7 @@ class _DesignedSheet extends StatelessWidget {
     return true;
   }
 
-  /// A block centred on its layout point, spanning its width; when the
-  /// director fixed its height the text is centred and scaled down to fit.
+  /// With a fixed height the text is centred and scaled down to fit.
   Widget _placedElement(String id) {
     final position = design.positionOf(id);
     final fixedHeight = design.heightOf(id);
@@ -205,8 +198,8 @@ class _DesignedSheet extends StatelessWidget {
   TextStyle _style(String id, {double scale = 1, TextStyle? base}) {
     final size = _pt(design.fontSizePtOf(id) * scale);
     final start = base ?? const TextStyle();
-    // The weight goes in before the font is resolved, so Google Fonts loads the
-    // real weight rather than faking a bold one.
+    // Weight before font, so Google Fonts loads the real weight instead of
+    // faking bold.
     return certificateFontStyle(
       fontId: design.fontOf(id),
       frame: design.frame,
@@ -354,10 +347,9 @@ class _DesignedSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // The portal's block is the rule and the three lines — it never
-                  // draws the signature image. So the image sits over the rule
-                  // without taking any height: were it laid out, the block would
-                  // grow and, being centred on its point, climb into the seal.
+                  // The portal's block never lays out the signature image, so
+                  // it overlays the rule without height; otherwise the centred
+                  // block would climb into the seal.
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -424,8 +416,7 @@ class _TriangleClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-/// A certificate issued before the sheet design travelled with it: plain
-/// wording on a white sheet, so it still prints.
+/// For certificates issued before the design travelled with them.
 class _FallbackSheet extends StatelessWidget {
   const _FallbackSheet({required this.certificate, required this.width});
 

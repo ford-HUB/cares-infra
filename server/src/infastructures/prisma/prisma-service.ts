@@ -5,11 +5,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 /** `pg` defaults to 10 sockets; the portal's list screens open several at once. */
 const DEFAULT_POOL_MAX = 20;
 
-/**
- * How long a batch `$transaction` may wait for a free connection. The Prisma default
- * is 2s, which a pooled/serverless Postgres can exceed on a cold connection alone —
- * that timeout surfaces as "Unable to start a transaction in the given time".
- */
+/** Prisma's 2s default is too short for a cold pooled connection. */
 const DEFAULT_TRANSACTION_MAX_WAIT_MS = 15_000;
 const DEFAULT_TRANSACTION_TIMEOUT_MS = 20_000;
 

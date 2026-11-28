@@ -9,16 +9,11 @@ interface NeedsDataGateProps {
   error: string | null
   empty: boolean
   onRetry: () => void
-  /** Shown until the first fetch comes back. */
   skeleton: ReactNode
   children: ReactNode
 }
 
-/**
- * Stands in front of a Residential Needs screen: the skeleton on first load, the
- * error with a retry if that load failed, and an empty state until the first
- * beneficiary submits a survey. A later refetch keeps the screen up.
- */
+/** Skeleton on first load, error with retry, then empty until a survey exists; refetches keep the screen up. */
 export function NeedsDataGate({
   loaded,
   error,

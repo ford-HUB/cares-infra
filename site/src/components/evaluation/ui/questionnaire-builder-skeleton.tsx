@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors the header card + three collapsed question cards the loaded builder draws. */
 export function QuestionnaireBuilderSkeleton() {
   return (
     <div aria-hidden className="space-y-4">

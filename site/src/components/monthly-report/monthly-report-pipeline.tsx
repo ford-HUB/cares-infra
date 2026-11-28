@@ -17,18 +17,12 @@ import { ReportStatusSegment } from './ui/report-status-segment'
 
 interface MonthlyReportPipelineProps {
   counts: MonthlyReportCounts
-  /** Period the counts cover, or null when every period is in view. */
+  /** Null when every period is in view. */
   period: string | null
   status: ReportStatusFilter
   onStatusChange: (value: ReportStatusFilter) => void
 }
 
-/**
- * What the director opens this page to find out: how many coordinator submissions
- * are still waiting on a decision. The four stages are parts of one intake, so they
- * share a single bar instead of four equal-weight tiles — and each part filters the
- * queue below.
- */
 export function MonthlyReportPipeline({
   counts,
   period,
@@ -66,8 +60,7 @@ export function MonthlyReportPipeline({
                   of {counts.total} in the queue
                 </span>
               </p>
-              {/* Approved reports are gone from this screen, so the count says where
-                  they went rather than sitting here as a segment nobody can act on. */}
+              {/* Approved reports leave this screen, so the count says where they went. */}
               <p className="truncate text-[11px] text-gray-400 tabular-nums">
                 {period ? formatReportPeriod(period) : 'All periods'} · {counts.approved}{' '}
                 approved

@@ -3,14 +3,12 @@ import { Card, CardContent } from '@/components/ui/card'
 
 interface ChartCardProps {
   title: string
-  /** One line on how to read the chart — these are not self-evident measurements. */
   hint: string
   /** Legend, current reading, or range note; sits opposite the title. */
   aside?: ReactNode
   children: ReactNode
 }
 
-/** Shared frame for the page's charts, so two plots read as one instrument panel. */
 export function ChartCard({ title, hint, aside, children }: ChartCardProps) {
   return (
     <Card className="gap-0 shadow-sm">

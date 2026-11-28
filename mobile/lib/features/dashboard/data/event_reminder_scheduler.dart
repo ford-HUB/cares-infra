@@ -2,21 +2,18 @@ import 'package:mobile/core/services/local_notifications.dart';
 import 'package:mobile/features/dashboard/data/event_reminder_store.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
 
-/// Arms the device reminders for a registered event from the person's
-/// [EventReminderStore] preference: one the morning of their chosen lead day,
-/// and one an hour before the start so the geofence check-in is not missed.
-/// Re-syncing is idempotent — the same event always maps to the same two ids.
+/// One reminder the morning of the lead day, one an hour before start (for the
+/// geofence check-in). Idempotent: fixed ids per event.
 class EventReminderScheduler {
   EventReminderScheduler._();
 
   static final EventReminderScheduler instance = EventReminderScheduler._();
 
-  /// Hour of the day the lead-time reminder lands on.
   static const int reminderHour = 8;
 
   static const Duration finalLead = Duration(hours: 1);
 
-  /// Payload the tap handler recognises to open the event.
+  /// Recognised by the tap handler.
   static String payloadFor(CaresEvent event) => 'event:${event.id}';
 
   Future<void> sync(CaresEvent event) async {

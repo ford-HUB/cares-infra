@@ -17,7 +17,6 @@ import {
   LeaderboardResponseSchema,
 } from '../validators/rankings-mobile-validator';
 
-/** The volunteer app's Ranks tab and the home header's rank badge. */
 @Controller('v1/rankings')
 @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
 export class RankingsMobileController {
@@ -33,7 +32,7 @@ export class RankingsMobileController {
     return this.rankingsMobileService.getLeaderboard(user.sub, query.period);
   }
 
-  /** The donor app's Ranks tab: confirmed giving at the portal's peso-per-point rate. */
+  /** Confirmed giving at the portal's peso-per-point rate. */
   @Get('donors/leaderboard')
   @ResponseMessage('Donor leaderboard')
   @ZSerialize(DonorLeaderboardResponseSchema)

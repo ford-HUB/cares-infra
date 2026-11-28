@@ -18,16 +18,12 @@ interface ExpandableNavGroupProps {
   children: NavChildItem[]
   userRole?: PortalRole
   permissions?: ReadonlySet<PermissionKey>
-  /** Active suspensions on the session, by the right they lock. */
   suspensions?: ReadonlyMap<PermissionKey, SessionSuspension>
-  /** Set when the group's own gate right is suspended — the whole module is locked. */
+  /** Set when the group's gate right is suspended; locks the whole module. */
   suspension?: SessionSuspension
 }
 
-/**
- * A child whose right is suspended is kept in the list, locked and red, rather than
- * dropped — the person can see the screen exists and, on hover, why it is closed.
- */
+/** Suspended children stay listed, locked and red, instead of being dropped. */
 function childSuspension(
   child: NavChildItem,
   suspensions: ReadonlyMap<PermissionKey, SessionSuspension>,

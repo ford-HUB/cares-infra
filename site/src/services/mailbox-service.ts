@@ -14,7 +14,7 @@ import { apiClient, parseApiError } from './api-client'
 
 const MAILBOX_BASE = '/api/v1/mailbox'
 
-/** 412 is the server saying "no Google account is linked yet", not a failure. */
+/** 412 means no Google account linked yet, not a failure. */
 const NOT_CONNECTED_STATUS = 412
 
 interface MailboxConnectionApiResponse {
@@ -130,7 +130,6 @@ export async function getMailboxConnection(): Promise<
   }
 }
 
-/** Returns the Google consent URL; the caller navigates the browser to it. */
 export async function createMailboxAuthorizeUrl(): Promise<
   MailboxResult<string>
 > {

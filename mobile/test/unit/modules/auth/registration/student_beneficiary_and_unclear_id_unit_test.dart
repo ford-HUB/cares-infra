@@ -1,10 +1,6 @@
-// Unit tests for the 2026-11-18 registration updates:
-// * an individual beneficiary picks Regular or Student — a student goes the
-//   student volunteer's ID + face way and opens their Volunteer side;
-// * an unclear ID photo pops a notice offering Retake / Continue / Manual
-//   Registration, and the ID portrait is part of the check;
-// * sides the server opens with the account (a student beneficiary's
-//   Volunteer side) start unlocked in the role switcher.
+// Student beneficiaries take the ID + face path and open their Volunteer side;
+// unclear IDs offer Retake / Continue / Manual (portrait included);
+// server-opened sides start unlocked.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

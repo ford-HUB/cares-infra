@@ -1,9 +1,9 @@
-/** Where a reviewed mobile sign-up stands, as `GET /api/v1/auth/registration-status` returns it. */
+/** From `GET /api/v1/auth/registration-status`. */
 export type RegistrationReviewStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED'
 
 export interface RegistrationStatus {
   reference: string
-  /** What was registered, e.g. "beneficiary" or "manual volunteer". */
+  /** e.g. "beneficiary" or "manual volunteer". */
   registration_label: string
   firstname: string
   status: RegistrationReviewStatus

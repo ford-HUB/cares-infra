@@ -18,7 +18,6 @@ import {
   type BoardScope,
 } from './rankings-board-service';
 
-/** Months of history the participation chart covers. */
 const TREND_MONTHS = 6;
 const TREND_SIZE = 3;
 const MONTH_LABELS = [
@@ -36,12 +35,7 @@ const MONTH_LABELS = [
   'Dec',
 ];
 
-/**
- * The portal's Rankings area. A director or admin sees the whole school; a
- * coordinator's board is cut to the volunteers whose school record assigns them
- * to the coordinator's own college, and one with no college on their profile gets
- * an empty board rather than everyone's.
- */
+/** Coordinators see only their college's volunteers; no college means an empty board. */
 @Injectable()
 export class RankingsSiteService {
   constructor(
@@ -104,11 +98,7 @@ export class RankingsSiteService {
     };
   }
 
-  /**
-   * The top three's race over the last six months: cumulative points at each month
-   * end, counted from the start of that stretch. The leaders are the current
-   * period's, so the chart always explains the podium beside it.
-   */
+  /** Cumulative month-end points of the current period's top three. */
   async getTrend(
     caller: JwtPayload,
     period?: RankingPeriod,
@@ -157,10 +147,7 @@ export class RankingsSiteService {
     };
   }
 
-  /**
-   * The donor standings — the whole school for every portal role, since a
-   * donation is not filed under a college the way a volunteer is.
-   */
+  /** School-wide for every role: donations aren't filed under a college. */
   async listDonors(period?: RankingPeriod): Promise<DonorRankingsResponseDto> {
     const now = new Date();
     const settings = await this.board.getSettings();
@@ -193,7 +180,6 @@ export class RankingsSiteService {
     };
   }
 
-  /** The top three donors' race over the last six months, like the volunteer chart. */
   async getDonorTrend(
     period?: RankingPeriod,
   ): Promise<RankingTrendResponseDto> {
@@ -238,11 +224,7 @@ export class RankingsSiteService {
     };
   }
 
-  /**
-   * The college standings — volunteer hours by the volunteer's college, confirmed
-   * pesos by the college whose event received them. School-wide for every role:
-   * the point of the board is to compare colleges against each other.
-   */
+  /** School-wide for every role. Hours by volunteer college, pesos by event college. */
   async listDepartments(
     period?: RankingPeriod,
   ): Promise<DepartmentRankingsResponseDto> {
@@ -271,7 +253,7 @@ export class RankingsSiteService {
         donations: entry.donations,
         score: entry.score,
         ranks: entry.ranks,
-        // A college new since last window has no standing to move from.
+        // New colleges have no previous standing.
         previous_ranks: previous?.get(entry.key) ?? null,
       })),
       unattributed: {
@@ -281,7 +263,7 @@ export class RankingsSiteService {
     };
   }
 
-  /** Null when the caller may see nothing; `filter` empty for the whole school. */
+  /** Null when nothing is visible; empty `filter` = whole school. */
   private async scopeFor(
     caller: JwtPayload,
   ): Promise<{ department: string | null; filter: BoardScope } | null> {
@@ -300,7 +282,7 @@ export class RankingsSiteService {
   }
 }
 
-/** The last six month ends, oldest first; the current month is cut at `now`. */
+/** Oldest first; the current month is cut at `now`. */
 function trendMonthEnds(now: Date): Date[] {
   return Array.from({ length: TREND_MONTHS }, (_, index) => {
     const offset = TREND_MONTHS - 1 - index;

@@ -5,10 +5,7 @@ import { DonationsRepository } from '../repositories/donations-repository';
 import { DonationsMobileService } from '../services/donations-mobile-service';
 import { DonationsWebhookModule } from './donations-webhook-module';
 
-/**
- * Status polling reuses the webhook service's status mappers to reconcile with
- * Xendit; goods pledges read the ranking settings for the credited goods values.
- */
+/** Reuses the webhook status mappers; goods read the ranking settings. */
 @Module({
   imports: [DonationsWebhookModule, RankingsCoreModule],
   controllers: [DonationsMobileController],

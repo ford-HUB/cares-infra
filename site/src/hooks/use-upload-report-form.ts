@@ -19,23 +19,16 @@ import {
   type UploadReportFormValues,
 } from '../validators/upload-report-schema'
 
-/**
- * One file on the upload page. It is read into a data URL as soon as it is picked,
- * and the read is what the progress bar shows — by the time the coordinator presses
- * Submit every file is already encoded and the post is one JSON body.
- */
+/** Read into a data URL on pick, so submit is one JSON body. */
 export interface UploadAttachment {
   id: string
   file: File
   kind: ReportDocumentKind
-  /** 0–100 while the file is being read; 100 once `content` is set. */
   progress: number
-  /** `data:<mime>;base64,...` once the read finishes. */
   content: string | null
   error: string | null
 }
 
-/** Fields the first page owns — validated before the coordinator moves on. */
 const DETAILS_FIELDS = ['title', 'period', 'department', 'summary', 'metrics'] as const
 
 function attachmentId(file: File) {
@@ -56,7 +49,6 @@ export function useUploadReportForm() {
     defaultValues: uploadReportDefaultValues,
   })
 
-  /** Only what this coordinator sent, newest movement first. */
   const mine = useMemo(() => {
     const email = user?.email.trim().toLowerCase()
     if (!email) return []
@@ -70,7 +62,6 @@ export function useUploadReportForm() {
       current.map((one) => (one.id === id ? { ...one, ...patch } : one)),
     )
 
-  /** Encodes one file, reporting progress as the browser reads it. */
   const readAttachment = (attachment: UploadAttachment) => {
     const reader = new FileReader()
     reader.onprogress = (event) => {
@@ -108,7 +99,6 @@ export function useUploadReportForm() {
         continue
       }
       const id = attachmentId(file)
-      // The same file picked twice is the same attachment, not two.
       if (attachments.some((one) => one.id === id) || accepted.some((one) => one.id === id)) {
         continue
       }
@@ -153,7 +143,7 @@ export function useUploadReportForm() {
       })
 
       toast.success(`${created.reference} sent to the director for review`)
-      // Keep the department — a coordinator files for the same college every month.
+      // Coordinators file for the same college every month.
       form.reset({ ...uploadReportDefaultValues, department: values.department })
       setAttachments([])
       setStep('details')

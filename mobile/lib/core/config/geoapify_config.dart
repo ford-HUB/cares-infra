@@ -1,11 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-/// Geoapify credentials for the event route map, read from `mobile/.env`.
-///
-/// Used as the fallback basemap/router when `MapboxConfig` has no valid
-/// token — the staff portal's event map runs on these same Geoapify tiles
-/// (`site/src/constants/geoapify.ts`). Without a key the map falls back to
-/// OpenStreetMap tiles and a straight-line route estimate.
+/// Fallback tiles/routing when Mapbox is unset; without a key, OSM tiles and a
+/// straight-line route.
 class GeoapifyConfig {
   GeoapifyConfig._();
 

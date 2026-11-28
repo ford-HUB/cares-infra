@@ -10,11 +10,9 @@ import { TicketTypeBadge } from './ui/ticket-type-badge'
 
 interface TicketDetailViewProps {
   ticket: SupportTicket | null
-  /** False until the first fetch settles — see `support-ticket-store`. */
   initialized: boolean
-  /** True while a status change, assignment, or reply is in flight. */
+  /** A status change, assignment or reply is in flight. */
   saving: boolean
-  /** Opens the update dialog, where status and an optional note are set. */
   onUpdate: () => void
   onAssignToMe: () => void
   onReply: (body: string) => void
@@ -34,16 +32,13 @@ function Meta({ label, value }: { label: string; value: ReactNode }) {
   )
 }
 
-/** Splits "Marites Delgado" into the two parts `UserAvatar` expects. */
+/** Splits a full name into the two parts `UserAvatar` expects. */
 function nameParts(fullName: string) {
   const [first = '', ...rest] = fullName.trim().split(/\s+/)
   return { firstName: first, lastName: rest.at(-1) ?? '' }
 }
 
-/**
- * Fills the right-hand column. Condensed on purpose — the whole ticket has to fit
- * beside the list without the page itself scrolling, so only the conversation does.
- */
+/** Condensed so the ticket fits beside the list; only the conversation scrolls. */
 export function TicketDetailView({
   ticket,
   initialized,
@@ -54,8 +49,7 @@ export function TicketDetailView({
 }: TicketDetailViewProps) {
   const [draft, setDraft] = useState('')
 
-  // A different ticket opened — drop the half-typed reply so it cannot be posted
-  // against the wrong thread.
+  // Opening a different ticket drops the half-typed reply so it can't post to the wrong thread.
   const [draftTicketId, setDraftTicketId] = useState(ticket?.id)
   if (draftTicketId !== ticket?.id) {
     setDraftTicketId(ticket?.id)

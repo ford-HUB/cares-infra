@@ -8,7 +8,6 @@ import { LANDING_SERIF, type LandingStory } from '../../../constants/landing-bul
 const ARROW_BUTTON =
   'flex h-9 w-9 items-center justify-center rounded-full bg-white text-[var(--cares-primary)] shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-[var(--cares-primary)] hover:text-white disabled:pointer-events-none disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none'
 
-/** Swipeable, snap-scrolling row of story cards with arrow and dot controls. */
 export function LandingStoryCarousel({ stories }: { stories: readonly LandingStory[] }) {
   const { trackRef, active, atStart, atEnd, goTo, next, prev } = useCarousel(stories.length)
 

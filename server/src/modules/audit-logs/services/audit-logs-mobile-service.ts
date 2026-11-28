@@ -14,10 +14,7 @@ import {
   type AuditLogRow,
 } from '../repositories/audit-log-repository';
 
-/**
- * The Activity Logs screen: everything that happened to this account, newest
- * first — its own actions plus what staff did to it.
- */
+/** Includes what staff did to the account, newest first. */
 @Injectable()
 export class AuditLogsMobileService {
   constructor(
@@ -29,7 +26,7 @@ export class AuditLogsMobileService {
     userId: string,
     query: ListMyActivityQueryDto,
   ): Promise<ActivityLogPageDto> {
-    // One extra row tells us whether a next page exists without a count query.
+    // One extra row signals a next page without a count query.
     const rows = await this.auditLogRepository.listForAccount({
       userId,
       cursor: query.cursor,
@@ -45,12 +42,7 @@ export class AuditLogsMobileService {
     };
   }
 
-  /**
-   * Actions that happen entirely on the device — switching the dashboard to
-   * another role, unlocking one — never hit a feature endpoint, so the app
-   * reports them here to keep the trail complete. Only the allow-listed keys
-   * are accepted; the app cannot write arbitrary actions into the audit table.
-   */
+  /** Device-only actions; allow-listed keys only, so no arbitrary audit writes. */
   async recordClientActivity(
     user: JwtPayload,
     body: RecordClientActivityDto,

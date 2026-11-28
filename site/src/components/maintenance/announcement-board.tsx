@@ -13,7 +13,7 @@ import { AnnouncementEmpty, AnnouncementRow } from './announcement-row'
 
 interface AnnouncementBoardProps {
   announcements: Announcement[]
-  /** Counted over the whole board, so the filter chips don't move when one is chosen. */
+  /** Counted over the whole board, so the chips don't move when one is chosen. */
   counts: Record<AnnouncementStateFilter, number>
   filter: AnnouncementStateFilter
   busyId: string | null
@@ -32,10 +32,7 @@ const COLUMNS = [
   { key: 'controls', label: 'Controls', width: 'lg:w-[18%]' },
 ] as const
 
-/**
- * The other half of taking the system down: telling people. Pinned notices sort first
- * because that is where they appear in the feeds this board writes to.
- */
+/** Pinned notices sort first, matching the feeds this board writes to. */
 export function AnnouncementBoard({
   announcements,
   counts,

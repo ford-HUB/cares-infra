@@ -3,7 +3,6 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/gradient_button.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 
-/// Which sign-up the notice is being shown for — the copy differs per role.
 enum CaresTermsAudience {
   donor('Donor'),
   volunteer('Volunteer'),
@@ -20,10 +19,7 @@ enum CaresTermsAudience {
   };
 }
 
-/// Terms + privacy notice a signee has to read before the sign-up checkbox ticks.
-///
-/// The copy below is placeholder/mock content for the design pass — it is held in this
-/// file, not fetched from the server.
+/// Placeholder copy for the design pass, held here rather than fetched.
 const List<_TermsSection> _donorTermsSections = [
   _TermsSection(
     title: '1. About this notice',
@@ -257,7 +253,7 @@ const List<_TermsSection> _beneficiaryTermsSections = [
   ),
 ];
 
-/// Opens the notice and resolves to `true` once it has been read to the end.
+/// Resolves to `true` once read to the end.
 Future<bool> showCaresTermsDialog(
   BuildContext context,
   CaresTermsAudience audience,
@@ -289,7 +285,7 @@ class _CaresTermsDialog extends StatefulWidget {
 class _CaresTermsDialogState extends State<_CaresTermsDialog> {
   final _scrollController = ScrollController();
 
-  /// Flips once the reader has scrolled to the bottom — that is what ticks the checkbox.
+  /// Scrolling to the bottom is what ticks the checkbox.
   bool _reachedEnd = false;
 
   @override
@@ -481,8 +477,6 @@ class _CaresTermsDialogState extends State<_CaresTermsDialog> {
   }
 }
 
-/// Numbered section heading: green number disc, thin rule, bold title, all
-/// on a pale green pill.
 class _SectionPill extends StatelessWidget {
   const _SectionPill({required this.number, required this.title});
 

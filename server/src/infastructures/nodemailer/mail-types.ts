@@ -5,7 +5,7 @@ export interface MailAttachment {
 }
 
 export interface SendEmailOptions {
-  /** Where a human reply should land — the sender is always the configured mail account. */
+  /** The sender is always the configured mail account. */
   replyTo?: string;
   attachments?: MailAttachment[];
 }

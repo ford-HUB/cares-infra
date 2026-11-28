@@ -30,17 +30,11 @@ const NEEDS_MAX = NEED_CATEGORY_ORDER.length
 interface ClusterScatterChartProps {
   households: Household[]
   result: NeedsClusteringResult
-  /** The cluster the cards have selected — the others fade so it stands out. */
+  /** The others fade so it stands out. */
   selected: number | null
 }
 
-/**
- * The clusters on the two survey answers a director reads first — how serious the
- * household rated its need against how many needs it ticked. The model ran on all
- * seven features; this is a projection, so two dots that overlap here may still sit
- * in different groups. Dots are jittered a touch so households with identical
- * answers do not stack into one.
- */
+/** A 2-D projection of a 7-feature model, so overlapping dots may differ in cluster. Jitter separates identical answers. */
 const JITTER = 0.18
 export function ClusterScatterChart({ households, result, selected }: ClusterScatterChartProps) {
   const config: ChartConfig = Object.fromEntries(

@@ -1,14 +1,10 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { Prisma } from '../../../infastructures/prisma/common/client';
 
-/** Prisma's "table / column does not exist" codes — the schema is ahead of the database. */
+/** Table/column missing: schema ahead of the database. */
 const MISSING_SCHEMA_CODES = new Set(['P2021', 'P2022']);
 
-/**
- * Turns a read against the issued-certificates table on a database that has not
- * had the migration applied into a 503 the portal and the app can show, rather than
- * a bare "Internal server error". Anything else is rethrown untouched.
- */
+/** Unmigrated database → 503; anything else rethrown. */
 export async function withCertificateStorage<T>(
   read: () => Promise<T>,
 ): Promise<T> {

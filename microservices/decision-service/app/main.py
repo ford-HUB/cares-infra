@@ -72,12 +72,7 @@ async def health() -> ApiResponse:
 
 @app.post("/api/v1/cluster-needs")
 async def cluster_needs(body: ClusterBody) -> ApiResponse:
-    """Group households with a similar need profile.
-
-    Runs scikit-learn KMeans over the survey rows and describes each group: its
-    defining need, the barrier its members name most, its priority band, the
-    barangay it concentrates in, and where it ranks by need level.
-    """
+    """Group households with a similar need profile (KMeans)."""
     if not decision_engine.model_loaded:
         raise failure("Decision engine not ready", 503)
 

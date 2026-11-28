@@ -22,10 +22,8 @@ interface MutationOutcome {
   message?: string
 }
 
-/** Issuing a credential is a mutation that also hands back something to show once. */
 interface CredentialOutcome extends MutationOutcome {
   credentials?: IssuedCredentials
-  /** Set on provisioning only — whether the credential mail went out. */
   delivery?: CredentialDelivery | null
 }
 
@@ -34,11 +32,7 @@ interface ManageUsersState {
   total: number
   truncated: boolean
   loading: boolean
-  /**
-   * False until the first fetch settles. Without it, the mount render — where
-   * `loading` is still false and `users` is still empty — is indistinguishable from a
-   * finished fetch that returned nothing, and the table flashes its empty state.
-   */
+  /** Distinguishes the mount render from an empty result, so the empty state doesn't flash. */
   initialized: boolean
   error: string | null
   fetchUsers: (query?: ManageUsersQuery) => Promise<void>
@@ -58,7 +52,6 @@ interface ManageUsersState {
 }
 
 export const useManageUsersStore = create<ManageUsersState>((set, get) => {
-  /** Mutations return the updated row, so patch it in instead of refetching the list. */
   const applyMutation = (result: {
     success: boolean
     message?: string
@@ -126,7 +119,6 @@ export const useManageUsersStore = create<ManageUsersState>((set, get) => {
         return { ok: false, message: result.message }
       }
 
-      // Drop the row locally rather than refetching the whole list.
       set({
         users: get().users.filter((user) => user.id !== id),
         total: Math.max(0, get().total - 1),
@@ -140,8 +132,7 @@ export const useManageUsersStore = create<ManageUsersState>((set, get) => {
         return { ok: false, message: result.message }
       }
 
-      // A new row belongs at the top of the list the same way the server orders it,
-      // and the total moves with it — patching beats a refetch mid-dialog.
+      // Matches server ordering; avoids a refetch mid-dialog.
       if (result.user) {
         const created = result.user
         set({ users: [created, ...get().users], total: get().total + 1 })

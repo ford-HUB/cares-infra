@@ -49,12 +49,7 @@ export class CertificateDeploymentsSiteService {
     return deployments.map((deployment) => mapToDto(deployment));
   }
 
-  /**
-   * Puts one template onto one event. Everything the sheet is made of — design,
-   * artwork, wording and the people signing it — is copied into the deployment as it
-   * reads today: the template stays editable afterwards, and a certificate already
-   * promised to a volunteer must not change wording underneath them.
-   */
+  /** Copies design, artwork, wording and signatories so later template edits don't change promised certificates. */
   async deploy(
     caller: JwtPayload,
     data: DeployCertificateDto,
@@ -86,9 +81,7 @@ export class CertificateDeploymentsSiteService {
       template.certificate_template_id,
       event.event_id,
     );
-    // Re-deploying is how a director pushes a design change onto an event that has not
-    // handed anything out yet. Once sheets are with recipients the wording is settled,
-    // and a second deployment would quietly disagree with what they already hold.
+    // Re-deploying is only allowed before anything is distributed.
     if (existing && existing.distributed > 0) {
       throw new ConflictException(
         `${template.name} is already distributing for this event`,
@@ -179,8 +172,7 @@ export class CertificateDeploymentsSiteService {
       action: 'certificate-deployment.status.updated',
       description: `Set "${updated.template_name}" for ${updated.event_name} to ${data.status}`,
       category: 'CERTIFICATE',
-      // Pausing stops sheets reaching people who are expecting them, so it is not the
-      // same routine edit a wording change is.
+      // Pausing withholds expected sheets, so NOTICE.
       severity: next === CertificateDeploymentStatus.PAUSED ? 'NOTICE' : 'INFO',
       actor: caller,
       targetType: 'certificate-deployment',
@@ -200,7 +192,7 @@ export class CertificateDeploymentsSiteService {
     return mapToDto(updated);
   }
 
-  /** `DC-2026-014`, on the same yearly sequence the template references use. */
+  /** e.g. `DC-2026-014`; yearly sequence. */
   private async nextReference(): Promise<string> {
     const year = new Date().getFullYear();
     const highest = await this.repository.highestReferenceSequence(year);
@@ -208,18 +200,13 @@ export class CertificateDeploymentsSiteService {
   }
 }
 
-/**
- * A deployment queued against an event that has not finished stays `scheduled`;
- * releasing starts once the event is closed out, which is what the live page's own
- * status hint promises.
- */
+/** `scheduled` until the event ends. */
 function deriveStatus(eventEnded: Date): CertificateDeploymentStatus {
   return eventEnded.getTime() <= Date.now()
     ? CertificateDeploymentStatus.DISTRIBUTING
     : CertificateDeploymentStatus.SCHEDULED;
 }
 
-/** The template's sheet as it reads today, signature lines copied in beside it. */
 function freezeDesign(
   template: CertificateTemplateRow,
 ): StoredDeploymentDesign {
@@ -232,8 +219,7 @@ function freezeDesign(
       name: signatory.name,
       title: signatory.title,
       department: signatory.department,
-      // Frozen with the line: the printed sheet still resolves it against the
-      // coordinator's own signature image at issue time.
+      // Resolved against the coordinator's signature at issue time.
       signature_token: signatory.signature_token,
       has_signature: Boolean(signatory.coordinator.accounts[0]?.signature_url),
     }),
@@ -255,8 +241,7 @@ function mapToDto(
     category: deployment.category.toLowerCase() as Category,
     orientation: deployment.orientation.toLowerCase() as Orientation,
     design: {
-      // The artwork still lives with the template the deployment was cut from, which is
-      // why that template cannot be deleted while a deployment holds it.
+      // Artwork stays with the template, so it can't be deleted while deployed.
       ...toDesignDto(design, deployment.certificate_template_id),
       signatories: design.signatories ?? [],
     },

@@ -8,11 +8,10 @@ class Settings(BaseSettings):
     cors_origins: str = "*"
 
     model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
-    # An event is tagged with an interest once its blended score clears this.
+    # Min blended score to tag an event.
     match_threshold: float = 0.45
-    # Interests returned per event, best first.
     top_k: int = 3
-    # Blend between embedding similarity and lexicon hits; the rest is lexical.
+    # Semantic share of the blended score; the rest is lexical.
     semantic_weight: float = 0.65
 
 

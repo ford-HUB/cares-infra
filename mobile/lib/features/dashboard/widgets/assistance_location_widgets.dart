@@ -9,16 +9,11 @@ import '../../../core/config/mapbox_config.dart';
 import '../../../core/constants/cares_office.dart';
 import '../../../core/theme/app_theme.dart';
 
-/// Map pieces for where assistance is needed: the form's pin field, the
-/// full-screen pin picker it opens, and the read-only map on the details
-/// screen.
-
 String formatLatLng(LatLng point) =>
     '${point.latitude.toStringAsFixed(5)}, '
     '${point.longitude.toStringAsFixed(5)}';
 
-/// The device's position, or a [LocationLookupException] whose message can
-/// be shown as-is.
+/// Throws [LocationLookupException] with a showable message.
 Future<LatLng> currentDeviceLocation() async {
   if (!await Geolocator.isLocationServiceEnabled()) {
     throw const LocationLookupException(
@@ -61,8 +56,8 @@ class LocationLookupException implements Exception {
   String toString() => message;
 }
 
-/// Basemap that steps down Mapbox → Geoapify → OpenStreetMap whenever the
-/// current provider fails to serve tiles, so the map never stays blank.
+/// Steps down Mapbox → Geoapify → OSM whenever tiles fail, so it never stays
+/// blank.
 class _FallbackTileLayer extends StatefulWidget {
   const _FallbackTileLayer();
 
@@ -118,9 +113,6 @@ Marker _pinMarker(LatLng point) => Marker(
   ),
 );
 
-/// The form's "Where is assistance needed?" section: a map the beneficiary
-/// taps to drop a pin, their current location in one tap, a full-screen
-/// picker for fine placement, and a landmark field.
 class AssistanceLocationField extends StatefulWidget {
   const AssistanceLocationField({
     super.key,
@@ -210,9 +202,9 @@ class _AssistanceLocationFieldState extends State<AssistanceLocationField> {
                   options: MapOptions(
                     initialCenter: location ?? CaresOffice.location,
                     initialZoom: location == null ? 13 : _pinnedZoom,
-                    // Dragging would fight the form's scrolling, so the
-                    // inline map pins on tap and zooms; panning is in the
-                    // full-screen picker.
+                    // Dragging would fight the form's scroll, so the inline map
+                    // pins on tap and zooms; panning is in the full-screen
+                    // picker.
                     interactionOptions: const InteractionOptions(
                       flags:
                           InteractiveFlag.pinchZoom |
@@ -328,8 +320,7 @@ class _AssistanceLocationFieldState extends State<AssistanceLocationField> {
   }
 }
 
-/// Full-screen picker: the pin stays in the middle while the beneficiary
-/// pans the map under it. Returns the chosen point, or null when backed out.
+/// The pin stays centred while the map pans under it. Null when backed out.
 class AssistanceLocationPickerScreen extends StatefulWidget {
   const AssistanceLocationPickerScreen({super.key, required this.initial});
 
@@ -489,8 +480,6 @@ class _AssistanceLocationPickerScreenState
   }
 }
 
-/// Read-only map of a filed request's pin, with a hand-off to the device's
-/// maps app for directions.
 class AssistanceLocationPreview extends StatelessWidget {
   const AssistanceLocationPreview({
     super.key,

@@ -18,18 +18,7 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Manage Event Module', unit: 'Create Event', prefix: 'EVENT' });
 
-/**
- * Shared by every spec in this folder — Create event on the portal's Manage Event module:
- *   POST /api/v1/events  (createEvent: CreateEventSchema + up to three `event_images`)
- *
- * The portal posts multipart form data, so every value arrives as a string. Fixtures go
- * through `runApiLayer` as JSON, which the same pipe parses, and the form path itself has
- * its own tests through `postForm`. `@Roles` and `@RequirePermission` are not exercised:
- * the global guards are out of scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
+/** Fixtures go as JSON through the same pipe; the real multipart path is tested via `postForm`. */
 export const EVENTS_PATH = '/api/v1/events';
 export const CALLER = { sub: 'caller-user-id' };
 
@@ -46,7 +35,7 @@ export const VALID_EVENT = {
 
 export const STORED_IMAGE_URL = 'https://bucket.s3.amazonaws.com/events/1730000000000-abc123-photo.jpg';
 
-/** What the Polygon the portal draws looks like on the wire. */
+/** The Polygon the portal draws, as sent on the wire. */
 export const VALID_GEOJSON = {
   type: 'Polygon',
   coordinates: [[[123.89, 10.31], [123.9, 10.31], [123.9, 10.32], [123.89, 10.31]]],
@@ -91,21 +80,14 @@ export const EVENT_RESPONSE = {
   marker_lng: null,
 };
 
-/**
- * Real leading bytes, so a check on the file's actual content would still accept these.
- * The rest is padding: nothing here decodes the image.
- */
+/** Real JPEG magic bytes plus padding; nothing decodes the image. */
 export const JPEG_BYTES = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(32)]);
 export const PNG_BYTES = Buffer.concat([
   Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
   Buffer.alloc(32),
 ]);
 
-/**
- * Boots `EventsSiteController` with a mocked service for the enclosing `describe`. The
- * handler reads the caller, so a stand-in for the global JWT guard puts `CALLER` on the
- * request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the handler reads it); `app` is assigned in `beforeAll`. */
 export const useEventsApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -144,7 +126,7 @@ export interface FormFile {
   bytes: Buffer;
 }
 
-/** The request the portal really sends: multipart, with every value as a string. */
+/** Multipart with every value as a string, as the portal sends it. */
 export const postForm = (
   app: INestApplication,
   fields: Record<string, string | string[]>,
@@ -165,10 +147,7 @@ export const VALID_FORM: Record<string, string> = Object.fromEntries(
   Object.entries(VALID_EVENT).map(([name, value]) => [name, String(value)]),
 );
 
-/**
- * Body fixtures through both layers. A FAIL must come back in the validation envelope
- * without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeEventTable = (ctx: ReturnType<typeof useEventsApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

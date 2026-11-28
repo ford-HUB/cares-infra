@@ -1,25 +1,12 @@
 import type { CertificateDesign, CertificateImage } from '../../types/certificate-template'
 import { apiClient } from '../api-client'
 
-/**
- * Imported certificate artwork lives in a private S3 bucket, so the route the server
- * hands back cannot go straight into an `<img src>` — the request would carry no bearer
- * token and paint broken. This module is the one place that translates: designs coming
- * off the API get object URLs the browser can draw, and designs going back to it get
- * their routes again.
- *
- * Doing it here rather than in the components means the canvas, the layout editor, the
- * frame picker and the image manifest all keep taking a plain `CertificateDesign`.
- */
+/** Artwork routes are private S3 and need a bearer, so swap them for object URLs and back. */
 
-/** Object URL per asset route, so the same logo on three sheets is fetched once. */
 const objectUrls = new Map<string, string>()
-/** The reverse, so a design edited in the form can be turned back into routes. */
 const routes = new Map<string, string>()
-/** In-flight fetches, so a gallery of templates does not request one asset twice. */
 const pending = new Map<string, Promise<string>>()
 
-/** A file the director imported in this session — already drawable, nothing to fetch. */
 function isInlineAsset(url: string): boolean {
   return url.startsWith('data:') || url.startsWith('blob:')
 }
@@ -45,25 +32,18 @@ async function loadAsset(route: string): Promise<string> {
   return request
 }
 
-/**
- * Object URLs are kept for the life of the tab rather than revoked per render: a
- * template's artwork is looked at repeatedly — gallery, detail panel, customizer — and
- * the alternative is re-downloading it on every mount.
- */
+/** Object URLs live for the tab to avoid re-downloading on every mount. */
 async function resolveOne(url: string): Promise<string> {
   if (isInlineAsset(url)) return url
 
   try {
     return await loadAsset(url)
   } catch {
-    // The route is handed back untouched rather than dropped: that piece of artwork
-    // renders broken, but a save from this session still round-trips it instead of
-    // deleting a file the fetch merely failed to reach.
+    // Keep the route so a save doesn't delete artwork that merely failed to load.
     return url
   }
 }
 
-/** Swaps every stored asset route in a design for a URL the browser can paint. */
 export async function resolveDesignAssets(
   design: CertificateDesign,
 ): Promise<CertificateDesign> {
@@ -88,10 +68,7 @@ export async function resolveDesignAssets(
   }
 }
 
-/**
- * The inverse, applied on save: an object URL goes back as the route it came from, and
- * a freshly imported data URL goes up as-is for the server to store.
- */
+/** Object URLs go back as routes; fresh data URLs go up as-is. */
 export function toStoredAssetUrl(url: string): string {
   return routes.get(url) ?? url
 }

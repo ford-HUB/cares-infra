@@ -28,19 +28,14 @@ import type {
 const MINUTE_MS = 60 * 1000;
 const DAY_MS = 24 * 60 * MINUTE_MS;
 
-/** How long `triggerRun` waits for the worker to acknowledge before answering anyway. */
+/** Ack wait before answering anyway. */
 const RUN_ACK_WAIT_MS = 2500;
 const RUN_ACK_POLL_MS = 100;
 
-/** `M H * * *` — the one cron shape the portal shows as a plain "daily at". */
+/** `M H * * *`: shown as "daily at". */
 const DAILY_CRON = /^(\d{1,2}) (\d{1,2}) \* \* \*$/;
 
-/**
- * The Services screen's view of the schedulers: the catalogue, joined with what
- * BullMQ knows (next fire time, jobs in flight) and what the run recorder kept
- * (recent outcomes, logs, pause and override flags). Controls act on the queue
- * directly and persist their intent in Redis so a restart re-applies it.
- */
+/** Catalogue + BullMQ state + run recorder. Controls persist intent in Redis so restarts re-apply it. */
 @Injectable()
 export class SystemServicesSiteService {
   private readonly queues: Record<SchedulerQueueName, Queue>;
@@ -75,7 +70,7 @@ export class SystemServicesSiteService {
   async getServiceLogs(id: string): Promise<ServiceLogEntryDto[]> {
     this.requireDefinition(id);
     const lines = await this.recorder.logs(id);
-    // Stored newest first; the viewer reads top to bottom.
+    // Stored newest first; the viewer reads top down.
     return lines.reverse().map((line, index) => ({
       id: `${line.runId}-${index}`,
       run_id: line.runId,
@@ -85,7 +80,7 @@ export class SystemServicesSiteService {
     }));
   }
 
-  /** The 24/7 switch: pausing removes the scheduler, resuming re-arms it. */
+  /** Pausing removes the scheduler; resuming re-arms it. */
   async setPaused(id: string, paused: boolean): Promise<SystemServiceDto[]> {
     const definition = this.requireDefinition(id);
     const queue = this.queues[definition.queue];
@@ -101,7 +96,7 @@ export class SystemServicesSiteService {
     return this.listServices();
   }
 
-  /** Fires a run outside the schedule; the next trigger is left where it was. */
+  /** The next trigger is unchanged. */
   async triggerRun(id: string): Promise<SystemServiceDto[]> {
     const definition = this.requireDefinition(id);
     if (await this.recorder.active(id)) {
@@ -120,10 +115,7 @@ export class SystemServicesSiteService {
       },
     );
 
-    // The worker picks the job up a few milliseconds after it is queued, and a small
-    // sweep is finished a few hundred later. Waiting briefly for either lets the
-    // response show the run — as in flight, or as its new tick — rather than a roster
-    // that looks as if nothing happened.
+    // Wait briefly so the response shows the run (in flight or done).
     await this.waitForRun(id, before);
     return this.listServices();
   }
@@ -141,10 +133,7 @@ export class SystemServicesSiteService {
     }
   }
 
-  /**
-   * A worker cannot be interrupted mid-run from outside; what can be stopped is a
-   * queued manual run that has not started. Anything else is reported honestly.
-   */
+  /** Only a queued, unstarted manual run can be stopped. */
   async stopRun(id: string): Promise<SystemServiceDto[]> {
     const definition = this.requireDefinition(id);
     const queue = this.queues[definition.queue];
@@ -184,8 +173,6 @@ export class SystemServicesSiteService {
     return this.listServices();
   }
 
-  // ------------------------------------------------------------------ mapping
-
   private async describe(
     definition: SchedulerDefinition,
   ): Promise<SystemServiceDto> {
@@ -209,7 +196,7 @@ export class SystemServicesSiteService {
           ? 'failing'
           : 'scheduled';
 
-    // Oldest first for the strip of ticks; the in-flight run is the last tick.
+    // Oldest first; the in-flight run is last.
     const recentRuns: SystemServiceDto['recent_runs'] = [...runs]
       .reverse()
       .map((run) => ({
@@ -242,7 +229,7 @@ export class SystemServicesSiteService {
           Math.round(effective.maxRuntimeMs / MINUTE_MS),
         ),
         retries: Math.max(0, effective.attempts - 1),
-        // One worker per queue with concurrency 1: an overdue trigger waits its turn.
+        // One worker per queue at concurrency 1.
         overlap_policy: 'queue',
       },
       average_runtime_seconds: medianRuntimeSeconds(runs),
@@ -321,7 +308,7 @@ function toTrigger(dto: ServiceTriggerDto): SchedulerTrigger | null {
   }
 }
 
-/** Median across finished runs; the bar's expected length. Zero until there is history. */
+/** Finished runs only; zero without history. */
 function medianRuntimeSeconds(runs: SchedulerRunRecord[]): number {
   const durations = runs
     .filter((run) => run.outcome === 'success')
@@ -336,7 +323,7 @@ function medianRuntimeSeconds(runs: SchedulerRunRecord[]): number {
   return roundSeconds(median);
 }
 
-/** Seconds to one decimal — a 300 ms sweep reads as 0.3s, not as nothing. */
+/** One decimal, so 300 ms reads 0.3s. */
 function roundSeconds(ms: number): number {
   return Math.round(ms / 100) / 10;
 }

@@ -1,12 +1,6 @@
-"""
-Keyword prototypes per interest code, mirroring the server's `InterestCode` enum.
+"""Keyword lexicons per interest code (mirrors the server's `InterestCode` enum).
 
-The embedding model does the heavy lifting, but CARES events are written in a mix of
-English, Filipino and Cebuano ("brigada", "pahinungod", "barangay") that a general
-English sentence model only half understands. These lexicons give each interest a
-literal vocabulary so a term the model has never seen still lands on the right tag.
-
-Unknown codes simply get no lexicon — the service still scores them semantically.
+Catch Filipino/Cebuano terms ("brigada", "pahinungod") the English model misses; unknown codes score semantically only.
 """
 
 INTEREST_LEXICON: dict[str, tuple[str, ...]] = {
@@ -62,7 +56,7 @@ INTEREST_LEXICON: dict[str, tuple[str, ...]] = {
         "information drive", "info drive", "campaign", "summit",
     ),
     "OTHERS": (),
-    # Legacy codes kept inactive in the catalog; harmless if the server ever sends them.
+    # Legacy inactive codes; harmless if sent.
     "ACADEMIC_ACTIVITIES": ("academic", "school", "students", "campus", "tutoring"),
     "DONATION_DRIVES": ("donation", "drive", "donate", "goods", "supplies"),
     "ENVIRONMENT": (
@@ -72,10 +66,7 @@ INTEREST_LEXICON: dict[str, tuple[str, ...]] = {
 }
 
 
-# Short example blurbs written the way CARES events are actually announced. The
-# catalog's one-line descriptions are too terse to embed well on their own — "Medical
-# missions and wellness drives" sits far from "Free eye exams for seniors" — while a
-# few concrete sentences per interest land close to real event copy.
+# Concrete event-style blurbs; catalog one-liners are too terse to embed near real event copy.
 INTEREST_PROTOTYPES: dict[str, tuple[str, ...]] = {
     "SCHOOL": (
         "Brigada Eskwela: repaint classrooms and repair chairs before classes open.",

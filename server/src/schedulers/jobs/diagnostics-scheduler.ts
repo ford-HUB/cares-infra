@@ -7,15 +7,11 @@ import {
   registerQueueSchedulers,
 } from '../scheduler-registry';
 
-/** Job names on the diagnostics queue — one catalogued sweep. */
 export const DIAGNOSTICS_JOBS = {
   systemDiagnostics: 'system-diagnostics',
 } as const;
 
-/**
- * The health sweep's own queue, kept apart from the work queues so a stalled
- * notification worker cannot also stall the check that would report it stalled.
- */
+/** Separate queue so a stalled worker can't stall its own health check. */
 @Injectable()
 export class DiagnosticsScheduler implements OnModuleInit {
   private readonly logger = new Logger(DiagnosticsScheduler.name);

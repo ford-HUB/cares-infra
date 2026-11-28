@@ -18,11 +18,7 @@ import {
   specialCharacterSeries,
 } from './config/security-payloads';
 
-/**
- * Entry check for the unit toolchain. It owns no module — it proves that
- * `config/` compiles and wires up (Prisma shim, nest-zod, envelope, both
- * layers) so a red module spec is about the module, never the setup.
- */
+/** Toolchain smoke check: `config/` wires up (Prisma shim, nest-zod, envelope, both layers). */
 const ProbeSchema = z
   .object({
     code: z

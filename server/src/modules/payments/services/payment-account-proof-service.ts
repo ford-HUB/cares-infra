@@ -16,34 +16,21 @@ import {
   normalizeAccountNumber,
 } from '../validators/payment-account-validator';
 
-/**
- * Proves the director holds the account a channel pays into, the way banks have always
- * done it: send a small amount of a number nobody can guess, and ask what arrived.
- *
- * The range is deliberately small — this guards against a mistyped account number by
- * someone CARES already trusts, not against an attacker, and every peso is real money
- * leaving the CARES balance.
- */
+/** Small range on purpose: guards against typos, and every peso is real money. */
 const PROOF_MIN_AMOUNT = 1;
 const PROOF_MAX_AMOUNT = 9;
 
-/** Wrong answers before the proof locks and a fresh payout is required. */
+/** Then a fresh payout is required. */
 export const ACCOUNT_PROOF_MAX_ATTEMPTS = 3;
 
-/** Which Xendit payout channel each method's account lives on. */
 const PAYOUT_CHANNELS: Partial<Record<DonationPaymentMethod, string>> = {
   [DonationPaymentMethod.GCASH]: 'PH_GCASH',
   [DonationPaymentMethod.QRPH]: 'PH_GCASH',
 };
 
 /**
- * A bank account is saved under its collection code (`DD_BPI`, what the invoice
- * offers donors), but `/v2/payouts` only takes payout codes (`PH_BPI`). Sending the
- * collection code is refused outright, so the bank's own payout code is looked up.
- *
- * `PH_BPI` and `PH_UBP` are confirmed on Xendit's Philippines payout coverage page.
- * `PH_RCBC` and `PH_CBC` follow the same naming but are not confirmed there; a wrong
- * code is refused by Xendit and the reason is shown on the card — no money moves.
+ * `/v2/payouts` needs payout codes (`PH_BPI`), not collection codes (`DD_BPI`).
+ * `PH_BPI`/`PH_UBP` are confirmed by Xendit; `PH_RCBC`/`PH_CBC` aren't (a wrong code is refused, no money moves).
  */
 const BANK_PAYOUT_CHANNELS: Record<string, string> = {
   DD_BPI: 'PH_BPI',
@@ -70,12 +57,7 @@ export class PaymentAccountProofService {
 
   constructor(private readonly xendit: XenditService) {}
 
-  /**
-   * Starts a proof: picks the amount, sends the payout, and leaves the channel waiting
-   * for the director to report what landed. A gateway that will not send — Payouts not
-   * enabled on the account, most often — is recorded as the reason rather than as a
-   * verified account.
-   */
+  /** A refusing gateway (usually Payouts disabled) is recorded as the reason. */
   async start(
     method: DonationPaymentMethod,
     credentials: XenditCredentials | null,
@@ -155,11 +137,7 @@ export class PaymentAccountProofService {
     }
   }
 
-  /**
-   * The director reports what arrived. A wrong answer costs an attempt; running out
-   * locks the proof, and only a fresh payout reopens it — otherwise the amount could
-   * simply be guessed through.
-   */
+  /** Running out of attempts locks until a fresh payout, so it can't be guessed. */
   confirm(
     row: {
       account_proof: PaymentAccountProof;
@@ -181,8 +159,7 @@ export class PaymentAccountProofService {
       return {
         account_proof: PaymentAccountProof.VERIFIED,
         account_verified_at: new Date(),
-        // Cleared on purpose: once proven, the answer is of no further use and should
-        // not sit in the database for the next person to read.
+        // Cleared once proven so the answer doesn't linger.
         account_proof_amount: null,
         account_proof_attempts: 0,
         account_proof_message:
@@ -210,7 +187,7 @@ export class PaymentAccountProofService {
     };
   }
 
-  /** Editing the account number retires whatever the old number proved. */
+  /** Editing the account number retires the old proof. */
   static invalidates(
     proofTarget: string | null,
     accountNumber: string | null,
@@ -218,15 +195,14 @@ export class PaymentAccountProofService {
     return normalizeAccountNumber(accountNumber) !== (proofTarget ?? '');
   }
 
-  /** `0917••••567` — enough to recognise the number, not enough to publish it. */
+  /** e.g. `0917••••567`. */
   private mask(accountNumber: string): string {
     if (accountNumber.length < 7) return accountNumber;
     return `${accountNumber.slice(0, 4)}••••${accountNumber.slice(-3)}`;
   }
 
   private explain(error: XenditRequestError): string {
-    // The one refusal worth naming: CARES cannot send money until Xendit turns payouts
-    // on for the account, and no amount of retrying changes that.
+    // Payouts disabled: retrying won't help.
     if (
       error.code.includes('NOT_ACTIVATED') ||
       error.code.includes('FORBIDDEN') ||

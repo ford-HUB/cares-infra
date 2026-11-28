@@ -5,11 +5,11 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 
-/** Rows pulled per scroll page — enough to overflow the grid so a scroll exists. */
+/** Enough to overflow the grid so it scrolls. */
 export const LOGIN_ACTIVITY_DEFAULT_LIMIT = 25;
 export const LOGIN_ACTIVITY_MAX_LIMIT = 100;
 
-/** `all` keeps the portal's filter selects a single value space. */
+/** `all` keeps the filter a single value space. */
 export const LoginActivityRangeSchema = z.enum(['24h', '7d', '30d', 'all']);
 
 export const ListLoginActivityQuerySchema = z
@@ -18,7 +18,7 @@ export const ListLoginActivityQuerySchema = z
     outcome: z.union([z.literal('all'), z.enum(LoginOutcome)]).default('all'),
     source: z.union([z.literal('all'), z.enum(LoginSource)]).default('all'),
     range: LoginActivityRangeSchema.default('7d'),
-    /** Id of the last row already shown; the next page starts after it. */
+    /** Last shown id; the next page starts after it. */
     cursor: z.uuid().optional(),
     limit: z.coerce
       .number()
@@ -31,7 +31,7 @@ export const ListLoginActivityQuerySchema = z
 
 export const LoginActivitySchema = z.object({
   login_activity_id: z.string(),
-  /** Null when the submitted email matched no account. */
+  /** Null when the email matched no account. */
   user_id: z.string().nullable(),
   email: z.string(),
   firstname: z.string().nullable(),
@@ -47,8 +47,8 @@ export const LoginActivitySchema = z.object({
 
 export const LoginActivityPageResponseSchema = z.object({
   items: z.array(LoginActivitySchema),
-  /** Total matching rows, across every page. */
+  /** Across every page. */
   total: z.number(),
-  /** Null once the trail is exhausted — that is how the scroll knows to stop. */
+  /** Null once exhausted; stops the scroll. */
   next_cursor: z.string().nullable(),
 });

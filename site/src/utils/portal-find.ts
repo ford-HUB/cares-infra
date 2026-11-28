@@ -1,7 +1,6 @@
 import { PORTAL_FIND_MAX_MATCHES, PORTAL_FIND_STATE_KEY } from '../constants/portal-search'
 import type { PortalFindState } from '../types/portal-search'
 
-/** The search carried into this screen, if the header search opened it. */
 export function readPortalFind(state: unknown): PortalFindState | null {
   if (!state || typeof state !== 'object') return null
   const find = (state as Record<string, unknown>)[PORTAL_FIND_STATE_KEY]
@@ -15,18 +14,14 @@ export function portalFindState(find: PortalFindState): Record<string, PortalFin
   return { [PORTAL_FIND_STATE_KEY]: find }
 }
 
-/** CSS Custom Highlight API — paints ranges without touching the DOM React owns. */
+/** Paints ranges without touching the DOM React owns. */
 export function supportsTextHighlights(): boolean {
   return typeof CSS !== 'undefined' && 'highlights' in CSS && typeof Highlight !== 'undefined'
 }
 
-// Text the viewer is typing in, or that is never shown, is not a match.
 const SKIPPED_PARENTS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'OPTION', 'SCRIPT', 'STYLE', 'NOSCRIPT'])
 
-/**
- * Every case-insensitive occurrence of `term` in the visible text under `root`, as
- * DOM ranges — only the matched characters, never the whole cell.
- */
+/** Case-insensitive, matched characters only. */
 export function findTextRanges(root: Element, term: string): Range[] {
   const needle = term.trim().toLowerCase()
   if (!needle) return []

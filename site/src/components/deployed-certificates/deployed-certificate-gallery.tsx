@@ -11,7 +11,6 @@ interface DeployedCertificateGalleryProps {
   onAction: (action: string, deployment: DeployedCertificate) => void
 }
 
-/** The default view: the deployed sheet is the thing being checked, so it is shown. */
 export function DeployedCertificateGallery({
   deployments,
   showSkeleton,

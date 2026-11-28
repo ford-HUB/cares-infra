@@ -29,11 +29,7 @@ import {
 import { EventAttendanceValidationService } from './event-attendance-validation-service';
 
 const MS_PER_HOUR = 3_600_000;
-/**
- * How long a volunteer may be out of the zone mid-event before that exit counts
- * as their time out. Keep in step with `departure_buffer_seconds` in
- * gps-validator-service, which applies the same rule to live snapshots.
- */
+/** Must match `departure_buffer_seconds` in gps-validator-service. */
 const DEPARTURE_BUFFER_MS = MS_PER_HOUR;
 
 @Injectable()
@@ -46,12 +42,7 @@ export class EventAttendanceSiteService {
     private readonly auditLogRecorder: AuditLogRecorder,
   ) {}
 
-  /**
-   * The running event's roster with what the geofence sees right now. Coverage and
-   * distance come from the validator run against the event so far; if it is down
-   * the page still loads, falling back to the device's own in-area flag with no
-   * coverage figure.
-   */
+  /** If the validator is down, falls back to the device's in-area flag without coverage. */
   async getLiveSnapshot(): Promise<LiveAttendanceSnapshotDto> {
     const now = new Date();
     const event = await this.eventAttendanceRepository.findActiveEvent(now);
@@ -130,21 +121,15 @@ export class EventAttendanceSiteService {
     };
   }
 
-  /**
-   * The whole roster, or one event's. The portal loads it once and does its own
-   * search, event and status filtering client-side, so there is no pagination here.
-   */
+  /** Unpaged: the portal filters client-side. */
   async listAttendees(eventId?: number): Promise<EventAttendeeDto[]> {
     const rows = await this.eventAttendanceRepository.findRoster(eventId);
     return rows.map((row) => this.mapToDto(row));
   }
 
   /**
-   * The backup for a failed geofence. Each selected row becomes COMPLETED / MANUAL
-   * and is credited the event's full scheduled window as service hours — with no
-   * trustworthy readings there is nothing narrower to credit. A coordinator may
-   * only rule on their own college's events, and only once an event is over.
-   * Rows already COMPLETED are left alone so their hours are not credited twice.
+   * COMPLETED / MANUAL with the full scheduled window as hours (no trustworthy readings).
+   * Coordinators: own college's ended events only. COMPLETED rows skipped.
    */
   async markPresentManually(
     caller: JwtPayload,
@@ -242,7 +227,7 @@ export class EventAttendanceSiteService {
     };
   }
 
-  /** A coordinator is held to the college on their profile; other roles are not. */
+  /** Coordinators are limited to their college. */
   private async assertCallerScope(
     caller: JwtPayload,
     rows: ManualMarkRow[],
@@ -305,13 +290,7 @@ export class EventAttendanceSiteService {
   }
 }
 
-/**
- * Time out for a roster row: when the volunteer left the event zone for good.
- * `last_ping_at` is their latest in-zone reading — once the validator has ruled
- * it is already the settled time out, and once the event is over the last exit is
- * final. While the event runs, stepping out (lunch, an errand) is not a time out:
- * it only settles after `DEPARTURE_BUFFER_MS` with no reading back inside.
- */
+/** `last_ping_at` is final once ruled or ended; mid-event it settles only after `DEPARTURE_BUFFER_MS` outside. */
 function settledTimeOut(row: RosterRow, now: Date): Date | null {
   const lastInside = row.last_ping_at;
   if (!lastInside) return null;
@@ -322,7 +301,7 @@ function settledTimeOut(row: RosterRow, now: Date): Date | null {
     : null;
 }
 
-/** The event's scheduled length in hours, to two decimals — what a manual ruling credits. */
+/** Two decimals; what a manual ruling credits. */
 function scheduledHours(event: { event_started: Date; event_ended: Date }) {
   const ms = event.event_ended.getTime() - event.event_started.getTime();
   return Math.max(0, Math.round((ms / MS_PER_HOUR) * 100) / 100);

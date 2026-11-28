@@ -16,11 +16,7 @@ import {
   type ProvisionUserFormValues,
 } from '../validators/provision-user-schema'
 
-/**
- * Where the recipient address stands with the server. `idle` means nothing has been
- * checked for the current value; the other states always refer to `email`, so a later
- * edit to the field invalidates them.
- */
+/** Non-idle states refer to `email`; editing the field invalidates them. */
 export type RecipientEmailCheck =
   | { status: 'idle' }
   | { status: 'checking'; email: string }
@@ -29,13 +25,7 @@ export type RecipientEmailCheck =
 
 const IDLE_CHECK: RecipientEmailCheck = { status: 'idle' }
 
-/**
- * Owns the add-user dialog: the form, the scope selection layered on top of the role
- * baseline, the pre-check on the inbox the credentials are mailed to, and the credential
- * the server hands back once. The scope starts as the role's own rights and is only sent
- * when the administrator actually changed it — an untouched account stays on the
- * baseline, so a later baseline change still reaches it.
- */
+/** Scope is sent only if changed, so untouched accounts keep following the role baseline. */
 export function useProvisionUserForm(onCreated?: () => void) {
   const provisionUser = useManageUsersStore((state) => state.provisionUser)
   const catalog = useAccessControlStore((state) => state.catalog)
@@ -65,8 +55,6 @@ export function useProvisionUserForm(onCreated?: () => void) {
     void fetchCatalog()
   }, [fetchCatalog])
 
-  // A verdict is about one exact value — typing anything else puts the field back to
-  // unchecked rather than leaving a stale tick next to a different address.
   useEffect(() => {
     if (recipientCheck.status === 'idle') return
     if (recipientCheck.email !== recipientEmail.trim().toLowerCase()) {
@@ -74,11 +62,7 @@ export function useProvisionUserForm(onCreated?: () => void) {
     }
   }, [recipientEmail, recipientCheck])
 
-  /**
-   * Runs when the recipient field loses focus. The shape is checked locally so an
-   * obvious typo never costs a round trip; anything well-formed goes to the server,
-   * which also confirms the domain accepts mail and that no account already uses it.
-   */
+  /** Shape checked locally; the server confirms the domain accepts mail and the address is unused. */
   const checkRecipientEmail = useCallback(async (): Promise<RecipientEmailCheck> => {
     const email = form.getValues('recipientEmail').trim().toLowerCase()
     if (!email) {
@@ -125,8 +109,7 @@ export function useProvisionUserForm(onCreated?: () => void) {
     return entry?.permissions ?? []
   }, [catalog, roleType])
 
-  // A different role means a different baseline, so an untouched selection follows it.
-  // A customised one is left alone rather than silently discarding the choices made.
+  // Untouched selections follow the new role baseline; customised ones are kept.
   useEffect(() => {
     if (scopeCustomised) return
     setSelected(new Set(baseline))
@@ -166,8 +149,7 @@ export function useProvisionUserForm(onCreated?: () => void) {
   }, [form])
 
   const onSubmit = form.handleSubmit(async (values) => {
-    // The blur check may not have run (Enter straight from the field) or may have been
-    // invalidated by an edit — the server gate is the same one, so run it here too.
+    // Blur check may not have run or may be stale.
     const verdict =
       recipientCheck.status === 'valid' ? recipientCheck : await checkRecipientEmail()
 
@@ -190,14 +172,12 @@ export function useProvisionUserForm(onCreated?: () => void) {
       recipientEmail: verdict.email,
       role: submitted.roleType,
       volunteerType: submitted.volunteerType ?? undefined,
-      // Donors and beneficiaries are not tied to a department, and a partner-barangay
-      // volunteer belongs to their barangay instead.
+      // Donors/beneficiaries have no department; partner-barangay volunteers use their barangay.
       department:
         !partnerBarangay && (submitted.isPortalRole || submitted.volunteerType)
           ? values.department || undefined
           : undefined,
       partnerBarangay: partnerBarangay ? values.partnerBarangay || undefined : undefined,
-      // App accounts carry no portal rights, so there is no scope to send.
       permissions: submitted.isPortalRole && scopeCustomised ? [...selected] : undefined,
       expiresInHours: values.expiresInHours,
     })

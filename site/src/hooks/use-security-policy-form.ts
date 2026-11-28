@@ -10,11 +10,7 @@ import {
   type SecurityPolicyFormValues,
 } from '../validators/security-policy-schema'
 
-/**
- * Drops the audit fields. They ride along on the detail response but are not editable,
- * and the server rejects unknown keys — so anything left in the form state here comes
- * back as a validation error on save.
- */
+/** Server rejects unknown keys, so drop the audit fields. */
 function toFormValues(policy: SecurityPolicyDetail): SecurityPolicyFormValues {
   return {
     passwordMinLength: policy.passwordMinLength,
@@ -58,11 +54,7 @@ export function useSecurityPolicyForm() {
     void fetchPolicy()
   }, [fetchPolicy])
 
-  /**
-   * Resets rather than sets each field, so the saved policy becomes the form's baseline
-   * — that is what makes `isDirty` mean "differs from what is stored" and lets the Save
-   * button stay disabled until something actually changed.
-   */
+  /** Reset, not set, so `isDirty` means "differs from stored". */
   useEffect(() => {
     if (!policy) return
 

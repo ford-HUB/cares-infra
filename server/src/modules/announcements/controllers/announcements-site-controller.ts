@@ -28,10 +28,7 @@ import {
 
 const AnnouncementIdParamSchema = z.uuid('A valid announcement id is required');
 
-/**
- * Notices are read across the portal — every role has System Notices in its nav — but
- * only admins and directors write them. The narrowing is per-handler for that reason.
- */
+/** Readable by every role; writes narrowed per handler. */
 @Controller('v1/announcements')
 @Roles(...PORTAL_ROLE_TYPES)
 export class AnnouncementsSiteController {

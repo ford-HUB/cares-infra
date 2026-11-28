@@ -19,20 +19,18 @@ interface ManageEventsToolbarProps {
   total: number
   upcoming: number
   hasActiveFilters: boolean
-  /** False until the first fetch settles, so the counts don't flash "0 of 0 events". */
   initialized: boolean
-  /** The college a coordinator is scoped to; absent for admins and directors. */
+  /** Absent for admins and directors. */
   scopeLabel?: string
   onSearchChange: (value: string) => void
   onTimeChange: (value: EventTimeFilter) => void
   onStatusChange: (value: EventStatusFilter) => void
   onTypeChange: (value: string) => void
   onClearFilters: () => void
-  /** Generates the current list as a PDF report. */
   onExport: () => void
-  /** Omitted when the account lacks the create right — the button is not drawn. */
+  /** Omitted without the create right. */
   onCreate?: () => void
-  /** Set when the create right is suspended — the button is drawn locked instead. */
+  /** Set when the create right is suspended; draws the button locked. */
   createSuspension?: SessionSuspension
 }
 

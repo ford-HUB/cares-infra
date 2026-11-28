@@ -3,8 +3,6 @@ import { useAuthModalRoute } from '../../hooks/use-auth-modal-route'
 import { Login } from './Login'
 import { RequestAccess } from './RequestAccess'
 
-/** Opens the sign-in or request-access modal over the landing page when the URL is
- *  /login or /request-access, and returns to the page when it closes. */
 export function AuthModalHost() {
   const { open, view, close, switchTo } = useAuthModalRoute()
   const isLogin = view === 'login'

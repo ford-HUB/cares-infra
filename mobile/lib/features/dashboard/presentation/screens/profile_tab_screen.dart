@@ -38,10 +38,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/avatar_completion
 import 'package:mobile/features/dashboard/presentation/widgets/profile_tab_skeleton.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/stats_row.dart';
 
-/// Profile tab for every mobile role. On first build it pulls the signed-in
-/// person's record from `GET /profile/me/mobile` into [RoleAccountStore]; the
-/// body then renders the section that matches the role (volunteer, donor or
-/// beneficiary) from that record, with the local stores as fallback.
+/// Syncs `GET /profile/me/mobile` into [RoleAccountStore] on first build, then
+/// renders the role's section, with local stores as fallback.
 class ProfileTabScreen extends StatefulWidget {
   const ProfileTabScreen({
     super.key,
@@ -85,7 +83,7 @@ class _ProfileTabScreenState extends State<ProfileTabScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch once per role; a sign-out clears the store and the next mount
+    // Fetch once per role; sign-out clears the store so the next mount
     // re-syncs.
     final account = RoleAccountStore.instance.byType(widget.roleType);
     if (account?.serverProfile == null) _sync();
@@ -181,20 +179,16 @@ class _ProfileTabBody extends StatelessWidget {
 
   final bool profileComplete;
 
-  /// Renders the beneficiary variant: assistance stats and personal details
-  /// instead of volunteer interests and certificates.
   final bool isBeneficiary;
 
   /// Overrides the volunteer completion maths (e.g. beneficiary profiles).
   final int? completionPercent;
 
-  /// Renders the donor variant: giving stats, interest profiling, and
-  /// donation preferences instead of volunteer or beneficiary details.
   final bool isDonor;
 
   final VoidCallback? onOpenDonations;
 
-  /// The role's record from the server, null until synced.
+  /// Null until synced.
   final MobileProfile? server;
 
   final String? syncError;
@@ -216,8 +210,7 @@ class _ProfileTabBody extends StatelessWidget {
   Future<void> _openEdit(BuildContext context) =>
       MobileProfileEditScreen.open(context, _roleType);
 
-  /// Opens the interest picker pre-filled with the saved set; the dialog
-  /// saves to the server itself, so a non-null result just means "re-sync".
+  /// The dialog saves itself; a non-null result just means re-sync.
   Future<void> _editInterests(
     BuildContext context,
 
@@ -232,8 +225,6 @@ class _ProfileTabBody extends StatelessWidget {
     onRetrySync();
   }
 
-  /// Revokes this device's session on the server and wipes the saved one, so
-  /// reopening the app asks for credentials again.
   Future<void> _signOut(BuildContext context) async {
     await SignOutService().signOut();
     if (!context.mounted) return;
@@ -277,8 +268,7 @@ class _ProfileTabBody extends StatelessWidget {
       server: server,
     );
 
-    // Completion comes from the server's own read of the record; the local
-    // props are only a fallback for prototype paths that never signed in.
+    // Server completion; the local props only serve signed-out prototype paths.
     final serverCompletion = server?.completion;
     final isProfileComplete = serverCompletion?.complete ?? profileComplete;
     final completedPercent =
@@ -293,8 +283,6 @@ class _ProfileTabBody extends StatelessWidget {
       color: AppColors.background,
       child: CustomScrollView(
         slivers: [
-          // Same deep band as Activity / Requests: the title, then the
-          // person's identity row sitting on the band where the chips go.
           SliverToBoxAdapter(
             child: DeepTabHeader(
               title: 'Profile',
@@ -309,8 +297,6 @@ class _ProfileTabBody extends StatelessWidget {
           ),
 
           SliverPadding(
-            // Every block below opens with its own 16pt gap, so the band's
-            // edge to the first card reads 18pt like the Activity tab.
             padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
 
             sliver: SliverToBoxAdapter(
@@ -460,15 +446,12 @@ class _ProfileTabBody extends StatelessWidget {
                       ),
                     ],
                   ] else if (isBeneficiary) ...[
-                    // Beneficiaries see only the header, completion and
-                    // request stats here; their details live in the edit flow.
+                    // Beneficiary details live in the edit flow.
                   ] else ...[
                     if (volunteerServer != null) ...[
-                      // A beneficiary/donor whose Volunteer side a director
-                      // approved never uploaded a school record — only a
-                      // registered volunteer has one to show. Neither has a
-                      // director or coordinator signed in from the portal, nor
-                      // a partner-barangay volunteer from outside the school.
+                      // Only registered school volunteers have a school record
+                      // (not director-granted, portal staff or
+                      // partner-barangay).
                       if (!volunteerServer.accessGrantedByDirector &&
                           !volunteerServer.isPartnerBarangay &&
                           !RoleAccountStore.instance.isStaffAccount) ...[
@@ -566,8 +549,7 @@ class _ProfileTabBody extends StatelessWidget {
                       ),
                   ],
 
-                  // Beneficiaries reach their requests from the Request tab, so
-                  // the Account shortcut is not repeated here.
+                  // Beneficiaries reach requests from the Request tab.
                   if (!isBeneficiary) ...[
                     const SizedBox(height: 20),
 
@@ -628,8 +610,7 @@ class _ProfileTabBody extends StatelessWidget {
                     ),
                   ),
 
-                  // Donors never use the camera, location or notification
-                  // permissions the screen manages, so it is hidden for them.
+                  // Donors use none of these permissions.
                   if (!isDonor)
                     _MenuTile(
                       icon: Icons.verified_user_outlined,
@@ -778,8 +759,8 @@ class _ResolvedProfile {
     final hasVolunteerData =
         volunteerProfile != null && volunteerProfile.interests.isNotEmpty;
 
-    // Server record wins wherever it exists; the mock profile only fills the
-    // gaps on prototype paths that never signed in.
+    // Server record wins; the mock profile only fills gaps on signed-out
+    // prototype paths.
     final serverVolunteer = server?.volunteer;
     final serverInterests = serverVolunteer == null
         ? const <String>[]
@@ -797,8 +778,8 @@ class _ResolvedProfile {
 
       memberSince: server?.memberSinceLabel ?? mockProfile.memberSince,
 
-      // The leaderboard's all-time tally; the caller's number only stands in
-      // for prototype paths that never signed in.
+      // All-time leaderboard tally; the caller's number is a prototype
+      // fallback.
       points: serverVolunteer?.rankingPoints ?? points,
 
       serviceHours:
@@ -836,7 +817,6 @@ class _ResolvedProfile {
 
   final List<String> interests;
 
-  /// The server-saved set, used to pre-fill the interest picker.
   final Set<UserInterest> selectedInterests;
 
   final int profileCompletionPercent;
@@ -852,18 +832,17 @@ class _ProfileHeader extends StatelessWidget {
 
   final _ResolvedProfile profile;
 
-  /// Shown as a ring around the avatar; null once the profile is complete.
+  /// Null once complete.
   final int? completionPercent;
 
-  /// Residency document waiting on an administrator — ring turns amber.
+  /// Ring turns amber while a residency document awaits review.
   final bool underReview;
 
-  /// Which role account the edit badge opens.
   final String roleType;
 
   Future<void> _edit(BuildContext context) async {
-    // The edit screen writes the saved profile back onto the role account, so
-    // the header re-renders through the store listener — nothing to do here.
+    // The edit screen writes back to the role account; the store listener
+    // re-renders.
     await MobileProfileEditScreen.open(context, roleType);
   }
 
@@ -876,8 +855,7 @@ class _ProfileHeader extends StatelessWidget {
   }
 
   Widget _buildCard(BuildContext context) {
-    // The role's own record (name / email / picture) wins over the generic
-    // props so each role shows its own details on the header.
+    // The role's own record wins so each role shows its own details.
     final store = RoleAccountStore.instance;
     final account = store.accounts
         .where(
@@ -925,9 +903,8 @@ class _ProfileHeader extends StatelessWidget {
       child: avatarImage != null ? null : initialText,
     );
 
-    // Complete profile: the plain white frame. Otherwise the completion ring
-    // takes the frame's place, so the box grows a little to keep the photo
-    // the same size.
+    // Incomplete: the ring replaces the frame, so the box grows to keep the
+    // photo size.
     final framedAvatar = Container(
       padding: const EdgeInsets.all(2.5),
       decoration: BoxDecoration(
@@ -938,15 +915,10 @@ class _ProfileHeader extends StatelessWidget {
     );
     final double avatarBox = completionPercent == null ? 68 : 76;
 
-    // Sits straight on the [DeepTabHeader] band — no card of its own, so the
-    // header reads as one green block instead of a card inside a band.
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
-          // Avatar + edit badge. Tapping either opens the edit screen; the
-          // badge is what tells the person the picture (and profile) can
-          // change.
           Semantics(
             button: true,
             label: 'Edit profile',
@@ -970,8 +942,8 @@ class _ProfileHeader extends StatelessWidget {
                             ),
                     ),
                     Positioned(
-                      // Bottom edge belongs to the percentage pill while
-                      // the ring shows, so the badge moves to the top.
+                      // The percentage pill owns the bottom edge while the ring
+                      // shows.
                       right: -2,
                       top: completionPercent == null ? null : -2,
                       bottom: completionPercent == null ? -2 : null,
@@ -1068,13 +1040,8 @@ class _ProfileHeader extends StatelessWidget {
   }
 }
 
-/// "Switch account" control inline with the role chip. Tapping it opens a
-/// centered dialog listing every role on the account from
-/// [RoleAccountStore] — each with its own profile photo and name, the open one
-/// marked as current. Unlocked roles switch straight to that dashboard;
-/// locked roles open [RoleUnlockScreen] (ID upload + face verification) or
-/// activate instantly when the role has no requirement; roles pending
-/// administrator approval only show a reminder.
+/// Unlocked roles switch directly; locked ones open [RoleUnlockScreen] or
+/// activate instantly; pending ones show a reminder.
 class _RoleSwitchButton extends StatelessWidget {
   const _RoleSwitchButton({required this.currentRoleLabel});
 
@@ -1106,8 +1073,7 @@ class _RoleSwitchButton extends StatelessWidget {
 
     if (role.isLocked) {
       if (role.requirement == RoleUnlockRequirement.idAndFaceVerification) {
-        // Only the volunteer side is gated: a donor/beneficiary-registered
-        // account has never shown an ID, so explain the check before
+        // Only the volunteer side is gated; explain the ID check before
         // starting it.
         final proceed = await _confirmUnlock(context, role);
         if (!proceed || !context.mounted) return;
@@ -1180,11 +1146,8 @@ class _RoleSwitchButton extends StatelessWidget {
   }
 }
 
-/// Centered picker listing every role on the account. Each row carries that
-/// role's own profile photo (per-role on the server, never shared across
-/// sides), name and role label; the open role is shown first and marked
-/// current. Other roles are synced on open so their picture is the one on
-/// file for that side, not the one from the dashboard that is open.
+/// Per-role photos (never shared across sides); other roles sync on open so
+/// their picture is current.
 class _RoleSwitchDialog extends StatefulWidget {
   const _RoleSwitchDialog({required this.currentRoleLabel});
 
@@ -1204,14 +1167,13 @@ class _RoleSwitchDialogState extends State<_RoleSwitchDialog> {
     _syncOtherRoles();
   }
 
-  /// A role's server record (and photo) is only read when its dashboard is
-  /// opened, so unlocked roles that have never been opened this session are
-  /// fetched here. Failures leave the row on its initial — never a blocker.
+  /// Fetches unlocked roles not opened this session; failures leave the
+  /// initial.
   Future<void> _syncOtherRoles() async {
     if (!AuthSession.isSignedIn) return;
     final store = RoleAccountStore.instance;
-    // A role-access request decided in the portal since the last open flips
-    // the row from pending to unlocked (or a fresh request to pending).
+    // Portal decisions since the last open flip rows between pending and
+    // unlocked.
     try {
       store.applyRequestStatuses(await _userRequestService.fetchMine());
     } catch (_) {
@@ -1334,9 +1296,8 @@ class _RoleSwitchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Only roles that need a verification step read as locked. Donor and
-    // beneficiary sides just switch on tap. A verified role waiting on an
-    // administrator reads as pending.
+    // Only roles needing verification read as locked; donor/beneficiary sides
+    // switch on tap.
     final pending = role.isPending;
     final locked =
         pending ||
@@ -1471,9 +1432,7 @@ class _RoleSwitchBadge extends StatelessWidget {
   }
 }
 
-/// Shown before the ID + face check when a locked volunteer role is tapped:
-/// says what the person will have to do, then hands off to
-/// [RoleUnlockScreen] on confirm.
+/// Explains the ID + face check, then hands off to [RoleUnlockScreen].
 class _RoleUnlockDialog extends StatelessWidget {
   const _RoleUnlockDialog({required this.role});
 
@@ -1596,8 +1555,7 @@ class _RoleUnlockDialog extends StatelessWidget {
   }
 }
 
-/// Shown when a role that already passed the ID + face check is tapped
-/// again: the request is with an administrator and nothing else is needed.
+/// Already verified; the request is with an administrator.
 class _RolePendingDialog extends StatelessWidget {
   const _RolePendingDialog({required this.role});
 
@@ -1739,9 +1697,8 @@ class _UnlockDialogStep extends StatelessWidget {
   }
 }
 
-/// One role's own picture: the server photo for that side first, then a
-/// local asset, then the initial on the role colour. Never borrows another
-/// role's photo.
+/// Server photo, then local asset, then the initial; never another role's
+/// photo.
 class _RoleAvatar extends StatelessWidget {
   const _RoleAvatar({required this.role, this.radius = 18});
 
@@ -1781,9 +1738,7 @@ class _RoleAvatar extends StatelessWidget {
   }
 }
 
-/// The only completion message left below the header now that progress sits
-/// on the avatar ring: a rejected proof of residency needs a new upload, and
-/// the person has to see why.
+/// A rejected proof of residency needs a new upload, and the reason must show.
 class _ResidencyRejectedNotice extends StatelessWidget {
   const _ResidencyRejectedNotice({required this.reason});
 
@@ -1829,8 +1784,6 @@ class _SectionTitle extends StatelessWidget {
 
   final String title;
 
-  /// Optional per-section edit action — used by the personal-information and
-  /// donor preference cards.
   final VoidCallback? onEdit;
 
   @override
@@ -1878,7 +1831,6 @@ class _EmptySectionHint extends StatelessWidget {
 
   final String message;
 
-  /// Optional action shown beside the hint (e.g. the add-interests chip).
   final Widget? trailing;
 
   @override
@@ -1923,7 +1875,6 @@ class _EmptySectionHint extends StatelessWidget {
   }
 }
 
-/// Round "+" chip that sits at the end of a tag row and opens an editor.
 class _AddChip extends StatelessWidget {
   const _AddChip({required this.onTap, required this.tooltip});
 
@@ -2086,7 +2037,6 @@ class _MenuTile extends StatelessWidget {
 
   final bool destructive;
 
-  /// Optional count shown before the chevron (e.g. certificates received).
   final String? trailingLabel;
 
   @override
@@ -2096,7 +2046,6 @@ class _MenuTile extends StatelessWidget {
     return Material(
       color: Colors.white,
 
-      // borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
 

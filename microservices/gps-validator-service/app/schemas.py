@@ -11,13 +11,8 @@ class ApiResponse(BaseModel):
     errors: dict | None = None
 
 
-# ---------------------------------------------------------------------------
-# Request
-# ---------------------------------------------------------------------------
-
-
 class Ping(BaseModel):
-    """One `EventLocationPing` row. Field names mirror the Prisma model."""
+    """Mirrors the Prisma `EventLocationPing` model."""
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -25,7 +20,7 @@ class Ping(BaseModel):
     latitude: float = Field(..., ge=-90.0, le=90.0)
     longitude: float = Field(..., ge=-180.0, le=180.0)
     accuracy_m: float | None = Field(default=None, alias="accuracyM", ge=0.0)
-    # The device's own check at capture time; reported back only for comparison.
+    # Device's own check; reported back only for comparison.
     in_area: bool | None = Field(default=None, alias="inArea")
 
 
@@ -37,10 +32,7 @@ class Participant(BaseModel):
 
 
 class EventZone(BaseModel):
-    """The event's window plus its geofence as stored on `Event.geojson`.
-
-    `geojson` may be a bare Polygon / MultiPolygon geometry, a Feature wrapping
-    one, or a FeatureCollection whose first polygon feature is the fence."""
+    """Event window + `Event.geojson` fence (Polygon/MultiPolygon, Feature, or FeatureCollection)."""
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -72,15 +64,9 @@ class ValidateBody(BaseModel):
     event: EventZone
     participants: list[Participant] = Field(..., min_length=1, max_length=2000)
     thresholds: Thresholds | None = None
-    # A mid-event snapshot: `endedAt` is "now" and the event is still running, so
-    # a volunteer outside the zone may only be on a break — their time out is
-    # left open until the departure buffer has passed without a return.
+    # Mid-event snapshot (`endedAt` = now): time out stays open until the departure buffer passes.
     live: bool = False
 
-
-# ---------------------------------------------------------------------------
-# Response (camelCase on the wire, like ucid-service)
-# ---------------------------------------------------------------------------
 
 AttendanceStatus = Literal["COMPLETED", "ABSENT"]
 AnomalySeverity = Literal["info", "warning", "critical"]
@@ -121,7 +107,7 @@ class ParticipantResult(BaseModel):
     is_late: bool = Field(..., alias="isLate")
     ping_count: int = Field(..., alias="pingCount")
     inside_ping_count: int = Field(..., alias="insidePingCount")
-    # The most recent reading of any kind — what a live monitor shows per row.
+    # Latest reading of any kind (live monitor).
     last_ping_at: datetime | None = Field(default=None, alias="lastPingAt")
     last_inside: bool | None = Field(default=None, alias="lastInside")
     last_distance_to_zone_m: float | None = Field(default=None, alias="lastDistanceToZoneM")

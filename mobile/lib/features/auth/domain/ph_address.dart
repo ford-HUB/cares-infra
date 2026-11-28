@@ -1,14 +1,8 @@
 part 'ph_address_cebu.dart';
 
-/// Structured Philippine address captured on the beneficiary details form.
-///
-/// Barangay and city/municipality must come from [PhAddressDirectory] so a
-/// typo can't slip through; the street is free text (no list can cover every
-/// street) but is suggested from the chosen barangay where known.
-///
-/// The server stores a single `current_address` string, so [formatted] is the
-/// one canonical shape sent at registration and shown back on the profile:
-/// `Street, Barangay, City/Municipality, Province`.
+/// Barangay and city must come from [PhAddressDirectory]; the street is free
+/// text. [formatted] (`Street, Barangay, City/Municipality, Province`) is the
+/// one `current_address` shape sent and shown.
 class PhAddress {
   const PhAddress({this.street = '', this.barangay, this.locality});
 
@@ -20,14 +14,12 @@ class PhAddress {
 
   static const maxStreetLength = 120;
 
-  /// Letters, digits, spaces and the punctuation real addresses use —
-  /// "Blk 5 Lot 3, Phase 2 (Ext.)", "#12 Rizal St. & 3rd Ave", "Unit 4/F".
+  /// e.g. "Blk 5 Lot 3, Phase 2 (Ext.)", "#12 Rizal St. & 3rd Ave", "Unit 4/F".
   static final _streetPattern = RegExp(
     r"^[\p{L}\p{M}0-9 .,#'’()/&-]+$",
     unicode: true,
   );
 
-  /// Why the street is not acceptable yet, or null when it is.
   static String? streetError(String street) {
     final value = street.trim();
     if (value.isEmpty) return 'Enter your house no. and street.';
@@ -64,24 +56,22 @@ class PhAddress {
     locality: locality,
   );
 
-  /// Picking a barangay always fixes the city/municipality it belongs to.
+  /// Also fixes the barangay's city/municipality.
   PhAddress withBarangay(PhBarangay? value) => PhAddress(
     street: street,
     barangay: value,
     locality: value?.locality ?? locality,
   );
 
-  /// A city that doesn't own the current barangay drops the barangay.
+  /// Drops a barangay the new city doesn't own.
   PhAddress withLocality(PhLocality? value) => PhAddress(
     street: street,
     barangay: barangay?.locality == value ? barangay : null,
     locality: value,
   );
 
-  /// Structured address from a profile record: the split columns when the
-  /// server has them, otherwise the flat `current_address` string. [empty]
-  /// when neither resolves against the directory (e.g. an older free-text
-  /// address).
+  /// Split columns when present, else the flat `current_address`; [empty] when
+  /// unresolvable (e.g. older free text).
   static PhAddress resolve({
     String? street,
     String? barangay,
@@ -104,11 +94,8 @@ class PhAddress {
     return parse(full);
   }
 
-  /// Best-effort split of any address text for display — e.g. one read off a
-  /// residency document. Picks out a known city and barangay wherever they
-  /// appear ("Brgy. Looc, Mandaue" works); whatever is left is the street.
-  /// The result may be incomplete, and nothing is dropped: text that matches
-  /// nothing ends up in [street].
+  /// Best-effort display split: finds a known city/barangay anywhere ("Brgy.
+  /// Looc, Mandaue"); unmatched text stays in [street].
   static PhAddress lenient(String text) {
     final strict = parse(text);
     if (strict.isComplete) return strict;
@@ -121,8 +108,8 @@ class PhAddress {
 
     var localityIndex = -1;
     PhLocality? locality;
-    // A bare "Cebu" is usually the province ("…, Minglanilla, Cebu"), so it
-    // only counts as Cebu City when no other city or municipality is named.
+    // A bare "Cebu" is usually the province; it is Cebu City only when no other
+    // locality is named.
     var provinceIndex = -1;
     for (var i = parts.length - 1; i >= 0 && locality == null; i--) {
       if (parts[i].toLowerCase() == 'cebu') {
@@ -156,8 +143,7 @@ class PhAddress {
     );
   }
 
-  /// Rebuilds a structured address from a [formatted] string, or [empty] when
-  /// it doesn't resolve against the directory.
+  /// [empty] when it doesn't resolve against the directory.
   static PhAddress parse(String text) {
     final parts = text.split(',').map((p) => p.trim()).toList();
     if (parts.length < 4) return empty;
@@ -186,7 +172,6 @@ class PhLocality {
   final String province;
   final List<String> barangayNames;
 
-  /// Major roads anywhere in the locality — offered after barangay streets.
   final List<String> streets;
 
   @override
@@ -201,7 +186,6 @@ class PhBarangay {
 
   String get label => '$name, ${locality.name}';
 
-  /// Streets known to run through this barangay, then the locality's roads.
   List<String> get streetSuggestions {
     final own =
         PhAddressDirectory._barangayStreets['${locality.name}|$name'] ??
@@ -220,12 +204,11 @@ class PhBarangay {
   String toString() => label;
 }
 
-/// Local lookup of every barangay in Cebu Province (PSGC, see
-/// `ph_address_cebu.dart`). Suggestions and validation both read from here.
+/// Every Cebu Province barangay (PSGC, `ph_address_cebu.dart`).
 abstract final class PhAddressDirectory {
   static const _cebu = 'Cebu';
 
-  /// Major roads per locality — offered after a barangay's own streets.
+  /// Offered after a barangay's own streets.
   static const _localityStreets = <String, List<String>>{
     'Lapu-Lapu City': [
       'M.L. Quezon National Highway',
@@ -289,7 +272,7 @@ abstract final class PhAddressDirectory {
       for (final name in locality.barangayNames) PhBarangay(name, locality),
   ];
 
-  /// Search keys worked out once — 1,200+ barangays are scanned per keystroke.
+  /// Precomputed: 1,200+ barangays are scanned per keystroke.
   static final List<_BarangayKey> _barangayKeys = () {
     // `City|Listed name` → folded other spellings.
     final aliases = <String, List<String>>{};
@@ -316,8 +299,7 @@ abstract final class PhAddressDirectory {
     return null;
   }
 
-  /// Exact (folded) name within [locality], or one of its other spellings
-  /// ("Camputhaw" for Kamputhaw, a barangay's former name).
+  /// Also matches other spellings ("Camputhaw", former names).
   static PhBarangay? barangayNamed(String name, PhLocality locality) {
     final key = _fold(name);
     for (final entry in _barangayKeys) {
@@ -343,9 +325,8 @@ abstract final class PhAddressDirectory {
     return null;
   }
 
-  /// Like [barangayNamed] but ignores a "Brgy." / "Barangay" prefix and a
-  /// "(Pob.)" suffix. Without a [locality] it only answers when the name is
-  /// unique across the list.
+  /// Ignores a "Brgy."/"Barangay" prefix and "(Pob.)" suffix; without
+  /// [locality], answers only for unique names.
   static PhBarangay? barangayLoosely(String text, PhLocality? locality) {
     final raw = text
         .replaceFirst(RegExp(r'\s*\(?pob\.?\)?\s*$', caseSensitive: false), '')
@@ -373,9 +354,7 @@ abstract final class PhAddressDirectory {
     return matches.length == 1 ? matches.single : null;
   }
 
-  /// Barangays matching [query], optionally within one [locality]. Names that
-  /// start with the query rank before ones that merely contain it; a match on
-  /// another spelling or on the city name comes last.
+  /// Prefix matches rank first, then contains, then alias or city-name matches.
   static List<PhBarangay> searchBarangays(
     String query, {
     PhLocality? locality,

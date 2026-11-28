@@ -6,7 +6,6 @@ import { RankFrame } from './rank-frame'
 import { RankFramePicker } from './rank-frame-picker'
 
 interface RankBadgeModalProps {
-  /** Tier name in the header, so it is clear which badge is being styled. */
   tierLabel: string
   appearance: RankFrameAppearance
   inputClass: string
@@ -14,11 +13,7 @@ interface RankBadgeModalProps {
   onClose: () => void
 }
 
-/**
- * The badge editor, in a modal rather than inline: the gallery is twelve cards
- * wide and a colour picker below it, which pushed the rest of the tier ladder off
- * the page when it opened in place.
- */
+/** A modal: inline, the gallery and picker pushed the tier ladder off the page. */
 export function RankBadgeModal({
   tierLabel,
   appearance,

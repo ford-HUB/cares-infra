@@ -7,7 +7,6 @@ import type {
 } from '../types/user-request'
 import { apiClient, parseApiError } from './api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
 const USER_REQUESTS_URL = '/api/v1/user-requests'
@@ -67,7 +66,6 @@ interface UserRequestListApiResponse {
   total: number
 }
 
-/** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is snake_case. */
 const KIND_MAP: Record<UserRequestApiResponse['kind'], UserRequestKind> = {
   ROLE_ACCESS: 'role_access',
   EVENT_JOIN: 'event_join',
@@ -126,7 +124,6 @@ function mapRequest(data: UserRequestApiResponse): UserRequest {
   }
 }
 
-/** The whole queue in one read — the portal groups by day client-side. */
 export async function fetchUserRequests(): Promise<UserRequest[]> {
   try {
     const { data: body } = await apiClient.get<ApiEnvelope<UserRequestListApiResponse>>(
@@ -149,10 +146,9 @@ async function decide(id: string, action: 'accept' | 'remove' | 'restore'): Prom
   }
 }
 
-/** Every decision returns the updated request, so the store swaps one row in place. */
 export const acceptUserRequest = (id: string) => decide(id, 'accept')
 
-/** A rejection must say why — the beneficiary reads the reason in the app. */
+/** The beneficiary reads the reason in the app. */
 export async function rejectUserRequest(id: string, reason: string): Promise<UserRequest> {
   try {
     const { data: body } = await apiClient.post<ApiEnvelope<UserRequestApiResponse>>(

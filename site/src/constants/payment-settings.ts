@@ -5,15 +5,14 @@ import type {
   PaymentMethodVerification,
 } from '../types/payment-settings'
 
-/** Mirrors `payments-site-validator.ts` on the server — the inputs cannot offer a
- * value it would reject. */
+/** Mirrors server `payments-site-validator.ts`. */
 export const STATEMENT_NAME_MAX = 40
 export const ACCOUNT_NAME_MAX = 120
 export const ACCOUNT_NUMBER_MAX = 40
 export const INSTRUCTIONS_MAX = 160
 export const DISPLAY_NAME_MAX = 60
 
-/** The order the cards are rendered in, matching the server's catalog. */
+/** Matches the server's catalog order. */
 export const PAYMENT_METHOD_ORDER: readonly PaymentMethodKey[] = [
   'GCASH',
   'QRPH',
@@ -21,11 +20,7 @@ export const PAYMENT_METHOD_ORDER: readonly PaymentMethodKey[] = [
   'BANK_TRANSFER',
 ]
 
-/**
- * The channel's own artwork, served from `public/payment/`. These are the same four
- * marks the donor app shows on its payment step, so the portal and the phone name a
- * method with one picture rather than two.
- */
+/** Same marks the donor app shows. */
 export const PAYMENT_METHOD_LOGOS: Record<PaymentMethodKey, string> = {
   GCASH: '/payment/gcash.svg',
   QRPH: '/payment/qrph.svg',
@@ -33,7 +28,6 @@ export const PAYMENT_METHOD_LOGOS: Record<PaymentMethodKey, string> = {
   BANK_TRANSFER: '/payment/bank.svg',
 }
 
-/** What the method is, in the two or three words that fit under its name. */
 export const PAYMENT_METHOD_TAGLINES: Record<PaymentMethodKey, string> = {
   GCASH: 'E-wallet',
   QRPH: 'QR code, any bank or e-wallet',
@@ -41,7 +35,6 @@ export const PAYMENT_METHOD_TAGLINES: Record<PaymentMethodKey, string> = {
   BANK_TRANSFER: 'Online banking',
 }
 
-/** Fallback copy for a channel the response did not describe. */
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodKey, string> = {
   GCASH: 'GCash',
   QRPH: 'QR Ph',
@@ -49,10 +42,7 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethodKey, string> = {
   BANK_TRANSFER: 'Bank Transfer',
 }
 
-/**
- * Which channels settle into an account the director can name. Cards go to the Xendit
- * balance with no account of their own, so asking for one there would only mislead.
- */
+/** Cards settle to the Xendit balance with no named account. */
 export const PAYMENT_METHOD_COLLECTS_ACCOUNT: Record<PaymentMethodKey, boolean> = {
   GCASH: true,
   QRPH: true,
@@ -60,18 +50,11 @@ export const PAYMENT_METHOD_COLLECTS_ACCOUNT: Record<PaymentMethodKey, boolean> 
   BANK_TRANSFER: true,
 }
 
-/** What the director types into the account field for each channel. */
-/**
- * What the account fields are called, and what goes in them, per channel. A GCash
- * account is a mobile number and nothing else, so it gets a phone field and a phone
- * placeholder rather than the generic "account number" box every channel shared.
- */
 export interface PaymentAccountFields {
   nameLabel: string
   namePlaceholder: string
   numberLabel: string
   numberPlaceholder: string
-  /** `tel` gets the numeric keypad on a phone and rejects letters. */
   numberType: 'tel' | 'text'
   hint: string
 }
@@ -111,25 +94,18 @@ export const PAYMENT_ACCOUNT_FIELDS: Record<PaymentMethodKey, PaymentAccountFiel
   },
 }
 
-/** Card payments have no account of their own; the card says so instead of asking. */
 export const CARD_ACCOUNT_NOTE =
   'Card payments settle into the CARES Xendit balance — there is no separate account to record.'
 
-/**
- * These fields do not move money. Xendit pays out to whatever is configured on the
- * Xendit account itself; what is typed here is what the donor is shown and what the
- * director keeps on record. Said out loud on the screen so nobody assumes otherwise.
- */
+/** Display only: Xendit pays out to its own configured account. */
 export const ACCOUNT_DISPLAY_ONLY_NOTE =
   'Shown to donors on their receipt. Where Xendit actually pays out is set in the Xendit dashboard, not here.'
 
-/** A Philippine mobile number: 09XXXXXXXXX, or +639XXXXXXXXX. */
 export const PH_MOBILE_PATTERN = /^(09\d{9}|\+639\d{9})$/
 
-/** PH bank account numbers run roughly 8–20 digits depending on the bank. */
 export const BANK_ACCOUNT_PATTERN = /^\d{8,20}$/
 
-/** Bank and card codes read as `DD_BPI`; the portal shows them in plain words. */
+/** Codes arrive as e.g. `DD_BPI`. */
 export const PAYMENT_CHANNEL_LABELS: Record<string, string> = {
   CREDIT_CARD: 'Visa / Mastercard',
   DD_BPI: 'BPI',
@@ -143,10 +119,6 @@ export const PAYMENT_MODE_LABELS: Record<PaymentGatewayMode, string> = {
   LIVE: 'Live',
 }
 
-/**
- * How each activation state reads on a method card. One record per visual channel —
- * label, badge tone and dot — so the three cannot drift apart when a state is added.
- */
 export const VERIFICATION_LABELS: Record<PaymentMethodVerification, string> = {
   NOT_VERIFIED: 'Not checked',
   PENDING: 'Waiting for Xendit',
@@ -161,11 +133,7 @@ export const VERIFICATION_BADGE_STYLES: Record<PaymentMethodVerification, string
   FAILED: 'bg-red-50 text-red-700',
 }
 
-/**
- * PENDING also covers a channel held back only by its own receiving account: the
- * test payout has not been confirmed yet. That is the director's next step, not
- * Xendit's, so the badge says so instead of "Waiting for Xendit".
- */
+/** PENDING also covers an unconfirmed test payout, which is the director's step. */
 export const ACCOUNT_UNPROVEN_LABEL = 'Verify the account'
 
 export const VERIFICATION_DOT_STYLES: Record<PaymentMethodVerification, string> = {
@@ -175,10 +143,6 @@ export const VERIFICATION_DOT_STYLES: Record<PaymentMethodVerification, string> 
   FAILED: 'bg-red-500',
 }
 
-/**
- * How each ownership-proof state reads on the card: label, the surface it sits on, and
- * the fallback line for when the server has not written a message yet.
- */
 export const ACCOUNT_PROOF_COPY: Record<
   PaymentAccountProof,
   { label: string; hint: string; surface: string; text: string; icon: string }
@@ -220,7 +184,6 @@ export const ACCOUNT_PROOF_COPY: Record<
   },
 }
 
-/** What switching a method on asks the gateway to do, shown in the confirmation. */
 export const ACTIVATION_STEPS: readonly string[] = [
   'Check with Xendit that this channel is switched on for the CARES account',
   'Point its callback URLs at CARES so paid donations report back',

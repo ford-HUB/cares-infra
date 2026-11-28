@@ -26,7 +26,7 @@ import {
 const { PENDING, UNDER_REVIEW, APPROVED, COMPLETED, DECLINED } =
   AssistanceRequestStatus;
 
-/** The relief desk's moves, and the statuses each one may start from. */
+/** Allowed source statuses per move. */
 const TRANSITION_FROM = {
   review: [PENDING],
   approve: [PENDING, UNDER_REVIEW],
@@ -36,11 +36,7 @@ const TRANSITION_FROM = {
 
 type Transition = keyof typeof TRANSITION_FROM;
 
-/**
- * Director-side review of beneficiaries' assistance requests. Each move
- * stamps the stage the beneficiary's progress trail is drawn from, and tells
- * them in the app.
- */
+/** Each move stamps a trail stage and notifies the beneficiary. */
 @Injectable()
 export class AssistanceRequestsSiteService {
   constructor(
@@ -67,7 +63,7 @@ export class AssistanceRequestsSiteService {
     };
   }
 
-  /** Screening has started — the beneficiary can no longer edit it. */
+  /** Screening started: no more beneficiary edits. */
   async review(id: string): Promise<SiteAssistanceRequestDto> {
     return this.move(id, 'review', (row) => ({
       status: UNDER_REVIEW,
@@ -101,7 +97,6 @@ export class AssistanceRequestsSiteService {
     }));
   }
 
-  /** The assistance was handed over. */
   async complete(id: string): Promise<SiteAssistanceRequestDto> {
     return this.move(id, 'complete', () => ({
       status: COMPLETED,

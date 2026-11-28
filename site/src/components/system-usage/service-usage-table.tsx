@@ -23,11 +23,7 @@ interface ServiceUsageTableProps {
 const head = 'px-3 py-2 text-left text-[11px] font-medium tracking-wider text-gray-500 uppercase'
 const cell = 'h-12 border-t border-gray-100 px-3 text-[13px] text-gray-700'
 
-/**
- * Everything that can break, live: each diagnostics probe (database, cache, ML
- * services, queues) and each scheduler — worst first. Probes report their
- * round-trip; schedulers their median run time and how many recent runs succeeded.
- */
+/** Diagnostics probes and schedulers, worst first. */
 export function ServiceUsageTable({
   rows,
   total,

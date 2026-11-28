@@ -7,7 +7,6 @@ import {
 import { HOME_PATH } from '../../constants/routes'
 import { useRegistrationStatus } from '../../hooks/use-registration-status'
 
-/** Public page behind the "Check status" button in the registration-submitted email. */
 export default function RegistrationStatusPage() {
   const [params] = useSearchParams()
   const state = useRegistrationStatus(params.get('token'))

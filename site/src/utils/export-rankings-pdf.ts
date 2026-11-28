@@ -30,28 +30,25 @@ interface RankingsPdfOptions {
   board: RankingBoard
   period: RankingPeriod
   settings: RankingSettings
-  /** The college a coordinator's board is cut to; null for the whole school. */
+  /** Null for the whole school. */
   scopeDepartment: string | null
-  /** The rows the Ranking List shows — already searched and filtered. */
+  /** Already searched and filtered. */
   volunteers: VolunteerRankingEntry[]
   donors: DonorRankingEntry[]
   departments: DisplayedDepartment[]
-  /** Whole boards, for the "N of M" line. */
   totals: Record<RankingBoard, number>
   search: string
   volunteerDepartment: string
   donorKind: DonorKindFilter
   departmentBasis: DepartmentRankingBasis
-  /** Hours and pesos no college could be credited with. */
   departmentUnattributed: { hours: number; donationAmount: number }
 }
 
-/** The PDF's built-in font has no peso sign, so amounts print with the code. */
+/** The built-in PDF font has no peso sign. */
 function pesos(value: number) {
   return `PHP ${formatNumber(value)}`
 }
 
-/** Swaps the glyphs the built-in font cannot draw for ones it can. */
 function printable(text: string) {
   return text.replace(/₱/g, 'PHP ').replace(/−/g, '-')
 }
@@ -68,12 +65,7 @@ function sum<T>(rows: T[], pick: (row: T) => number) {
   return rows.reduce((total, row) => total + pick(row), 0)
 }
 
-/**
- * The active Rankings board as a report: the scoring rule and filters that
- * produced it, headline totals, then the standings in the order the Ranking List
- * shows them. Each row keeps the rank it earned on the whole board, so a filtered
- * export still reads true. Landscape, for the volunteer board's breakdown columns.
- */
+/** Rows keep their whole-board rank, so a filtered export still reads true. */
 export function exportRankingsPdf(options: RankingsPdfOptions) {
   const { board, period, settings, totals } = options
   const report = new PdfReport({ landscape: true })
@@ -213,8 +205,6 @@ function volunteerSection(report: PdfReport, { volunteers, settings }: RankingsP
     },
   )
 
-  // One list per role, so a director can see at a glance who organised,
-  // facilitated or spoke — with each volunteer's overall standing beside it.
   for (const role of PARTICIPATION_ROLE_OPTIONS) {
     const served = volunteers
       .filter((v) => v.roleCounts[role.id] > 0)

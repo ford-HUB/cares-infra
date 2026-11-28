@@ -6,10 +6,9 @@ import { useManualAttendanceForm } from '../../../hooks/use-manual-attendance-fo
 import type { EventAttendee } from '../../../types/attendee'
 
 interface ManualAttendanceModalProps {
-  /** The selected rows; the modal is closed while this is empty. */
+  /** Empty closes the modal. */
   attendees: EventAttendee[]
   onClose: () => void
-  /** Called after the server accepted the ruling, so the page can clear its selection. */
   onMarked: () => void
 }
 
@@ -22,12 +21,7 @@ interface EventGroup {
   count: number
 }
 
-/**
- * The confirmation for marking participants present by hand — the backup when the
- * geofence could not rule. It spells out, per event, the hours each person will be
- * credited (the event's full start-to-end window), since that is the part the
- * operator cannot see from the table.
- */
+/** Manual fallback when the geofence couldn't rule; credits each event's full window. */
 export function ManualAttendanceModal({
   attendees,
   onClose,

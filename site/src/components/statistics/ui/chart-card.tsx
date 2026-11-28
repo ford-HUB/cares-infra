@@ -4,15 +4,12 @@ import { cn } from '@/lib/utils'
 
 interface ChartCardProps {
   title: string
-  /** One line on what the chart answers — the reader should not have to infer it. */
   description: string
-  /** A figure that summarises the chart, shown at the top right. */
   aside?: ReactNode
   children: ReactNode
   className?: string
 }
 
-/** The frame every chart on the statistics page sits in: quiet title, the plot, nothing else. */
 export function ChartCard({
   title,
   description,
@@ -41,7 +38,6 @@ interface ChartFigureProps {
   label: string
 }
 
-/** The one number a chart resolves to, for the card's top-right corner. */
 export function ChartFigure({ value, label }: ChartFigureProps) {
   return (
     <>

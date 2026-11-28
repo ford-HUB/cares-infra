@@ -30,11 +30,7 @@ const config: ChartConfig = {
   attended: { label: 'Attended', color: STATISTICS_SERIES_COLOR.attended },
 }
 
-/**
- * The colleges side by side, sorted by attendance, registered beside attended so a
- * college that signs volunteers up but does not get them on site stands out. This
- * block only appears when the scope is every department.
- */
+/** Only shown when the scope is every department. */
 export function DepartmentActivityChart({ departments }: DepartmentActivityChartProps) {
   const rows = [...departments].sort((a, b) => b.attended - a.attended)
   const leader = rows[0]

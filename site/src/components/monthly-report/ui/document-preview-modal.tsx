@@ -12,7 +12,7 @@ import { DocumentKindIcon } from './document-kind-icon'
 
 interface DocumentPreviewModalProps {
   report: MonthlyReport
-  /** File the "Open Docs" button was pressed on; the rail can switch away from it. */
+  /** The rail can switch away from it. */
   initialDocumentId: string
   onClose: () => void
 }
@@ -20,12 +20,7 @@ interface DocumentPreviewModalProps {
 const ZOOM_STEPS = [0.8, 0.9, 1, 1.15, 1.3] as const
 const DEFAULT_ZOOM_INDEX = 2
 
-/**
- * The director has to read the submission before deciding on it, so the file opens in
- * place rather than downloading. The bytes come from the private bucket through the
- * API, which is also why the download link points at the fetched copy rather than the
- * route: a plain link would send no token and land on a 401.
- */
+/** Bytes come from the private bucket via the API, so download uses the fetched copy (a plain link would 401). */
 export function DocumentPreviewModal({
   report,
   initialDocumentId,
@@ -51,9 +46,7 @@ export function DocumentPreviewModal({
     [report.documents, activeId],
   )
 
-  // Every file is fetched, previewable or not: the download button needs the bytes as
-  // much as the viewer does. The route is stored beside the result rather than reset
-  // when the rail switches files, so switching cannot briefly show the previous file.
+  // Every file is fetched (download needs the bytes); the route is stored with the result so switching never flashes the previous file.
   useEffect(() => {
     let live = true
     const route = active.url
@@ -154,8 +147,6 @@ export function DocumentPreviewModal({
         </header>
 
         <div className="flex min-h-0 flex-1">
-          {/* One report can carry a narrative plus its annexes; the rail keeps them
-              in the same viewer instead of closing back out to the panel. */}
           {report.documents.length > 1 && (
             <nav
               aria-label="Attached files"
@@ -233,7 +224,6 @@ export function DocumentPreviewModal({
   )
 }
 
-/** The download-only and failed states read the same; only the wording differs. */
 function PreviewNotice({
   document,
   title,

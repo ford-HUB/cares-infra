@@ -10,12 +10,10 @@ import {
   type LandingHighlightStory as Story,
 } from '../../../constants/landing-highlights'
 
-/* On hover the photo slowly grows to 105% inside its frame, and eases back on leave. */
 const PHOTO_ZOOM =
   'motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:group-hover:scale-105'
 
-/** The story's photo, cropped to a 4:3 box; award slides keep their own shape so none of
- *  their text is cut and no bars appear around them. Either way the frame clips the zoom. */
+/** Award slides keep their own shape so none of their text is cut. */
 function LandingHighlightPhoto({ story }: { story: Story }) {
   const contain = story.fit === 'contain'
 
@@ -40,9 +38,6 @@ function LandingHighlightPhoto({ story }: { story: Story }) {
   )
 }
 
-/** Dark-green pill tucked over the photo's bottom edge, naming the story's topic. On
- *  entering view the pill rises up and fades in, its label follows, then a soft band of
- *  light sweeps across it once; on hover it lifts 2px and the band sweeps again. */
 function LandingHighlightTag({ label, lead }: { label: string; lead: boolean }) {
   const { ref, visible } = useReveal<HTMLSpanElement>(0.6)
 
@@ -79,12 +74,9 @@ function LandingHighlightTag({ label, lead }: { label: string; lead: boolean }) 
 
 interface LandingHighlightArticleProps {
   story: Story
-  /** `lead` is the wide centre story; `side` sits in a narrow outer column. */
   variant: 'lead' | 'side'
 }
 
-/** A story as it runs in a newspaper column: photo, topic tag, headline, paragraph, and a
- *  rule beneath. */
 export function LandingHighlightArticle({ story, variant }: LandingHighlightArticleProps) {
   const lead = variant === 'lead'
 
@@ -95,8 +87,7 @@ export function LandingHighlightArticle({ story, variant }: LandingHighlightArti
     >
       <LandingHighlightPhoto story={story} />
       <LandingHighlightTag label={story.category} lead={lead} />
-      {/* The typefaces stay outside cn: tailwind-merge reads font-[…] and font-bold as
-          conflicting weights and would drop them. */}
+      {/* Typefaces kept outside cn: tailwind-merge drops font-[…] as clashing with font-bold. */}
       <h3
         className={`${LANDING_SLAB} ${cn(
           'mt-2.5 font-bold text-pretty text-[var(--cares-primary)]',

@@ -4,20 +4,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 interface EventImageProps {
   eventId: number
-  /** Position of the photo in the event's stored image list. */
+  /** Position in the event's stored image list. */
   index: number
   alt: string
   className?: string
-  /** Rendered when the photo is missing or the fetch fails. */
+  /** Shown when the photo is missing or the fetch fails. */
   fallback?: ReactNode
 }
 
-/**
- * Event photos live in a private S3 bucket, so a plain `<img src={s3Url}>` renders
- * broken. This pulls the bytes through the authenticated proxy route instead and
- * paints the object URL. The skeleton and fallback take the caller's className so
- * they keep the image's exact box.
- */
+/** Photos are in private S3, so bytes load via the authenticated proxy; skeleton/fallback reuse `className`. */
 export function EventImage({
   eventId,
   index,

@@ -1,4 +1,3 @@
-/// Volunteer sub-type within registration — matches uclmcares.online guest portal.
 enum VolunteerType { student, staff, alumni, partnerBarangay }
 
 extension VolunteerTypeX on VolunteerType {
@@ -16,9 +15,8 @@ extension VolunteerTypeX on VolunteerType {
     VolunteerType.partnerBarangay => 'PARTNER_BARANGAY',
   };
 
-  /// Sign-ups whose ID a director reviews instead of it being read by OCR: the
-  /// details are typed in and the account waits for approval. Alumni are still
-  /// face matched against their alumni ID; partner-barangay volunteers are not.
+  /// ID reviewed by a director instead of OCR; alumni are still face-matched,
+  /// partner-barangay volunteers are not.
   bool get isDirectorReviewed =>
       this == VolunteerType.alumni || this == VolunteerType.partnerBarangay;
 

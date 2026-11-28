@@ -9,7 +9,7 @@ interface LoginProps {
   onRequestAccess: () => void
 }
 
-/** Sign-in modal body: a signed-in visitor is sent straight on to the portal. */
+/** Signed-in visitors go straight to the portal. */
 export function Login({ onRequestAccess }: LoginProps) {
   const user = useAuthStore((s) => s.user)
   const initialized = useAuthStore((s) => s.initialized)

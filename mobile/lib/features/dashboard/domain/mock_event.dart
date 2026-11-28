@@ -1,4 +1,4 @@
-/// Mock volunteer events for dashboard visualization until API wiring exists.
+/// Mock data until API wiring exists.
 class MockEvent {
   const MockEvent({
     required this.id,

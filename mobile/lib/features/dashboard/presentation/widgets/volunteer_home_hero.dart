@@ -9,22 +9,13 @@ import 'package:mobile/features/dashboard/presentation/providers/leaderboard_pro
 import 'package:mobile/features/dashboard/presentation/widgets/rank_tier_frame.dart';
 import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 
-/// A standing to draw in the hero when it does not come from the volunteer
-/// leaderboard — the donor home passes its own board's rank and tier.
+/// The donor home passes its own board's rank and tier.
 typedef HeroStanding = ({int? rank, RankTier? tier});
 
-/// Dark band across the top of the home tab: avatar + welcome on the left,
-/// the person's rank on the right, and the search pill underneath.
-///
-/// The avatar comes from the role's [RoleAccount] — the photo stream
-/// `GET /profile/me/mobile` returned — and rebuilds when the store changes.
-/// The rank and the frame around the avatar come from the leaderboard: the
-/// border is the tier the standing falls into, in the design and colours the
-/// portal set for it. Volunteers read the volunteer board here; another role
-/// hands in its own [standing]. Paints behind the status bar, so it reads
-/// the top inset itself instead of sitting inside a [SafeArea]; [height] is
-/// fixed from the same numbers so the tab can extend the dark ground down
-/// behind the popular deck.
+/// Avatar from the role's [RoleAccount] photo stream; rank and frame from the
+/// leaderboard tier, or a role's own [standing]. Paints behind the status bar
+/// and reads the top inset itself; [height] uses the same numbers so the tab
+/// can extend the ground behind the deck.
 class VolunteerHomeHero extends ConsumerWidget {
   const VolunteerHomeHero({
     super.key,
@@ -40,16 +31,14 @@ class VolunteerHomeHero extends ConsumerWidget {
   final VoidCallback onSearchTap;
   final VoidCallback onFilterTap;
 
-  /// Marks the filter button when a category other than "All" is applied.
   final bool filterActive;
 
-  /// Whose avatar to show — a [RoleAccountStore] role type.
+  /// A [RoleAccountStore] role type.
   final String roleType;
 
   /// Overrides the volunteer leaderboard as the source of rank and tier.
   final HeroStanding? standing;
 
-  /// Deep forest ground the whole header sits on.
   static const Color ink = AppColors.deepHeaderTop;
 
   static const double gutter = 20;
@@ -59,7 +48,7 @@ class VolunteerHomeHero extends ConsumerWidget {
   static const double _searchHeight = 54;
   static const double _bottomPad = 6;
 
-  /// Full height including the status-bar inset.
+  /// Includes the status-bar inset.
   static double height(BuildContext context) =>
       MediaQuery.paddingOf(context).top +
       _topPad +
@@ -180,8 +169,7 @@ class _Welcome extends StatelessWidget {
   }
 }
 
-/// The role's photo stream when one is on file (private, so the request
-/// carries the token), otherwise initials on the role colour.
+/// The photo stream (private, so it carries the token), else initials.
 class _Avatar extends StatelessWidget {
   const _Avatar({required this.account, required this.fallbackName});
 
@@ -225,8 +213,7 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-/// The standing and its tier. Unranked reads as a dash rather than a number —
-/// the volunteer has no ruled attendance in the period yet.
+/// Unranked shows a dash: no ruled attendance in the period yet.
 class _RankBlock extends StatelessWidget {
   const _RankBlock({required this.rank, required this.tier});
 
@@ -272,7 +259,7 @@ class _RankBlock extends StatelessWidget {
   }
 }
 
-/// The dot follows the feed's unread count, so it clears as rows are read.
+/// The dot follows the feed's unread count.
 class _NotificationBell extends StatelessWidget {
   const _NotificationBell();
 
@@ -316,8 +303,7 @@ class _NotificationBell extends StatelessWidget {
   }
 }
 
-/// Translucent search affordance; tapping hands off to the Events tab,
-/// which owns the real search.
+/// Hands off to the Events tab, which owns the real search.
 class _SearchPill extends StatelessWidget {
   const _SearchPill({required this.onTap});
 

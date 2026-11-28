@@ -17,17 +17,14 @@ interface RankingTierFieldsProps {
   inputClass: string
   onAddTier: () => void
   onRemoveTier: (index: number) => void
-  /** -1 moves the tier up the ladder, 1 moves it down. */
+  /** -1 moves up the ladder, 1 down. */
   onMoveTier: (index: number, direction: -1 | 1) => void
 }
 
 const iconButtonClass =
   'flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40'
 
-/**
- * One row per tier, highest first. The row stays a single line — design and colours
- * are edited in a modal, so opening the gallery never reflows the ladder behind it.
- */
+/** Design and colours edit in a modal, so the row never reflows the ladder. */
 export function RankingTierFields({
   form,
   fields,
@@ -58,7 +55,7 @@ export function RankingTierFields({
         const tier = tiers[index]
         if (!tier) return null
 
-        // The last tier has no ceiling — it catches everyone the others didn't.
+        // The last tier has no ceiling; it catches everyone else.
         const isCatchAll = index === fields.length - 1
         const rowError = tierError?.[index]
         const labelError = rowError?.label

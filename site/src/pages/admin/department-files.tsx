@@ -17,16 +17,9 @@ import { useMonthlyReportScope } from '../../hooks/use-monthly-report-scope'
 import { useProfileStore } from '../../store/profile-store'
 import type { MonthlyReport } from '../../types/monthly-report'
 
-/**
- * The coordinator's Monthly Report: every report of their own college as a list,
- * with a calendar beside it marking the days reports were uploaded. The college
- * comes from the coordinator's profile, so nothing from another department is
- * ever in the list — not even by searching for it.
- */
+/** College comes from the profile, so other departments never appear. */
 export function DepartmentFilesPage() {
-  // The scope hook's period filter is by reporting month; this page filters by the
-  // month a report was uploaded instead, so the toolbar picker and the calendar
-  // agree — only `scoped` (search) is taken from it, never its period.
+  // Filters by upload month, not reporting month; only `scoped` (search) is used.
   const { scoped, search, setSearch, initialized, error, fetchReports } =
     useMonthlyReportScope()
 
@@ -41,13 +34,11 @@ export function DepartmentFilesPage() {
   const department = reportDepartmentFor(profileDepartment)
   const ready = initialized && profileInitialized
 
-  /** `YYYY-MM` of uploads in view — the calendar's month — or every month. */
   const [month, setMonth] = useState<PeriodFilter>(PERIOD_FILTER_ALL)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   const changeMonth = (next: PeriodFilter) => {
     setMonth(next)
-    // A day picked on one month means nothing on another.
     setSelectedDay(null)
   }
   const [preview, setPreview] = useState<{
@@ -55,8 +46,7 @@ export function DepartmentFilesPage() {
     documentId: string
   } | null>(null)
 
-  // Strictly the assigned college. Until the profile lands there is no college to
-  // apply, and an unmapped college has no reports to show — both read as empty.
+  // Strictly the assigned college; empty until the profile loads.
   const departmentReports = useMemo(
     () =>
       department
@@ -67,7 +57,6 @@ export function DepartmentFilesPage() {
     [scoped, department],
   )
 
-  /** Every `YYYY-MM` with at least one upload, newest first — the picker's options. */
   const uploadMonths = useMemo(
     () =>
       [...new Set(departmentReports.map((report) => dayjs(report.submittedAt).format('YYYY-MM')))]

@@ -3,8 +3,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// A device capability the app asks for, shown as a row on the Permissions
-/// screen. [permission] is the OS-level permission behind the toggle.
 class AppPermissionItem {
   const AppPermissionItem({
     required this.permission,
@@ -19,7 +17,6 @@ class AppPermissionItem {
   final String description;
 }
 
-/// Simplified view of a [PermissionStatus] for the toggle + badge.
 enum AppPermissionState { allowed, notAllowed, blocked }
 
 AppPermissionState permissionStateOf(PermissionStatus status) {
@@ -32,9 +29,6 @@ AppPermissionState permissionStateOf(PermissionStatus status) {
   return AppPermissionState.notAllowed;
 }
 
-/// Toggle row: icon, label, what the permission is used for, a small status
-/// badge, and a switch. Same border language as [SecurityActionTile] so the
-/// Permissions screen reads like the rest of Security & Privacy.
 class PermissionToggleTile extends StatelessWidget {
   const PermissionToggleTile({
     super.key,

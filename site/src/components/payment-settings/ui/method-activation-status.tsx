@@ -15,11 +15,7 @@ interface MethodActivationStatusProps {
   onCheckAgain: () => void
 }
 
-/**
- * Where the channel stands with the gateway, in the channel's own card. The state is
- * the badge, the reason is the sentence under it, and "Check again" is the only thing
- * to do about it — there is nothing here the portal can fix on Xendit's behalf.
- */
+/** "Check again" is the only action; the portal can't fix gateway-side state. */
 export function MethodActivationStatus({
   meta,
   checking,

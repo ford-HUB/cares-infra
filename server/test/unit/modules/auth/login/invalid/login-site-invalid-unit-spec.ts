@@ -31,11 +31,6 @@ import {
   useAuthSiteApp,
 } from '../login-site-support';
 
-/**
- * Login — invalid inputs. Every case is an intentionally wrong sign-in. The case
- * Passes when the portal refuses it exactly as stated (status, message, no token,
- * no session) — a wrong password being rejected is the expected result.
- */
 const testCase = defineCases({ module: MODULE, unit: 'Login', kind: 'invalid', prefix: 'LOGIN' });
 
 const HOSTILE_EMAIL_FAMILIES: [string, SecurityPayload[]][] = [
@@ -50,7 +45,6 @@ const HOSTILE_EMAIL_FAMILIES: [string, SecurityPayload[]][] = [
 describe('Login — invalid inputs', () => {
   const ctx = useAuthSiteApp();
 
-  /** Refused by the service: no token signed, no session opened. */
   const expectNotSignedIn = async (input: unknown, status: number, message: string) => {
     const outcome = await post(ctx, LOGIN.path, input);
     expectRefusal(outcome, status, message);
@@ -59,8 +53,6 @@ describe('Login — invalid inputs', () => {
     expect(ctx.sessions.create).not.toHaveBeenCalled();
     return outcome;
   };
-
-  /* ── empty and malformed fields (validation) ─────────────────────────── */
 
   testCase('Admin leaves the email field empty', 'Login fails with "Email is required" on email (400)', () =>
     rejectsByValidation(ctx, LOGIN, { ...VALID_LOGIN, email: '' }, 'email'),
@@ -93,8 +85,6 @@ describe('Login — invalid inputs', () => {
       expect(outcome.issues.map((i) => i.path)).toEqual(expect.arrayContaining(['email', 'password']));
     });
   });
-
-  /* ── wrong credentials (service) ─────────────────────────────────────── */
 
   testCase('Admin enters a correct email but a wrong password', `Login fails with "${INVALID_CREDENTIALS}" (401)`, () => {
     it('layer 2 — api refuses and records INVALID_CREDENTIALS', async () => {
@@ -153,8 +143,6 @@ describe('Login — invalid inputs', () => {
       await expectNotSignedIn(VALID_LOGIN, 401, INVALID_CREDENTIALS);
     });
   });
-
-  /* ── correct credentials, but not allowed in ─────────────────────────── */
 
   testCase(
     `${NON_PORTAL_ROLES.join(' / ')} enters correct credentials on the portal`,
@@ -255,7 +243,7 @@ describe('Login — invalid inputs', () => {
     'Login fails with "Sign-in is only allowed between HH:MM and HH:MM" (403)',
     () => {
       beforeEach(() => {
-        // A one-minute window that has just closed, whatever the clock says now.
+        // A one-minute window that just closed, relative to now.
         const now = new Date();
         const minute = now.getHours() * 60 + now.getMinutes();
         const start = (minute + 1) % 1440;
@@ -274,8 +262,6 @@ describe('Login — invalid inputs', () => {
       });
     },
   );
-
-  /* ── hostile input ───────────────────────────────────────────────────── */
 
   for (const [family, payloads] of HOSTILE_EMAIL_FAMILIES) {
     testCase(
@@ -332,8 +318,6 @@ describe('Login — invalid inputs', () => {
     'Login fails with "Validation failed" (400); Object.prototype is not polluted',
     () => rejectsPrototypePollution(ctx, LOGIN, VALID_LOGIN, PROTOTYPE_POLLUTION_BODIES),
   );
-
-  /* ── system errors ───────────────────────────────────────────────────── */
 
   testCase(
     'The database fails while the account is being looked up',

@@ -25,15 +25,6 @@ import {
   writtenUpdate,
 } from '../support-tickets-site-support';
 
-/**
- * Support Tickets Module · List / Update / Reply to Ticket — valid inputs (field
- * validation).
- *
- * Every case here is a legitimate value for a field of the three portal ticket
- * endpoints, and the system must accept it. The invalid cases live in ../invalid/.
- */
-
-/* ── List tickets ────────────────────────────────────────────────────────── */
 {
   const queryFixtures: LayerFixture<Record<string, string>>[] = [
     { name: 'Staff opens the ticket queue with no filters', input: {}, expected: 'PASS' },
@@ -93,7 +84,6 @@ import {
   });
 }
 
-/* ── Update ticket ───────────────────────────────────────────────────────── */
 {
   const idFixtures: LayerFixture<string>[] = [
     { name: 'Staff updates a ticket by its id', input: VALID_TICKET_ID, expected: 'PASS' },
@@ -181,7 +171,6 @@ import {
   });
 }
 
-/* ── Reply to ticket ─────────────────────────────────────────────────────── */
 {
   const idFixtures: LayerFixture<string>[] = [
     { name: 'Staff replies on a ticket by its id', input: VALID_TICKET_ID, expected: 'PASS' },

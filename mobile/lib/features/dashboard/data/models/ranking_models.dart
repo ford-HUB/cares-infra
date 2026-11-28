@@ -1,8 +1,7 @@
 import 'dart:ui' show Color;
 
-/// The avatar-frame designs the portal's Customization page can pick. Kept in
-/// step with `site/src/constants/rank-frames.ts`; an unknown value draws as
-/// [ring] so a new preset never blanks the frame.
+/// In step with `site/src/constants/rank-frames.ts`; unknown values draw as
+/// [ring].
 enum RankFrameDesign {
   aurora,
   laurel,
@@ -23,8 +22,6 @@ enum RankFrameDesign {
   );
 }
 
-/// One rung of the ladder the portal cut: the badge frame drawn around every
-/// avatar whose standing falls into it.
 class RankTier {
   const RankTier({
     required this.id,
@@ -49,7 +46,7 @@ class RankTier {
   final String id;
   final String label;
 
-  /// Highest standing still in this tier; null for the catch-all last tier.
+  /// Null for the catch-all last tier.
   final int? maxRank;
   final RankFrameDesign frame;
   final Color colorFrom;
@@ -62,7 +59,6 @@ class RankTier {
   }
 }
 
-/// A row of the leaderboard — just what the card needs.
 class LeaderboardEntry {
   const LeaderboardEntry({
     required this.userId,
@@ -98,7 +94,7 @@ class LeaderboardEntry {
   final bool isMe;
 }
 
-/// The volunteer's own standing, present even when they sit outside the list.
+/// Present even outside the list.
 class LeaderboardMe {
   const LeaderboardMe({
     required this.rank,
@@ -126,7 +122,7 @@ class LeaderboardMe {
     );
   }
 
-  /// Null until the volunteer has a ruled attendance in the period.
+  /// Null until a ruled attendance in the period.
   final int? rank;
   final int points;
   final int pointsEarned;
@@ -134,7 +130,7 @@ class LeaderboardMe {
   final int eventsAttended;
   final int eventsMissed;
 
-  /// Straight misses still counting against the next one.
+  /// Consecutive misses still counting toward the next penalty.
   final int currentStreak;
 
   /// What one more miss would cost right now.
@@ -184,7 +180,7 @@ class Leaderboard {
   final List<LeaderboardEntry> entries;
   final LeaderboardMe me;
 
-  /// The tier a standing falls into; the catch-all when unranked.
+  /// Catch-all when unranked.
   RankTier? tierForRank(int? rank) {
     if (tiers.isEmpty) return null;
     if (rank == null) return tiers.last;
@@ -202,7 +198,6 @@ class Leaderboard {
     return tiers.isEmpty ? null : tiers.last;
   }
 
-  /// The rung just above the caller's, and how many places away it is.
   ({RankTier tier, int placesToClimb})? nextTierFor(int? rank) {
     final current = tierForRank(rank);
     if (current == null) return null;
@@ -214,7 +209,6 @@ class Leaderboard {
   }
 }
 
-/// A row of the donor leaderboard.
 class DonorLeaderboardEntry {
   const DonorLeaderboardEntry({
     required this.userId,
@@ -245,14 +239,14 @@ class DonorLeaderboardEntry {
   final int rank;
   final int points;
 
-  /// Confirmed pesos in the period — money paid plus the credited goods value.
+  /// Confirmed pesos in the period: money paid plus credited goods value.
   final int amount;
   final int donations;
   final String tierId;
   final bool isMe;
 }
 
-/// The donor's own standing, present even when they sit outside the list.
+/// Present even outside the list.
 class DonorLeaderboardMe {
   const DonorLeaderboardMe({
     required this.rank,
@@ -286,8 +280,7 @@ class DonorLeaderboardMe {
   final String tierId;
 }
 
-/// Everything `GET /rankings/donors/leaderboard` returns: the rate, the same
-/// tier ladder the volunteers wear, the top list and the caller's own row.
+/// `GET /rankings/donors/leaderboard`; same tier ladder as volunteers.
 class DonorLeaderboard {
   const DonorLeaderboard({
     required this.period,
@@ -339,7 +332,6 @@ class DonorLeaderboard {
     return tiers.isEmpty ? null : tiers.last;
   }
 
-  /// The rung just above the caller's, and how many places away it is.
   ({RankTier tier, int placesToClimb})? nextTierFor(int? rank) {
     final current = tierForRank(rank);
     if (current == null) return null;

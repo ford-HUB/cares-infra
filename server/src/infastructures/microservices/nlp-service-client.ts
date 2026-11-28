@@ -50,11 +50,7 @@ export class NlpServiceClient {
   private readonly baseUrl =
     process.env.NLP_SERVICE_URL ?? 'http://localhost:8004';
 
-  /**
-   * Tags each event with the interest codes its title and description read as.
-   * The catalog is passed in rather than baked into the service so the database
-   * stays the single source of truth for which interests exist.
-   */
+  /** Catalog passed in so the DB stays the source of truth for interests. */
   async matchEvents(
     events: NlpMatchEventInput[],
     interests: NlpMatchInterestInput[],

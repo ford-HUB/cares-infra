@@ -11,11 +11,7 @@ import { ExpandableNavGroup } from './ui/expandable-nav-group'
 import { MenuItem } from './ui/menu-item'
 import { NavSectionLabel } from './ui/nav-section-label'
 
-/**
- * Keeps what the role may see and the account is permitted to open — plus what the
- * account *would* hold but for an active suspension, which is drawn locked rather
- * than dropped — then removes any section heading left with no item under it.
- */
+/** Keeps permitted items plus suspended ones (drawn locked), then drops empty section headings. */
 function visibleNavItems(
   items: NavItem[],
   userRole: PortalRole | undefined,
@@ -48,12 +44,9 @@ interface PortalSidebarProps {
   title?: string
   collapsed: boolean
   userRole?: PortalRole
-  /** The session's effective rights; anything gated on a right not held is hidden. */
+  /** Items gated on a right not held are hidden. */
   permissions?: PermissionKey[]
-  /**
-   * Suspensions in force on the session. A right in here is absent from
-   * `permissions`, but its module is still drawn — locked, red, and explained on hover.
-   */
+  /** Suspended rights are absent from `permissions` but their modules are still drawn locked. */
   suspensions?: SessionSuspension[]
 }
 

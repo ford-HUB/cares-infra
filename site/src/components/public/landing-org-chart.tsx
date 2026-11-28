@@ -21,7 +21,6 @@ import {
   LandingOrgUnitCard,
 } from './ui/landing-org-node'
 
-/** Every card in the chart cascades in at the same gentle step. */
 const STAGGER = LANDING_MOTION.orgStaggerMs
 
 export function LandingOrgChart() {
@@ -30,7 +29,7 @@ export function LandingOrgChart() {
       id={LANDING_SECTION_IDS.organization}
       className="relative scroll-mt-28 overflow-clip"
     >
-      {/* Tint only: the director's message below carries it on and closes on the hills. */}
+      {/* Tint only; the director's message below closes on the hills. */}
       <LandingHillsBackdrop hills={false} />
       <div className={`${LANDING_CONTAINER} relative pt-4 pb-16 sm:pb-20`}>
         <LandingReveal>
@@ -57,11 +56,8 @@ export function LandingOrgChart() {
         </LandingReveal>
         <LandingOrgConnector />
 
-        {/* No padding around the coordinators, so the connector above meets the label
-            and the one below leaves straight from the cards. */}
+        {/* No padding, so the connectors meet the label and cards directly. */}
         <div>
-          {/* Frosted white glass label, shaded a little darker toward its foot: a bright top
-              edge, a sheen over its upper half and a soft shadow, in bold Montserrat capitals. */}
           <div className="flex justify-center">
             <p
               className={`${LANDING_DISPLAY} relative isolate overflow-hidden rounded-full border border-white/90 bg-gradient-to-b from-white/95 via-gray-100/90 to-gray-200/80 px-6 py-2 text-center text-[13px] font-bold tracking-[0.06em] text-[var(--cares-primary)] uppercase shadow-[0_8px_20px_-10px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,1)] ring-1 ring-black/10 backdrop-blur-md sm:px-8 sm:text-[15px]`}

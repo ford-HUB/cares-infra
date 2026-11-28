@@ -13,14 +13,12 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 interface EventLocationsMapProps {
   pins: EventMapPin[]
-  /** Event id of the pin currently opened in the info card, if any. */
   selectedEventId: number | null
-  /** Bumped by the parent to snap the view back to the whole-of-Cebu framing. */
+  /** Bumped by the parent to snap back to the whole-of-Cebu view. */
   resetToken: number
   onSelect: (eventId: number) => void
 }
 
-/** Inline photo icon shown when an event has no uploaded image. */
 const FALLBACK_PIN_ICON = `
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
        stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
@@ -29,14 +27,7 @@ const FALLBACK_PIN_ICON = `
     <path d="m21 15-5-5L5 21" />
   </svg>`
 
-/**
- * Build the marker DOM for one event: a round thumbnail of the event image
- * (or a photo icon when there is none) on a status-coloured teardrop.
- *
- * The photo sits in a private bucket, so it cannot be pointed at directly — the
- * bytes come through the authenticated route as a blob. `registerObjectUrl` hands
- * the URL back so the caller can revoke it when the marker goes away.
- */
+/** Photos are in a private bucket, so they load as blobs via the authenticated route; `registerObjectUrl` lets the caller revoke them. */
 function createPinElement(
   pin: EventMapPin,
   registerObjectUrl: (eventId: number, url: string) => void,
@@ -68,7 +59,7 @@ function createPinElement(
         image.className = 'cares-event-pin__image'
         bubble.replaceChildren(image)
       })
-      // A photo that cannot be read leaves the icon already in the bubble.
+      // An unreadable photo leaves the fallback icon.
       .catch(() => undefined)
   }
 
@@ -131,8 +122,7 @@ export function EventLocationsMap({
     }
   }, [])
 
-  // Re-sync markers whenever the pin set changes: add the new ones, drop the
-  // ones whose event is gone, and leave the rest (and the map view) untouched.
+  // Diff markers against the pin set; untouched pins and the map view stay put.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -168,7 +158,7 @@ export function EventLocationsMap({
     })
   }, [pins])
 
-  // Flying is a view change, not a marker change, so it stays in its own effect.
+  // Flying is a view change, so it has its own effect.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return

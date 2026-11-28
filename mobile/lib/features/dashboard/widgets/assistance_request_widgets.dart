@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/assistance_request_data.dart';
 
-/// Palette for a request status, shared by the list, details, and pills.
 Color assistanceStatusColor(AssistanceRequestStatus status) => switch (status) {
   AssistanceRequestStatus.pending => AppColors.accentOrange,
   AssistanceRequestStatus.underReview => const Color(0xFF1976D2),
@@ -30,7 +29,6 @@ Color needsAssessmentColor(NeedsAssessmentStatus status) => switch (status) {
   NeedsAssessmentStatus.completed => AppColors.primary,
 };
 
-/// Small colored status pill, e.g. "Pending" or "Approved".
 class RequestStatusPill extends StatelessWidget {
   const RequestStatusPill({
     super.key,
@@ -87,7 +85,6 @@ class RequestStatusPill extends StatelessWidget {
   }
 }
 
-/// List entry for one assistance request.
 class AssistanceRequestCard extends StatelessWidget {
   const AssistanceRequestCard({
     super.key,
@@ -238,7 +235,6 @@ class AssistanceRequestCard extends StatelessWidget {
   }
 }
 
-/// Palette for the beneficiary's own survey state.
 Color beneficiaryAssessmentColor(BeneficiaryAssessmentState state) =>
     switch (state) {
       BeneficiaryAssessmentState.notCompleted => AppColors.accentOrange,
@@ -253,12 +249,8 @@ IconData beneficiaryAssessmentIcon(BeneficiaryAssessmentState state) =>
       BeneficiaryAssessmentState.needsUpdate => Icons.update_rounded,
     };
 
-/// Needs Assessment Survey card — explains the survey's purpose, shows the
-/// beneficiary's current state, and offers the matching action:
-///
-/// * not completed → **Take Assessment**
-/// * completed → **View Assessment** (+ **Update** when a revision is allowed)
-/// * needs update → **View Assessment** + **Update**
+/// Not completed → Take; completed → View (+ Update when allowed); needs update
+/// → View + Update.
 class NeedsAssessmentCard extends StatelessWidget {
   const NeedsAssessmentCard({
     super.key,
@@ -271,8 +263,8 @@ class NeedsAssessmentCard extends StatelessWidget {
 
   final NeedsAssessmentSummary summary;
 
-  /// True until the saved survey has been fetched — nothing is offered yet,
-  /// so "Take Assessment" never flashes up for someone who already took it.
+  /// True until the saved survey loads, so "Take Assessment" never flashes for
+  /// someone who took it.
   final bool isLoading;
   final VoidCallback? onTakeAssessment;
   final VoidCallback? onViewAssessment;
@@ -386,8 +378,6 @@ class NeedsAssessmentCard extends StatelessWidget {
   }
 }
 
-/// Shown in place of the status strip until the first survey is submitted:
-/// says nothing is on file yet and what taking it involves.
 class _AssessmentEmptyState extends StatelessWidget {
   const _AssessmentEmptyState();
 
@@ -463,7 +453,6 @@ class _AssessmentEmptyState extends StatelessWidget {
   }
 }
 
-/// Tinted status line inside the assessment card.
 class _AssessmentStatusStrip extends StatelessWidget {
   const _AssessmentStatusStrip({
     required this.icon,
@@ -515,8 +504,6 @@ class _AssessmentStatusStrip extends StatelessWidget {
   }
 }
 
-/// Filled "Label →" button, or a compact outlined variant for secondary
-/// actions such as "Update".
 class _AssessmentActionButton extends StatelessWidget {
   const _AssessmentActionButton({required this.label, this.onPressed})
     : _outlined = false;

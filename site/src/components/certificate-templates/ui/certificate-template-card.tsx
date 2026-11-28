@@ -20,11 +20,7 @@ interface CertificateTemplateCardProps {
   onAction: (action: string, template: CertificateTemplate) => void
 }
 
-/**
- * A template is a visual thing, so the preview leads and the metadata supports it.
- * Deploy is the primary action and is disabled off `published` — the status pill and
- * the button then say the same thing, which is the point.
- */
+/** Deploy is disabled unless `published`, matching the status pill. */
 export function CertificateTemplateCard({
   template,
   selected,

@@ -15,10 +15,7 @@ import {
   DepartmentOverviewResponseSchema,
 } from '../validators/overview-site-validator';
 
-/**
- * The dashboard's numbers. The system-wide view belongs to the roles that run the
- * whole platform; a coordinator only ever sees their own college.
- */
+/** System-wide for platform roles; coordinators see their college only. */
 @Controller('v1/overview')
 export class OverviewSiteController {
   constructor(private readonly overviewSiteService: OverviewSiteService) {}

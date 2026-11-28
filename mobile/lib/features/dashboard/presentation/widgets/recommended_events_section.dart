@@ -10,10 +10,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/recommended_event
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 
-/// "Recommended Events" on the volunteer home tab: a list of open events
-/// whose copy the server's NLP matched to the interests this volunteer picked.
-/// Remount the widget (new key) to force a refetch — pull-to-refresh and an
-/// interest change both do that.
+/// Remount (new key) to refetch.
 class RecommendedEventsSection extends ConsumerStatefulWidget {
   const RecommendedEventsSection({
     super.key,
@@ -22,14 +19,12 @@ class RecommendedEventsSection extends ConsumerStatefulWidget {
     this.maxItems = 5,
   });
 
-  /// Opens the Events tab, which holds the full matched list.
   final VoidCallback? onSeeAll;
 
-  /// The full matched list lives on the Events tab; home shows the best few.
+  /// The full list lives on the Events tab.
   final int maxItems;
 
-  /// Fired after the volunteer picks interests from the empty-state prompt so
-  /// the shell can drop its own "no interests yet" flag.
+  /// Lets the shell drop its "no interests yet" flag.
   final VoidCallback? onInterestsChanged;
 
   @override

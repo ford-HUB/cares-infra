@@ -101,8 +101,7 @@ def _letters_only(text: str) -> str:
 
 
 def _course_band_keyword(course: str) -> str:
-    # "BSIT - Bachelor of Science in Information Technology" -> "informationtechnology",
-    # which is how the course is printed on the coloured strip of the ID front.
+    # "BSIT - Bachelor of Science in Information Technology" -> "informationtechnology" (as on the ID strip).
     title = course.split(" - ", 1)[-1]
     title = re.sub(r"^bachelor\s+of\s+(?:science\s+in\s+)?", "", title, flags=re.IGNORECASE)
     return _letters_only(title)
@@ -121,8 +120,7 @@ COURSE_BAND_MIN_RATIO = 0.85
 
 
 def match_course_band(text: str) -> tuple[str, str] | None:
-    """Maps the course strip on a UCLM ID front (e.g. "INFORMATION TECHNOLOGY")
-    to its (department, course) pair."""
+    """Map a UCLM ID course strip (e.g. "INFORMATION TECHNOLOGY") to (department, course)."""
     lines = [_letters_only(line) for line in text.splitlines()]
     lines = [line for line in lines if len(line) >= 4]
 
@@ -150,8 +148,7 @@ def match_department(extracted: str) -> str | None:
         if name.lower() == normalized:
             return name
 
-    # A fragment like "e" or "college of" sits inside every department name, so
-    # only let a fragment match when it carries a distinctive word.
+    # Fragments like "college of" fit every department; require a distinctive word.
     fragment_ok = len(_distinctive_letters(normalized)) >= MIN_DISTINCTIVE_LETTERS
 
     best: str | None = None

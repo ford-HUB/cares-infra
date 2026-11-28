@@ -11,12 +11,7 @@ interface ThemeState {
   setTheme: (theme: PortalTheme) => void
 }
 
-/**
- * The portal's light / dark / system choice. Remembered per browser — it is a
- * viewing preference, not account data, so it never goes to the server. Storage
- * that is blocked (private mode) just means the portal opens in light each time.
- * What `system` resolves to is read live in hooks/use-portal-theme.ts.
- */
+/** Per-browser preference, never sent to the server; blocked storage falls back to light. */
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({

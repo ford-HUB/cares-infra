@@ -55,81 +55,61 @@ class CaresEvent {
   final double venueLatitude;
   final double venueLongitude;
 
-  /// Reach of the attendance area around the venue. For a server event with a
-  /// drawn [geofence] this is the boundary's furthest point; otherwise it is
-  /// the circle the area check falls back to.
+  /// The drawn [geofence]'s furthest point, else the fallback circle's radius.
   final double attendanceRadiusMeters;
 
-  /// The attendance area the director drew on the portal map. Null on
-  /// prototype fixtures and events without one — [containsPoint] then uses
-  /// [attendanceRadiusMeters] around the venue.
+  /// Null on prototype fixtures and undrawn events; [containsPoint] then uses
+  /// [attendanceRadiusMeters].
   final List<GeofenceRing>? geofence;
   final bool isFeatured;
 
-  /// True when beneficiaries may attend or receive assistance at this event.
-  /// Static prototype flag — the beneficiary events tab shows only these.
+  /// Static prototype flag; the beneficiary events tab shows only these.
   final bool openToBeneficiaries;
 
-  /// True once the event has ended and participation has been closed out.
   final bool isCompleted;
 
-  /// Service hours credited to volunteers who completed the event.
   final int? hoursCompleted;
 
-  /// Exact end time from the server (`event_ended`). Null on prototype
-  /// fixtures, where [endsAt] is estimated from [hoursCompleted] instead.
+  /// Server `event_ended`; null on fixtures, where [endsAt] is estimated from
+  /// [hoursCompleted].
   final DateTime? endDate;
   final String? imageAsset;
 
-  /// Server-streamed images (authenticated URLs), in upload order. Empty on
-  /// the prototype fixture, which still draws the category placeholder.
+  /// Authenticated server URLs in upload order; empty on fixtures.
   final List<String> imageUrls;
 
-  /// Short blurb about the organizer shown under "About the organizer".
-  /// Null on server rows for now; the details screen falls back to a generic
-  /// line built from [organization].
+  /// Null on server rows for now; the details screen falls back to a line built
+  /// from [organization].
   final String? organizerDescription;
 
-  /// The geofence ruling on this volunteer's own attendance, as the server
-  /// sends it: `PENDING`, `COMPLETED` or `ABSENT`. Null on prototype
-  /// fixtures and on events the volunteer has not joined.
+  /// `PENDING`, `COMPLETED` or `ABSENT`; null on fixtures and unjoined events.
   final String? attendanceStatus;
 
-  /// The validator ruled the volunteer did not attend — no feedback, no
-  /// certificate for this event.
+  /// No feedback or certificate.
   bool get isMarkedAbsent => attendanceStatus == 'ABSENT';
 
-  /// The validator has not ruled on this volunteer's attendance yet. Feedback
-  /// stays pending until it does — the server refuses a submission before
-  /// then, so the cards show a waiting state instead of the button.
+  /// The server refuses feedback until ruled, so cards show a waiting state.
   bool get isAttendancePending => attendanceStatus == 'PENDING';
 
-  /// Feedback can be given now: the event was attended as far as the server
-  /// knows (fixtures without a ruling count as attended).
+  /// Fixtures without a ruling count as attended.
   bool get canGiveFeedback => !isMarkedAbsent && !isAttendancePending;
 
-  /// A beneficiary's own application for this event, as the server sends it:
-  /// `PENDING` while a director has yet to rule, `ACCEPTED` once they have,
-  /// `REJECTED` when they turned it down. Null for volunteers and events not
-  /// applied for.
+  /// `PENDING` / `ACCEPTED` / `REJECTED`; null for volunteers and unapplied
+  /// events.
   final String? applicationStatus;
 
-  /// The director's reason when [applicationStatus] is `REJECTED`.
   final String? applicationRejectionReason;
 
   bool get isApplicationPending => applicationStatus == 'PENDING';
   bool get isApplicationAccepted => applicationStatus == 'ACCEPTED';
 
-  /// Rejected applications can be filed again — a new application replaces
-  /// this status with `PENDING`.
+  /// May be filed again; a new application resets it to `PENDING`.
   bool get isApplicationRejected => applicationStatus == 'REJECTED';
 
-  /// The role the volunteer registered for, as the server holds it. Null on
-  /// prototype fixtures and on events the volunteer has not joined.
+  /// Null on fixtures and unjoined events.
   final EventParticipationRole? participationRole;
 
-  /// Where [participationRole] stands: approved, pending a Director's or
-  /// Coordinator's review, or rejected (the volunteer stays on as Regular).
+  /// Rejected keeps the volunteer on as Regular.
   final EventRoleApproval? roleApproval;
 
   bool get isRolePendingApproval => roleApproval == EventRoleApproval.pending;
@@ -186,7 +166,6 @@ class CaresEvent {
       ? 'Ongoing'
       : 'Upcoming';
 
-  /// Whether a position is inside this event's attendance area.
   bool containsPoint({required double latitude, required double longitude}) =>
       GeoUtils.isInsideEventArea(
         latitude: latitude,
@@ -197,15 +176,14 @@ class CaresEvent {
         radiusMeters: attendanceRadiusMeters,
       );
 
-  /// Numeric id on the server, or null for a prototype fixture. Server rows
-  /// carry the `event-<id>` form (see `RecommendedEvent.toCaresEvent`).
+  /// Null for a prototype fixture; server rows use `event-<id>` (see
+  /// `RecommendedEvent.toCaresEvent`).
   int? get serverId {
     final match = RegExp(r'^event-(\d+)$').firstMatch(id);
     return match == null ? null : int.tryParse(match.group(1)!);
   }
 
-  /// The same event with fresh registration numbers — [slotsLeft] and
-  /// [capacityFilled] are re-derived so a joined card keeps all three in step.
+  /// Re-derives [slotsLeft] and [capacityFilled] so all three stay in step.
   CaresEvent withParticipants({
     required int registeredCount,
     required int totalCapacity,
@@ -248,8 +226,7 @@ class CaresEvent {
     );
   }
 
-  /// The same event with the volunteer's registered role and its standing —
-  /// what a join answers with. Null for both clears them on a cancellation.
+  /// Null for both clears them on a cancellation.
   CaresEvent withParticipationRole(
     EventParticipationRole? role,
     EventRoleApproval? approval,
@@ -290,8 +267,7 @@ class CaresEvent {
     );
   }
 
-  /// The same event with the beneficiary's application moved along. Any
-  /// earlier rejection reason is dropped — it belonged to the old filing.
+  /// Drops any earlier rejection reason.
   CaresEvent withApplicationStatus(String? status) {
     return CaresEvent(
       id: id,
@@ -328,16 +304,14 @@ class CaresEvent {
     );
   }
 
-  /// Assumed length of an event when the server gives no end time — the
-  /// geofence keeps recording this long after [startsAt].
+  /// Used when the server gives no end time; the geofence records this long
+  /// after [startsAt].
   static const Duration defaultDuration = Duration(hours: 4);
 
-  /// How early before [startsAt] the tracker starts recording, so the
-  /// volunteer's approach to the venue is captured too.
+  /// Captures the volunteer's approach to the venue.
   static const Duration trackingLeadTime = Duration(minutes: 30);
 
-  /// [date] combined with the clock time parsed out of [time] (`'8:00 AM'`).
-  /// Falls back to midnight when [time] does not parse.
+  /// Midnight when [time] (`'8:00 AM'`) doesn't parse.
   DateTime get startsAt {
     final match = RegExp(
       r'^\s*(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])?',
@@ -361,20 +335,17 @@ class CaresEvent {
     return startsAt.add(duration);
   }
 
-  /// Window in which the geofence records coordinates for this event.
   DateTime get trackingStartsAt => startsAt.subtract(trackingLeadTime);
 
   bool isTrackingWindowOpen(DateTime now) =>
       !isCompleted && !now.isBefore(trackingStartsAt) && now.isBefore(endsAt);
 
-  /// The event is over: the server closed it out, or its end time has
-  /// passed on the device clock. Registered events move from "Registered"
-  /// to "Completed" on the activity page the moment this flips.
+  /// Server close-out or the device clock passing [endsAt]; moves the card to
+  /// "Completed".
   bool hasEnded([DateTime? now]) =>
       isCompleted || !(now ?? DateTime.now()).isBefore(endsAt);
 
-  /// The event is happening right now — started but not yet [hasEnded].
-  /// Cancelling is locked once this is true.
+  /// Cancelling is locked while true.
   bool isOngoing([DateTime? now]) {
     final at = now ?? DateTime.now();
     return !hasEnded(at) && !at.isBefore(startsAt);

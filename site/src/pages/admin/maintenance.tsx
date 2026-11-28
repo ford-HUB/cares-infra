@@ -24,7 +24,6 @@ import type {
   MaintenanceWindow,
 } from '../../types/maintenance'
 
-/** Where a window sits in the board's order: what is happening now reads first. */
 const WINDOW_ORDER: Record<MaintenanceWindow['state'], number> = {
   active: 0,
   scheduled: 1,
@@ -32,7 +31,6 @@ const WINDOW_ORDER: Record<MaintenanceWindow['state'], number> = {
   cancelled: 3,
 }
 
-/** A blank booking, so the dialog has the same shape for new and existing windows. */
 function blankWindow(): MaintenanceWindow {
   return {
     id: '',
@@ -75,8 +73,7 @@ export function MaintenancePage() {
     void fetchAll()
   }, [fetchAll])
 
-  // Silent polls keep the board on screen — a window can start on its own while the
-  // page is open, and a screen watched all night must not blink back to its skeleton.
+  // Silent polls: windows can start on their own and the board mustn't blink to its skeleton.
   useEffect(() => {
     const timer = window.setInterval(
       () => void fetchAll({ silent: true }),
@@ -85,7 +82,6 @@ export function MaintenancePage() {
     return () => window.clearInterval(timer)
   }, [fetchAll])
 
-  // One timer for the header's countdown; the window board owns its own for the rows.
   const now = useClockTick(1000, initialized)
 
   const states = useMemo(() => resolveSurfaceStates(mode, windows), [mode, windows])
@@ -96,7 +92,6 @@ export function MaintenancePage() {
         if (WINDOW_ORDER[a.state] !== WINDOW_ORDER[b.state]) {
           return WINDOW_ORDER[a.state] - WINDOW_ORDER[b.state]
         }
-        // Upcoming windows read soonest-first; settled ones read newest-first.
         const ascending = a.state === 'scheduled' || a.state === 'active'
         const diff = dayjs(a.startAt).valueOf() - dayjs(b.startAt).valueOf()
         return ascending ? diff : -diff
@@ -109,8 +104,7 @@ export function MaintenancePage() {
     [orderedWindows],
   )
 
-  // Counted over the whole board, not the filtered view — the chips must not move
-  // when one of them is selected.
+  // Over the whole board so the chips don't move when one is selected.
   const counts = useMemo(() => {
     const base = ANNOUNCEMENT_STATE_ORDER.reduce(
       (totals, state) => ({
@@ -128,7 +122,7 @@ export function MaintenancePage() {
         ? announcements
         : announcements.filter((one) => one.state === filter)
 
-    // Pinned first, because that is where these land in the feeds this board writes to.
+    // Pinned first, matching the feeds this board writes to.
     return [...matching].sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
       return dayjs(b.publishAt).valueOf() - dayjs(a.publishAt).valueOf()
@@ -155,10 +149,7 @@ export function MaintenancePage() {
         </p>
       </header>
 
-      {/*
-        A failed read would otherwise leave the banner showing the last state, which
-        reads as "everything is up" exactly when it may not be.
-      */}
+      {/* Otherwise the stale banner reads as "everything is up". */}
       {error ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

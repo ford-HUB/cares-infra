@@ -6,11 +6,10 @@ final rankingServiceProvider = Provider<RankingService>(
   (ref) => RankingService(),
 );
 
-/// Which window the Ranks tab is showing. Null follows the portal's default.
+/// Null follows the portal's default.
 final leaderboardPeriodProvider = StateProvider<String?>((ref) => null);
 
-/// The scored board for the selected period. The home header watches this too
-/// for the rank badge and avatar frame, so one fetch serves both.
+/// The home header watches it too, so one fetch serves both.
 final leaderboardProvider = FutureProvider.autoDispose<Leaderboard>((
   ref,
 ) async {

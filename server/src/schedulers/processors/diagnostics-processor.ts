@@ -6,7 +6,6 @@ import { SystemDiagnosticsChecker } from '../scheduler-diagnostics';
 import { SCHEDULER_QUEUES, SchedulerRunRecorder } from '../scheduler-registry';
 import { CatalogedProcessor } from './base-processor';
 
-/** Runs the diagnostics sweep and notes its verdict in the job's log. */
 @Processor(SCHEDULER_QUEUES.diagnostics)
 export class DiagnosticsProcessor extends CatalogedProcessor {
   protected readonly logger = new Logger(DiagnosticsProcessor.name);

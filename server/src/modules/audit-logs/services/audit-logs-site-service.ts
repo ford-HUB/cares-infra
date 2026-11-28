@@ -11,7 +11,7 @@ import {
   type AuditLogRow,
 } from '../repositories/audit-log-repository';
 
-/** How far back each range reaches, in hours. `all` is unbounded, so it has no entry. */
+/** `all` is unbounded. */
 const RANGE_HOURS: Record<Exclude<AuditLogRangeDto, 'all'>, number> = {
   '24h': 24,
   '7d': 24 * 7,
@@ -33,7 +33,7 @@ export class AuditLogsSiteService {
       limit: query.limit,
     });
 
-    // A short page means the trail is exhausted; a full one may still have more.
+    // A short page means exhausted.
     const exhausted = rows.length < query.limit;
 
     return {
@@ -77,11 +77,7 @@ function toAuditLog(row: AuditLogRow): AuditLogDto {
   };
 }
 
-/**
- * `changes` and `metadata` are Json columns, so Prisma hands them back as `unknown`
- * shapes. They are normalised here rather than trusted: a malformed row must degrade
- * to an entry with no diff, not fail the whole page.
- */
+/** Json columns are normalised: a malformed row degrades to no diff instead of failing the page. */
 function toChanges(value: unknown): AuditLogChangeDto[] {
   if (!Array.isArray(value)) return [];
 

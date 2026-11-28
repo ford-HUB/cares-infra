@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { MAILBOX_SKELETON_ROWS } from '../../../constants/mailbox'
 
-/** Mirrors `MailboxMessageRow` — same `h-[68px]`, same padding, so nothing jumps. */
 export function MailboxListSkeleton({ rows = MAILBOX_SKELETON_ROWS }: { rows?: number }) {
   return (
     <div aria-hidden>

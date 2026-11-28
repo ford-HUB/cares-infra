@@ -5,7 +5,7 @@ import {
 } from '../../../infastructures/prisma/common/client';
 import { DonationSchema } from './donations-mobile-validator';
 
-/** Rungs a portal account may move a donation to. CANCELLED belongs to the donor. */
+/** CANCELLED belongs to the donor. */
 export const PORTAL_DONATION_STATUSES = [
   DonationStatus.PLEDGED,
   DonationStatus.AWAITING_PICKUP,
@@ -30,7 +30,6 @@ export const DonationsSiteQuerySchema = z
   })
   .strict();
 
-/** A ledger row with the donor beside it — the tracking table's row. */
 export const SiteDonationSchema = DonationSchema.extend({
   donor: z.object({
     user_id: z.string(),

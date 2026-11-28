@@ -6,11 +6,7 @@ import type { PasswordRulesDto } from '../dto/security-policy-public-dto';
 import { SecurityPolicyService } from '../services/security-policy-service';
 import { PasswordRulesResponseSchema } from '../validators/security-policy-public-validator';
 
-/**
- * Read-only, unauthenticated, and password rules only. The registration and
- * password-reset forms on both clients need to show the same rules the server will
- * enforce, and they run before a session exists.
- */
+/** Public so pre-session sign-up/reset forms show the enforced rules. */
 @Controller('v1/security-policy/password-rules')
 export class SecurityPolicyPublicController {
   constructor(private readonly securityPolicyService: SecurityPolicyService) {}

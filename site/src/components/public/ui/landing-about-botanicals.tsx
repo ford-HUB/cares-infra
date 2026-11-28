@@ -1,4 +1,3 @@
-/** Bottom edge of rolling hills. */
 function Hills({ back, front }: { back: string; front: string }) {
   return (
     <svg
@@ -12,9 +11,7 @@ function Hills({ back, front }: { back: string; front: string }) {
   )
 }
 
-/** A mint tint closing on rolling dark-green hills: the backdrop of the public site's light
- *  sections. `hills={false}` keeps the tint alone, for a section that runs straight on
- *  into another mint one. */
+/** `hills={false}` keeps the tint alone, for a section that runs into another mint one. */
 export function LandingHillsBackdrop({ hills = true }: { hills?: boolean }) {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">

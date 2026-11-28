@@ -24,15 +24,10 @@ import type { OverviewSlice } from './ui/overview-slice'
 
 interface AdminOverviewProps {
   overview: AdminOverviewData
-  /** The director also gets the residential-needs band above the charts. */
+  /** Adds the residential-needs band above the charts. */
   isDirector: boolean
 }
 
-/**
- * The system overview as charts: three part-to-whole cards for who the platform holds,
- * where its events stand, and how registrations resolved; three gauges for the rates
- * those totals imply; and the recent window as one bar chart.
- */
 export function AdminOverview({ overview, isDirector }: AdminOverviewProps) {
   const { community, events, attendance, recentDays } = overview
 

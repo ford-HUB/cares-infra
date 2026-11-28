@@ -11,21 +11,15 @@ import {
   EvaluationTypographySchema,
 } from '../validators/evaluation-site-validator';
 
-/** A questionnaire row, with the Forms page's tallies when the query asked for them. */
+/** Counts only when the query asked for them. */
 export type EvaluationFormWithCounts = EvaluationForm & {
   _count?: { assignments: number; responses: number };
 };
 
-/**
- * Reads the questionnaire out of its JSON columns. Shared by the portal (which
- * edits it) and the volunteer app (which answers it) so both see the same shape.
- */
+/** Shared by portal and app so both see the same shape. */
 @Injectable()
 export class EvaluationFormService {
-  /**
-   * The counts come from the portal's list query; the volunteer app reads a bare
-   * row, so they fall back to zero rather than forcing a second query on mobile.
-   */
+  /** Mobile reads a bare row, so counts default to zero. */
   toDto(form: EvaluationFormWithCounts): EvaluationFormDto {
     return {
       evaluation_form_id: form.evaluation_form_id,
@@ -42,10 +36,7 @@ export class EvaluationFormService {
     };
   }
 
-  /**
-   * The stored JSON was validated on the way in, so a parse failure here means
-   * the column was edited by hand; drop the bad entry rather than 500 the page.
-   */
+  /** Validated on write; drops hand-edited bad entries instead of 500ing. */
   parseQuestions(raw: unknown): EvaluationQuestionDto[] {
     if (!Array.isArray(raw)) return [];
     return raw.flatMap((entry) => {
@@ -61,7 +52,7 @@ export class EvaluationFormService {
       : { font_family: 'inter', font_size: 'xl' };
   }
 
-  /** True when the answer counts as given — the same test the portal uses. */
+  /** Same test as the portal. */
   isAnswered(value: EvaluationAnswersDto[string] | undefined): boolean {
     if (value === undefined || value === null) return false;
     if (typeof value === 'string') return value.trim().length > 0;

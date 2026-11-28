@@ -6,11 +6,7 @@ import {
   findSchedulerDefinition,
 } from '../scheduler-registry';
 
-/**
- * Shared plumbing for the queue workers: every catalogued job's run is recorded so
- * the Services screen can show it. On-demand jobs (`publish`, `send`) are not
- * catalogued and pass through untouched — their volume would drown the history.
- */
+/** Records catalogued runs for the Services screen; on-demand jobs (`publish`, `send`) pass through. */
 export abstract class CatalogedProcessor extends WorkerHost {
   protected abstract readonly logger: Logger;
   protected abstract readonly recorder: SchedulerRunRecorder;
@@ -42,16 +38,12 @@ export abstract class CatalogedProcessor extends WorkerHost {
     );
   }
 
-  /** A line in the run's log — what the sweep found, how many it touched. */
   protected async note(job: Job, message: string): Promise<void> {
     if (!findSchedulerDefinition(job.name)) return;
     await this.recorder.log(job.name, runIdOf(job), 'info', message);
   }
 
-  /**
-   * Runs the sweep against the catalogue's runtime cap. BullMQ has no per-job
-   * timeout of its own, so the cap is enforced here and surfaces as a failed run.
-   */
+  /** BullMQ has no per-job timeout, so the cap is enforced here as a failed run. */
   protected async withRuntimeCap<T>(
     job: Job,
     work: () => Promise<T>,
@@ -81,7 +73,7 @@ export abstract class CatalogedProcessor extends WorkerHost {
   }
 }
 
-/** BullMQ job ids are unique per queue; repeat jobs carry their fire time in the id. */
+/** Unique per queue; repeat jobs embed their fire time. */
 export function runIdOf(job: Job): string {
   return job.id ?? `${job.name}-${job.timestamp}`;
 }

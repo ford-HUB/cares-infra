@@ -10,7 +10,6 @@ const statusStyles: Record<DonationStatus, { badge: string; dot: string }> = {
   cancelled: { badge: 'bg-gray-100 text-gray-500', dot: 'bg-gray-300' },
 }
 
-/** Dense badge sized for the donations table; reused in the detail dialog header. */
 export function DonationStatusBadge({ status }: { status: DonationStatus }) {
   const style = statusStyles[status]
 

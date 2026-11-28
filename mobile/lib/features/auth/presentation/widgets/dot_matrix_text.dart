@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Renders short text as a 5x7 dot-matrix display — square dots on a grid, the
-/// way a station board or a weather kiosk shows a reading. Digits, A-Z and a
-/// little punctuation are defined; anything else paints as a blank cell, so
-/// pass upper-case text.
+/// 5x7 dot matrix; only digits, A-Z and a little punctuation are defined, so
+/// pass upper case.
 class DotMatrixText extends StatelessWidget {
   const DotMatrixText({
     super.key,
@@ -18,17 +16,13 @@ class DotMatrixText extends StatelessWidget {
   final String text;
   final Color color;
 
-  /// Side of one square dot in logical pixels.
   final double dotSize;
 
-  /// Space between dots inside a glyph.
   final double gap;
 
   /// Extra space between glyphs, on top of [gap].
   final double charGap;
 
-  /// Optional halo painted under the dots so the readout survives a busy
-  /// background.
   final Color? glowColor;
 
   static const _rows = 7;
@@ -78,8 +72,7 @@ class DotMatrixText extends StatelessWidget {
     'Z': ['11111', '00001', '00010', '00100', '01000', '10000', '11111'],
   };
 
-  /// Largest [dotSize] that fits [text] into [maxWidth] with the given
-  /// [gap]/[charGap] ratios, so a readout can size itself to its slot.
+  /// Largest [dotSize] that fits [maxWidth].
   static double dotSizeToFit(
     String text,
     double maxWidth, {
@@ -160,8 +153,8 @@ class _DotMatrixPainter extends CustomPainter {
             Rect.fromLTWH(penX + col * cell, row * cell, dotSize, dotSize),
             radius,
           );
-          // Two glow passes: the halo has to carry the dots on its own now
-          // that the readout has no chip border behind it.
+          // Two glow passes: the halo carries the dots alone, with no chip
+          // border behind.
           if (glow != null) {
             canvas.drawRRect(rect.inflate(dotSize * 0.3), glow);
             canvas.drawRRect(rect, glow);

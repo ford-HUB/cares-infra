@@ -26,7 +26,6 @@ import {
   VolunteerRankingsResponseSchema,
 } from '../validators/rankings-site-validator';
 
-/** The portal's Rankings area: the volunteer standings and their scoring rule. */
 @Controller('v1/rankings')
 @Roles(...PORTAL_ROLE_TYPES)
 export class RankingsSiteController {

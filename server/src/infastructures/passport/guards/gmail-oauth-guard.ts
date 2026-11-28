@@ -6,14 +6,7 @@ import {
   GmailOAuthResult,
 } from '../strategies/gmail-strategy';
 
-/**
- * Drives both legs of the Gmail consent flow: on `/google` passport redirects the
- * browser to Google, on `/google/callback` it exchanges the code for tokens.
- *
- * A denied or failed consent must land the admin back in the portal rather than on a
- * JSON error page, so `handleRequest` returns `null` instead of throwing — the
- * controller turns that into a redirect carrying an error flag.
- */
+/** Both Gmail consent legs; `handleRequest` returns null so the controller redirects on failure. */
 @Injectable()
 export class GmailOAuthGuard extends AuthGuard(GMAIL_STRATEGY_NAME) {
   private readonly logger = new Logger(GmailOAuthGuard.name);
@@ -25,10 +18,7 @@ export class GmailOAuthGuard extends AuthGuard(GMAIL_STRATEGY_NAME) {
 
     return {
       session: false,
-      /**
-       * `offline` + a forced consent screen is what makes Google return a refresh
-       * token; without it a reconnect yields an access token that dies in an hour.
-       */
+      /** `offline` + forced consent is required for a refresh token. */
       accessType: 'offline',
       prompt: 'consent',
       state,

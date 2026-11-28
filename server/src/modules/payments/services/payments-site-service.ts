@@ -37,13 +37,9 @@ import { PaymentActivationService } from './payment-activation-service';
 import { PaymentSettingsService } from './payment-settings-service';
 import { apiPublicUrl } from '../../../shared/utils/environment-utils';
 
-/** Where Xendit is told to post its callbacks; read-only in the portal. */
+/** Read-only in the portal. */
 const WEBHOOK_PATH = '/api/v1/donations/webhooks/xendit';
 
-/**
- * The director's side of the Payments module: read the account CARES collects into,
- * save it, and prove a key works before trusting it with real money.
- */
 @Injectable()
 export class PaymentsSiteService {
   private readonly logger = new Logger(PaymentsSiteService.name);
@@ -61,11 +57,7 @@ export class PaymentsSiteService {
     return this.toDto(await this.paymentsRepository.findSettings());
   }
 
-  /**
-   * Saves the whole module at once. The secrets are the exception: an omitted secret
-   * keeps what is stored, so the form never has to hold the real key to save a change
-   * to something else.
-   */
+  /** An omitted secret keeps the stored one. */
   async updateSettings(
     body: UpdatePaymentSettingsDto,
     actor: JwtPayload,
@@ -87,13 +79,11 @@ export class PaymentsSiteService {
       actor.sub,
     );
 
-    // Dropped rather than refreshed: a failed write must not leave a checkout running
-    // on credentials that were never stored.
+    // Dropped, not refreshed, so a failed write can't leave stale credentials.
     this.paymentSettings.invalidate();
 
     const changes = this.diff(previous, row, body);
-    // Switching a channel on is a request to activate it, so the check runs here
-    // rather than waiting for the director to press a second button.
+    // Enabling a channel triggers its activation check.
     const activated = await this.activatePending(row);
     await this.auditLogRecorder.record({
       action: 'payment-settings.updated',
@@ -101,7 +91,7 @@ export class PaymentsSiteService {
         ? `Updated the donation payment settings (${changes.length} change${changes.length === 1 ? '' : 's'})`
         : 'Saved the donation payment settings with no changes',
       category: 'SYSTEM',
-      // This decides where donor money lands, so every save is worth a second look.
+      // Decides where donor money lands.
       severity: 'NOTICE',
       actor,
       targetType: 'system',
@@ -115,12 +105,7 @@ export class PaymentsSiteService {
     return this.toDto(activated);
   }
 
-  /**
-   * Re-runs the activation check for one channel — the portal's "Check again", and
-   * what gets the channel out of PENDING once the Xendit account exists. Creates the
-   * settings row if the director has not saved yet, so the button always means
-   * something.
-   */
+  /** "Check again"; creates the settings row if needed. */
   async verifyMethod(
     method: DonationPaymentMethod,
     actor: JwtPayload,
@@ -135,7 +120,6 @@ export class PaymentsSiteService {
     return this.toDto(await this.recheckMethod(row, method));
   }
 
-  /** Runs the activation check for one channel and records the verdict on it. */
   private async recheckMethod(
     row: PaymentSettingsRow,
     method: DonationPaymentMethod,
@@ -161,11 +145,7 @@ export class PaymentsSiteService {
     );
   }
 
-  /**
-   * Sends the token payout that proves the director holds the account this channel
-   * pays into. The amount is random and is not returned — reporting it back is the
-   * whole point of the exercise.
-   */
+  /** Random amount, not returned: reporting it back is the proof. */
   async startAccountProof(
     method: DonationPaymentMethod,
     actor: JwtPayload,
@@ -188,7 +168,7 @@ export class PaymentsSiteService {
     );
   }
 
-  /** The director reports what arrived; matching it verifies the account. */
+  /** A match verifies the account. */
   async confirmAccountProof(
     method: DonationPaymentMethod,
     amount: number,
@@ -221,13 +201,11 @@ export class PaymentsSiteService {
       targetId: row.payment_gateway_settings_id,
     });
 
-    // The proof was the only thing holding the channel at PENDING, so the activation
-    // check runs now — otherwise the badge keeps saying "waiting" until the director
-    // happens to press "Check again".
+    // The proof was the last PENDING blocker, so re-check now.
     return this.toDto(await this.recheckMethod(updated, method));
   }
 
-  /** The settings row and this channel's row, creating them if this is the first touch. */
+  /** Created on first touch. */
   private async requireMethod(
     method: DonationPaymentMethod,
     actor: JwtPayload,
@@ -245,11 +223,7 @@ export class PaymentsSiteService {
     };
   }
 
-  /**
-   * Checks every channel that is switched on but not yet confirmed. A channel that
-   * already passed is left alone — the check costs a gateway round trip, and nothing
-   * about a saved label can invalidate it.
-   */
+  /** Already-passed channels are skipped to save a gateway round trip. */
   private async activatePending(
     row: PaymentSettingsRow,
   ): Promise<PaymentSettingsRow> {
@@ -283,7 +257,6 @@ export class PaymentsSiteService {
     return current;
   }
 
-  /** Channel rows as they look before the director has configured anything. */
   private blankMethodWrites(): PaymentMethodWrite[] {
     return PAYMENT_METHOD_CATALOG.map((descriptor) => ({
       method: descriptor.method,
@@ -299,11 +272,7 @@ export class PaymentsSiteService {
     }));
   }
 
-  /**
-   * Asks Xendit for the account balance with the key being tried — the cheapest call
-   * that can only succeed with a valid key. The outcome is recorded on the row when
-   * there is one, so the portal keeps showing "last verified" after a reload.
-   */
+  /** Balance lookup: the cheapest call that needs a valid key. Recorded on the row when present. */
   async testConnection(
     body: TestPaymentGatewayDto,
     actor: JwtPayload,
@@ -312,8 +281,7 @@ export class PaymentsSiteService {
     const config = await this.paymentSettings.getConfig();
     const triedKey = body.secret_key?.trim();
     const secretKey = triedKey || config.credentials?.secretKey;
-    // A URL from the request only ever travels with a key from the request: the saved
-    // key goes to the saved host, or this endpoint would hand it to any address.
+    // A request URL only pairs with a request key, so the saved key can't be sent elsewhere.
     const apiUrl =
       (triedKey && body.api_url?.trim()) ||
       (config.credentials?.apiUrl ?? null);
@@ -336,8 +304,7 @@ export class PaymentsSiteService {
     }
 
     if (!row) {
-      // Nothing saved yet, so there is no row to record the outcome on. The response
-      // still carries the verdict — the portal reads `verification_error`.
+      // No row to record on; the response carries the verdict.
       return { ...(await this.toDto(null)), verification_error: failure };
     }
 
@@ -348,13 +315,7 @@ export class PaymentsSiteService {
     return this.toDto(updated);
   }
 
-  // ------------------------------------------------------------ internals
-
-  /**
-   * Undefined for a secret the form did not send (keep), null for one it cleared, and
-   * fresh ciphertext for one it replaced. `secret_key_last4` moves with the key so the
-   * two can never disagree about which key is stored.
-   */
+  /** Undefined keeps, null clears, ciphertext replaces; `secret_key_last4` moves with the key. */
   private secretWrites(body: UpdatePaymentSettingsDto) {
     const writes: {
       secret_key_cipher?: string | null;
@@ -379,10 +340,7 @@ export class PaymentsSiteService {
     return writes;
   }
 
-  /**
-   * Every channel in the catalog is written, whether or not the form sent it: a channel
-   * missing from the payload is an unticked box, not an instruction to keep the old row.
-   */
+  /** Writes every catalog channel: missing means unticked. */
   private methodWrites(body: UpdatePaymentSettingsDto): PaymentMethodWrite[] {
     return PAYMENT_METHOD_CATALOG.map((descriptor) => {
       const sent = body.methods.find(
@@ -400,8 +358,7 @@ export class PaymentsSiteService {
         min_amount: sent?.min_amount ?? 0,
         max_amount: sent?.max_amount ?? 0,
         sort_order: descriptor.sortOrder,
-        // A channel that is switched off loses its pass, so switching it back on is
-        // checked against the gateway again rather than trusting an old verdict.
+        // Switching off drops the pass, so re-enabling re-checks.
         ...(sent?.enabled
           ? {}
           : {
@@ -470,7 +427,7 @@ export class PaymentsSiteService {
           account_proof_attempts: saved?.account_proof_attempts ?? 0,
           account_verified_at:
             saved?.account_verified_at?.toISOString() ?? null,
-          // Only ever filled on a sandbox key — see the schema note.
+          // Sandbox keys only.
           account_proof_sandbox_amount: config.sandbox
             ? (saved?.account_proof_amount ?? null)
             : null,
@@ -481,16 +438,11 @@ export class PaymentsSiteService {
     };
   }
 
-  /** The callback URL Xendit is pointed at — one spelling, used by both. */
   private webhookUrl(): string {
     return `${apiPublicUrl()}${WEBHOOK_PATH}`;
   }
 
-  /**
-   * Field-level before/after pairs for the trail. The secrets are reported as the fact
-   * that they changed — the values themselves are exactly what must not be written to a
-   * log that other staff can read.
-   */
+  /** Secrets reported only as changed, never their values. */
   private diff(
     previous: PaymentSettingsRow | null,
     next: PaymentSettingsRow,
@@ -568,7 +520,6 @@ export class PaymentsSiteService {
   }
 }
 
-/** The trail stores text: it is read by a person, never replayed. */
 function format(
   value: string | number | boolean | string[] | null | undefined,
 ): string {

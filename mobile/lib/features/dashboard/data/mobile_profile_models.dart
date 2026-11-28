@@ -1,8 +1,7 @@
 import 'package:mobile/features/interests/domain/user_interest.dart';
 
-/// `GET /v1/profile/me/mobile?role=` — the signed-in person's profile with
-/// only the section matching the requested role populated (`volunteer`,
-/// `donor` or `beneficiary`); the other two are null.
+/// `GET /v1/profile/me/mobile?role=`: only the requested role's section
+/// (`volunteer`, `donor`, `beneficiary`) is populated.
 class MobileProfile {
   const MobileProfile({
     required this.userId,
@@ -94,9 +93,8 @@ class MobileProfile {
   /// The role the account registered with.
   final String roleType;
 
-  /// The role [completion] and the section are measured against — the side
-  /// the app asked for. Differs from [roleType] when a person switched roles
-  /// locally (a volunteer-registered account on its beneficiary dashboard).
+  /// The side the app asked for; differs from [roleType] after a local role
+  /// switch.
   final String profilingRole;
   final String firstName;
   final String? middleName;
@@ -107,33 +105,31 @@ class MobileProfile {
   final int age;
   final ProfileAddress address;
 
-  /// How many people the assistance has to cover; null until set. Top-level
-  /// because the app can edit the beneficiary side of any mobile account.
+  /// Null until set. Top-level because any mobile account can edit its
+  /// beneficiary side.
   final int? householdSize;
 
-  /// Proof-of-residency uploads, newest first.
+  /// Newest first.
   final List<ResidencyDocument> residencyDocuments;
 
-  /// Where the latest proof of residency stands with the administrator; null
-  /// when none was ever uploaded from the profile.
+  /// Null when none was uploaded from the profile.
   final ResidencyReview? residencyReview;
   final bool hasProfileImage;
 
   /// `GOOGLE` / `FACEBOOK` identities attached to the account, for any role.
   final List<String> signInProviders;
 
-  /// False for an account that only ever signed in through a provider. Defaults
-  /// to true when the server omits it so an older payload never locks the
-  /// email and password controls by mistake.
+  /// False for provider-only accounts; defaults to true when omitted so older
+  /// payloads never lock the controls.
   final bool hasPassword;
   final DateTime memberSince;
 
-  /// Sides open besides [roleType] without a role-access request — a student
-  /// beneficiary's `VOLUNTEER` side.
+  /// Open without a role-access request, e.g. a student beneficiary's
+  /// `VOLUNTEER` side.
   final List<String> unlockedRoles;
 
-  /// The identity lives with Google or Facebook, so the email and password
-  /// cannot be changed from CARES — Account Security disables both controls.
+  /// Email and password live with the provider, so Account Security disables
+  /// both.
   bool get usesSocialSignIn => !hasPassword && signInProviders.isNotEmpty;
 
   /// "Google", "Facebook", or "Google and Facebook" for the disabled hints.
@@ -148,7 +144,7 @@ class MobileProfile {
     return '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
   }
 
-  /// Server-computed progress over the stored record.
+  /// Server-computed.
   final ProfileCompletion completion;
   final VolunteerServerProfile? volunteer;
   final DonorServerProfile? donor;
@@ -180,9 +176,8 @@ class MobileProfile {
   }
 }
 
-/// Body of `PUT /profile/me/mobile` — every editable column, sent as
-/// multipart fields so the avatar can travel with them. Email and password are
-/// not here on purpose; they change through the account flows.
+/// Multipart so the avatar can travel along. Email and password change through
+/// the account flows.
 class MobileProfileUpdate {
   const MobileProfileUpdate({
     required this.firstName,
@@ -195,7 +190,6 @@ class MobileProfileUpdate {
     this.householdSize,
   });
 
-  /// Pre-fills the form from the record on file.
   factory MobileProfileUpdate.fromProfile(MobileProfile profile) {
     return MobileProfileUpdate(
       firstName: profile.firstName,
@@ -216,9 +210,8 @@ class MobileProfileUpdate {
   final String gender;
   final int age;
 
-  /// Free-text address — the shape registration captures. Null when the form
-  /// locks the address (beneficiaries change it through a residency document),
-  /// in which case the field is not sent and the server leaves it alone.
+  /// Null when locked (beneficiaries change it via a residency document); it is
+  /// then not sent.
   final String? address;
 
   /// Sent as an empty string to clear it, since multipart has no null.
@@ -236,9 +229,7 @@ class MobileProfileUpdate {
   };
 }
 
-/// `profile_completion` — how much of the record is actually on file. The
-/// server measures this against its own columns, so the app never recomputes
-/// it from local state.
+/// Measured by the server against its own columns; never recomputed locally.
 class ProfileCompletion {
   const ProfileCompletion({
     required this.percent,
@@ -271,28 +262,24 @@ class ProfileCompletion {
   final int totalSteps;
   final List<String> missing;
 
-  /// Steps the person has done their part on that an administrator still has
-  /// to approve (they are in [missing] too, so [complete] stays false).
+  /// Done by the person but awaiting an admin; also in [missing], so [complete]
+  /// stays false.
   final List<String> pendingReview;
 
-  /// The proof of residency is uploaded and waiting on an administrator —
-  /// the profile shows "under review" instead of a percentage.
+  /// Shown as "under review" instead of a percentage.
   bool get residencyUnderReview => pendingReview.contains(residencyDocumentStep);
 
-  /// Everything still missing is only waiting on an administrator; there is
-  /// nothing left for the person to fill in.
+  /// Nothing left for the person to fill in.
   bool get onlyAwaitingReview =>
       !complete &&
       pendingReview.isNotEmpty &&
       missing.every(pendingReview.contains);
 
-  /// Missing steps the person still has to do themselves.
   List<String> get actionable =>
       missing.where((m) => !pendingReview.contains(m)).toList();
 
   static const residencyDocumentStep = 'residency_document';
 
-  /// Human label for a `missing` key, for the "what's left" hint.
   static String labelFor(String key) => switch (key) {
     'personal_details' => 'Personal Details',
     'school_record' => 'School Information',
@@ -330,8 +317,7 @@ class ProfileAddress {
   final String? province;
   final String full;
 
-  /// Split fields when they exist, otherwise the free-text address captured
-  /// at registration.
+  /// Split fields when present, else the registration free text.
   String get display {
     final parts = [
       street,
@@ -415,34 +401,28 @@ class VolunteerServerProfile {
   final VolunteerSchoolInfo? school;
   final Set<UserInterest> interests;
 
-  /// What the volunteer typed under "Others"; null unless that is picked.
+  /// Null unless "Others" is picked.
   final String? otherInterest;
 
-  /// This side was opened by a director approving a role-access request, not
-  /// by registering as a volunteer — there is no school record to show.
+  /// Opened by a director's role-access approval; no school record.
   final bool accessGrantedByDirector;
 
-  /// The partner barangay a community volunteer signed up through; null for a
-  /// school volunteer.
+  /// Null for a school volunteer.
   final String? partnerBarangay;
 
-  /// A volunteer from one of the partner barangays — not part of the school,
-  /// so there is no school record to show.
+  /// Not part of the school, so no school record.
   bool get isPartnerBarangay => partnerBarangay != null;
 
   final double serviceHours;
   final int activitiesCompleted;
   final int activitiesRegistered;
 
-  /// All-time leaderboard points under the portal's scoring rule.
+  /// Under the portal's scoring rule.
   final int rankingPoints;
 
-  /// Not part of the school community: a director-granted volunteer (donor /
-  /// beneficiary) or a partner-barangay volunteer.
   bool get outsideSchool => accessGrantedByDirector || isPartnerBarangay;
 
-  /// The interests this side may hold: a volunteer from [outsideSchool] does
-  /// not get the School interest, so it is dropped even if it was saved
+  /// [outsideSchool] volunteers lose the School interest, even if saved
   /// earlier.
   Set<UserInterest> get allowedInterests =>
       UserInterestX.allowed(interests, outsideSchool: outsideSchool);
@@ -478,8 +458,7 @@ class DonorServerProfile {
   }
 }
 
-/// Beneficiaries register ID-less, so their section carries no fields yet —
-/// it exists so the app can tell which role the record belongs to.
+/// ID-less, so no fields yet; it marks which role the record belongs to.
 class BeneficiaryServerProfile {
   const BeneficiaryServerProfile();
 
@@ -487,8 +466,7 @@ class BeneficiaryServerProfile {
       const BeneficiaryServerProfile();
 }
 
-/// One proof-of-residency file on record — what
-/// `POST /profile/me/mobile/residency` stored, and the address OCR read off it.
+/// What `POST /profile/me/mobile/residency` stored, plus the OCR'd address.
 class ResidencyDocument {
   const ResidencyDocument({
     required this.id,
@@ -552,8 +530,7 @@ class ResidencyDocument {
   }
 }
 
-/// `residency_review` on the profile — the director's ruling on the latest
-/// proof of residency uploaded from the profile.
+/// The director's ruling on the latest residency upload.
 class ResidencyReview {
   const ResidencyReview({
     required this.status,

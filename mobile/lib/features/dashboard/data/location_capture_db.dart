@@ -4,7 +4,6 @@ import 'package:sqflite/sqflite.dart';
 import '../domain/location_records.dart';
 import '../domain/tracked_event.dart';
 
-/// One GPS fix recorded while a joined event's tracking window was open.
 class LocationCaptureRow {
   const LocationCaptureRow({
     this.id,
@@ -85,9 +84,8 @@ class LocationCaptureRow {
     return '$hh:$mm:$ss';
   }
 
-  /// One CSV line in the `time,latitude,longitude,accuracy_m,in_area` shape
-  /// the server expects. `time` is the full UTC timestamp so the server can
-  /// place the row without guessing the day.
+  /// `time,latitude,longitude,accuracy_m,in_area`; full UTC `time` so the
+  /// server needn't guess the day.
   String toCsvLine() =>
       '${capturedAt.toUtc().toIso8601String()},'
       '${latitude.toStringAsFixed(6)},'
@@ -95,7 +93,6 @@ class LocationCaptureRow {
       '${accuracyMeters.round()},'
       '${inArea ? 1 : 0}';
 
-  /// JSON body of one fix for the realtime endpoint.
   Map<String, dynamic> toLiveJson() => {
     'eventId': eventId,
     'capturedAt': capturedAt.toUtc().toIso8601String(),
@@ -114,7 +111,6 @@ class LocationCaptureRow {
   );
 }
 
-/// One calendar day of captures, as grouped for the Geolocation Records list.
 class LocationDaySummary {
   const LocationDaySummary({
     required this.dayKey,
@@ -129,7 +125,6 @@ class LocationDaySummary {
   final int pending;
 }
 
-/// A joined event that still has rows waiting for the server.
 class PendingEventRef {
   const PendingEventRef({required this.eventId, required this.eventTitle});
 
@@ -137,7 +132,6 @@ class PendingEventRef {
   final String eventTitle;
 }
 
-/// Per-event summary used by the sync sheet.
 class LocationCaptureStats {
   const LocationCaptureStats({
     required this.total,
@@ -158,14 +152,9 @@ class LocationCaptureStats {
   int get synced => total - pending;
 }
 
-/// SQLite-backed store for geofence captures. Rows are appended live while an
-/// event runs, flipped to `synced` once their CSV export was accepted by the
-/// server, and purged after [retentionDays].
-///
-/// SQLite rather than a raw CSV file on disk: every fix is an atomic insert
-/// (no torn last line on a crash), "unsynced rows for event X" is a query
-/// instead of a file rewrite, and the CSV is generated from the rows only at
-/// upload time — so the upload format stays exactly the CSV the server wants.
+/// Rows are appended live, flipped to `synced` once their CSV is accepted, and
+/// purged after [retentionDays]. SQLite over a raw CSV: atomic inserts,
+/// queryable pending rows, CSV generated only at upload.
 class LocationCaptureDb {
   LocationCaptureDb._();
 
@@ -231,9 +220,8 @@ class LocationCaptureDb {
     return db;
   }
 
-  /// The UI and the Android location service each open this database, so
-  /// both can run the same upgrade; a column added by one must not make the
-  /// other's ALTER fail.
+  /// The UI and the location service both open this DB and may both upgrade; a
+  /// column added by one must not fail the other's ALTER.
   static Future<void> _addColumnIfMissing(
     Database db,
     String table,
@@ -250,9 +238,8 @@ class LocationCaptureDb {
     '(key TEXT PRIMARY KEY, value TEXT NOT NULL)',
   );
 
-  /// The joined events the recorder tracks, mirrored from the in-memory
-  /// registration store so the background service (and a cold restart) can
-  /// read them without the app's UI being alive.
+  /// Mirrored from the registration store so the background service (and a cold
+  /// start) can read them.
   static Future<void> _createJoinedTable(Database db) => db.execute(
     'CREATE TABLE IF NOT EXISTS $_joinedTable ('
     'event_id TEXT NOT NULL, '
@@ -298,8 +285,7 @@ class LocationCaptureDb {
     );
   }
 
-  /// Free-form persisted state shared with the background service
-  /// (e.g. the signed-in email, since the service can't read the session).
+  /// Shared with the background service, which can't read the session.
   Future<String?> readState(String key) async {
     final db = await _database;
     final rows = await db.query(
@@ -318,8 +304,7 @@ class LocationCaptureDb {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  /// Persisted "recording is activated" flag, so an app restart while
-  /// offline keeps saving until the server can be asked again.
+  /// Persisted so an offline restart keeps saving.
   Future<bool> readActivated() async {
     final db = await _database;
     final rows = await db.query(
@@ -404,8 +389,7 @@ class LocationCaptureDb {
     );
   }
 
-  /// The device's most recent fix for this volunteer, whichever event it was
-  /// tagged with — used to tell where the phone is right now.
+  /// Any event; tells where the phone is now.
   Future<LocationCaptureRow?> latestFix(String email) async {
     final db = await _database;
     final rows = await db.query(
@@ -418,7 +402,7 @@ class LocationCaptureDb {
     return rows.isEmpty ? null : LocationCaptureRow.fromMap(rows.first);
   }
 
-  /// Days with captures, newest first — one entry per daily CSV.
+  /// Newest first; one entry per daily CSV.
   Future<List<LocationDaySummary>> daySummaries(String email) async {
     final db = await _database;
     final result = await db.rawQuery(
@@ -473,7 +457,6 @@ class LocationCaptureDb {
     );
   }
 
-  /// Events that still have unsynced rows for this volunteer.
   Future<List<PendingEventRef>> eventsWithPending(String email) async {
     final db = await _database;
     final result = await db.rawQuery(
@@ -516,8 +499,7 @@ class LocationCaptureDb {
     await batch.commit(noResult: true);
   }
 
-  /// Drops synced rows older than [retentionDays]. Unsynced rows are kept
-  /// regardless of age — they still owe the server a CSV.
+  /// Unsynced rows are kept regardless of age.
   Future<int> purgeExpired() async {
     final db = await _database;
     final cutoff = DateTime.now()

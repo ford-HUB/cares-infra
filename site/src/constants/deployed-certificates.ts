@@ -7,7 +7,6 @@ export type DeploymentStatusFilter =
 
 export type DeploymentViewMode = 'grid' | 'table'
 
-/** Reading order of the lifecycle: handing out, queued, held, finished. */
 export const DEPLOYMENT_STATUS_ORDER: DeploymentStatus[] = [
   'distributing',
   'scheduled',
@@ -22,7 +21,6 @@ export const DEPLOYMENT_STATUS_LABELS: Record<DeploymentStatus, string> = {
   completed: 'Completed',
 }
 
-/** One record per visual channel, so badge, dot and bar segment stay in agreement. */
 export const DEPLOYMENT_STATUS_BADGE_STYLES: Record<DeploymentStatus, string> = {
   distributing: 'bg-emerald-50 text-emerald-700',
   scheduled: 'bg-sky-50 text-sky-700',
@@ -62,7 +60,6 @@ export const DEPLOYMENT_STATUS_FILTERS: {
   })),
 ]
 
-/** How the sheets are handed over once a deployment goes live. */
 export const DEPLOYMENT_SORT_OPTIONS = [
   { value: 'recent', label: 'Most recent' },
   { value: 'distribution', label: 'Least distributed' },
@@ -71,9 +68,7 @@ export const DEPLOYMENT_SORT_OPTIONS = [
 
 export type DeploymentSort = (typeof DEPLOYMENT_SORT_OPTIONS)[number]['value']
 
-/** A deployment under this share of its roster is behind and reads amber. */
 export const DISTRIBUTION_BEHIND_THRESHOLD = 0.6
 
-/** Cards/rows drawn while the first fetch settles — matches a filled first screen. */
 export const DEPLOYMENT_SKELETON_CARDS = 6
 export const DEPLOYMENT_SKELETON_ROWS = 8

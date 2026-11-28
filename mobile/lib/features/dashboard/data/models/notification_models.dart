@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/session/app_role.dart';
 
-/// The server's notification categories, folded into the looks the feed
-/// draws. Unknown values fall back to [system] so a new category never blanks
-/// a row.
+/// Unknown server categories fall back to [system] so a new one never blanks a
+/// row.
 enum NotificationType {
   event,
   donation,
@@ -16,7 +15,6 @@ enum NotificationType {
 }
 
 extension NotificationTypeX on NotificationType {
-  /// Chip label on the feed's filter row.
   String get label => switch (this) {
     NotificationType.event => 'Events',
     NotificationType.donation => 'Donations',
@@ -29,7 +27,6 @@ extension NotificationTypeX on NotificationType {
   };
 }
 
-/// One row of the person's feed as the server holds it.
 class AppNotification {
   const AppNotification({
     required this.id,
@@ -69,25 +66,20 @@ class AppNotification {
   final bool attention;
   final bool isUnread;
 
-  /// The side of the account the row belongs to. Null means it is about the
-  /// account itself (support, role unlocks, …) and shows on every side.
+  /// Null means account-wide (support, role unlocks, …), shown on every side.
   final AppRole? audienceRole;
 
-  /// Where the row leads: `/events/<id>` for an event, `/events/<id>/feedback`
-  /// for the questionnaire, `/donations/<id>`, `/requests/<id>`,
-  /// `/support/<id>`, or a portal path the app cannot open.
+  /// `/events/<id>`, `/events/<id>/feedback`, `/donations/<id>`,
+  /// `/requests/<id>`, `/support/<id>`, or a portal path the app can't open.
   final String? href;
 
-  /// An event the person is no longer going to: they cancelled their own
-  /// registration, or the organizer called the event off. The feed draws
-  /// these as a red card with the title only — the server's follow-up line
-  /// ("Your slot was released…") is not shown.
+  /// Own cancellation or the event called off; drawn as a red title-only card
+  /// (the server's follow-up line is hidden).
   bool get isCancellation =>
       type == NotificationType.event &&
       (title.startsWith('Registration cancelled for ') ||
           title.endsWith(' was cancelled'));
 
-  /// Whether the row was created on the device's current calendar day.
   bool get isToday {
     final now = DateTime.now();
     return createdAt.year == now.year &&
@@ -95,7 +87,7 @@ class AppNotification {
         createdAt.day == now.day;
   }
 
-  /// Whether the row was created since the start of this week (Monday).
+  /// Since Monday.
   bool get isThisWeek {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -103,7 +95,6 @@ class AppNotification {
     return !createdAt.isBefore(monday);
   }
 
-  /// Whether the row belongs on [role]'s feed.
   bool isFor(AppRole role) => audienceRole == null || audienceRole == role;
 
   AppNotification copyWith({bool? isUnread}) => AppNotification(
@@ -118,7 +109,6 @@ class AppNotification {
     href: href,
   );
 
-  /// "2h ago" style label for the list.
   String get timeAgo {
     final diff = DateTime.now().difference(createdAt);
     if (diff.inMinutes < 1) return 'Just now';
@@ -140,7 +130,7 @@ class AppNotification {
   };
 }
 
-/// Time window chips on the feed, applied on top of the kind filter.
+/// Applied on top of the kind filter.
 enum NotificationPeriod { today, thisWeek }
 
 extension NotificationPeriodX on NotificationPeriod {
@@ -155,7 +145,6 @@ extension NotificationPeriodX on NotificationPeriod {
   };
 }
 
-/// The feed plus its unread count.
 class NotificationFeed {
   const NotificationFeed({required this.unread, required this.items});
 

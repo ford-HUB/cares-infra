@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors the reading pane: header block, meta line, then body lines. */
 export function MailboxMessageSkeleton() {
   return (
     <div className="p-4" aria-hidden>

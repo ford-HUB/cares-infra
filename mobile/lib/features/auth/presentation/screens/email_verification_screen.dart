@@ -9,15 +9,12 @@ import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
 import 'package:mobile/features/auth/presentation/widgets/verification_code_input.dart';
 
-/// Runs once the 6-digit code has been accepted. It owns the actual account creation
-/// and must navigate away on success; a thrown [ApiException] is shown on this screen
-/// and the code is cleared for another try.
+/// Owns account creation and must navigate away on success; a thrown
+/// [ApiException] shows here and clears the code.
 typedef EmailVerifiedCallback = Future<void> Function(BuildContext context);
 
-/// OTP step shared by every self-registration that has no provider vouching for the
-/// email — volunteers, beneficiaries, and donors signing up with a password. The
-/// screen only proves the address; what happens afterwards is the caller's
-/// [onVerified], which is why it does not know about registration sessions or roles.
+/// Shared OTP step for sign-ups with no provider vouching for the email. It
+/// only proves the address; the rest is [onVerified].
 class EmailVerificationScreen extends ConsumerStatefulWidget {
   const EmailVerificationScreen({
     super.key,
@@ -33,16 +30,15 @@ class EmailVerificationScreen extends ConsumerStatefulWidget {
   final String email;
   final EmailVerifiedCallback onVerified;
 
-  /// Called after this screen pops itself when the server says the email, phone
-  /// number, or ID number already belongs to another account — the caller sends
-  /// the user back to that input. Without it the message just shows here.
+  /// Called after this screen pops on an email/phone/ID-number clash; without
+  /// it the message shows here.
   final ValueChanged<RegistrationConflict>? onConflict;
   final int initialExpiresInSeconds;
   final bool emailAlreadyVerified;
   final bool codeReused;
 
-  /// Sent again with every resend, so a sign-in verification is not treated as a
-  /// new registration (which would refuse the already-registered email).
+  /// Resent each time so a sign-in verification isn't treated as a new
+  /// registration.
   final VerificationPurpose purpose;
 
   @override
@@ -140,7 +136,6 @@ class _EmailVerificationScreenState
     _showMessage(message);
   }
 
-  /// True when the error was handed off to [EmailVerificationScreen.onConflict].
   bool _handOffConflict(Object error) {
     final onConflict = widget.onConflict;
     final conflict = RegistrationConflict.fromException(error);

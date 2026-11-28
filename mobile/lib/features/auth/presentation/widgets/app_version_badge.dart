@@ -5,9 +5,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/providers/app_update_provider.dart';
 import 'package:mobile/features/auth/presentation/widgets/release_notes_sheet.dart';
 
-/// Small `v1.2.0` label in the bottom-right corner of login. Tapping it opens the
-/// release notes from GitHub Releases. A lime dot shows when the splash
-/// found a newer release, e.g. after the user tapped "Later".
+/// Opens the GitHub release notes; a lime dot shows when a newer release was
+/// found.
 class AppVersionBadge extends ConsumerWidget {
   const AppVersionBadge({super.key});
 
@@ -52,8 +51,7 @@ class AppVersionBadge extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
                   color: Colors.white.withValues(alpha: 0.85),
-                  // Keeps it legible if the nav-bar inset lifts it onto the
-                  // paler back wave.
+                  // Legible if the nav-bar inset lifts it onto the paler wave.
                   shadows: const [
                     Shadow(color: Color(0x40000000), blurRadius: 3),
                   ],

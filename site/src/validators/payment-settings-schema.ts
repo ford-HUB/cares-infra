@@ -11,17 +11,9 @@ import {
   STATEMENT_NAME_MAX,
 } from '../constants/payment-settings'
 
-/** Spaces and dashes are how people type an account; they are not part of it. */
 const bareNumber = (value: string) => value.replace(/[\s-]/g, '')
 
-/**
- * Mirrors `payments-site-validator.ts` on the server. Duplicated rather than shared
- * because the two speak different field names, but the bounds must stay in step — a
- * value this schema accepts and the server rejects surfaces as a bare 400.
- *
- * The gateway credentials are not part of it: they are write-only on the server and
- * this screen does not edit them, so a save never carries one.
- */
+/** Mirrors server `payments-site-validator.ts`; keep bounds in sync or saves 400. Credentials excluded. */
 const methodSchema = z
   .object({
     method: z.enum(PAYMENT_METHOD_ORDER),
@@ -41,8 +33,6 @@ const methodSchema = z
       method.maxAmount >= method.minAmount,
     { message: 'The maximum must not be below the minimum', path: ['maxAmount'] },
   )
-  // A GCash or QR Ph account *is* a mobile number, so a typo is catchable here rather
-  // than being shown to a donor as the place their money went.
   .refine(
     (method) =>
       (method.method !== 'GCASH' && method.method !== 'QRPH') ||
@@ -63,8 +53,7 @@ const methodSchema = z
       path: ['accountNumber'],
     },
   )
-  // Everything below only applies to a channel that is actually being offered — an
-  // off channel is allowed to be half-filled, an offered one is not.
+  // Off channels may be half-filled; offered ones may not.
   .refine(
     (method) =>
       !method.enabled ||
@@ -117,8 +106,6 @@ export const paymentSettingsSchema = z
     methods: z.array(methodSchema),
   })
   .superRefine((values, ctx) => {
-    // Taking money with no channel open would leave donors a method step with nothing
-    // on it, so the switch and the channels have to agree.
     if (values.enabled && !values.methods.some((method) => method.enabled)) {
       ctx.addIssue({
         code: 'custom',
@@ -130,7 +117,6 @@ export const paymentSettingsSchema = z
 
 export type PaymentSettingsFormValues = z.infer<typeof paymentSettingsSchema>
 
-/** What the form shows before the saved settings arrive, and on a fresh install. */
 export const paymentSettingsDefaultValues: PaymentSettingsFormValues = {
   mode: 'TEST',
   enabled: false,

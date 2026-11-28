@@ -10,10 +10,10 @@ import {
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { PersistEventDto } from '../dto/events-site-dto';
 
-/** Thrown inside the register transaction to roll it back when no slot is left. */
+/** Rolls back the register transaction when full. */
 class EventFullError extends Error {}
 
-/** `ORGANIZER` → `Organizer`, as the volunteer and the reviewer read it. */
+/** e.g. `ORGANIZER` → `Organizer`. */
 export function participationRoleLabel(role: EventParticipationRole): string {
   return role.charAt(0) + role.slice(1).toLowerCase();
 }
@@ -28,10 +28,7 @@ export class EventsRepository {
     });
   }
 
-  /**
-   * The department on the user's school record, newest record first. Null for
-   * accounts without one (beneficiaries, donors, or a volunteer who skipped it).
-   */
+  /** Newest school record; null when none. */
   async findUserDepartment(userId: string): Promise<string | null> {
     const row = await this.prisma.userSchoolInfo.findFirst({
       where: { user_id: userId },
@@ -41,10 +38,7 @@ export class EventsRepository {
     return row?.department.name ?? null;
   }
 
-  /**
-   * Unrestricted accounts holding [role] whose school record names one of the
-   * department's spellings — who a department-scoped event is announced to.
-   */
+  /** Unrestricted [role] holders matching any department spelling. */
   async findDepartmentMemberIds(
     role: RoleType,
     departmentAliases: string[],
@@ -72,12 +66,7 @@ export class EventsRepository {
     return accounts.map((account) => account.user_id);
   }
 
-  /**
-   * Events a volunteer can still join, soonest first — the pool the recommender
-   * ranks. Carries the live attendance count and whether this volunteer already
-   * has a row, so the app can show real slots and the joined state. [audience]
-   * keeps department-scoped School events to that department's members.
-   */
+  /** Soonest first, with live counts and joined state. [audience] scopes department-only School events. */
   async findOpenForVolunteers(
     userId: string,
     audience: Prisma.EventWhereInput,
@@ -104,11 +93,7 @@ export class EventsRepository {
     });
   }
 
-  /**
-   * Open events flagged as applicable to beneficiaries, soonest first. Same row
-   * shape as the volunteer pool so one DTO serves both feeds; beneficiaries do
-   * not hold attendance rows, so the per-user slice comes back empty.
-   */
+  /** Same row shape as the volunteer pool; the per-user slice is empty. */
   async findOpenForBeneficiaries(
     userId: string,
     audience: Prisma.EventWhereInput,
@@ -136,11 +121,7 @@ export class EventsRepository {
     });
   }
 
-  /**
-   * Open events whose director enabled at least one accepted donation type,
-   * soonest first — the donor app's campaign feed. Same row shape as the
-   * volunteer pool; donors hold no attendance rows, so that slice is empty.
-   */
+  /** Same row shape as the volunteer pool; the per-user slice is empty. */
   async findOpenForDonors(userId: string, audience: Prisma.EventWhereInput) {
     return this.prisma.event.findMany({
       where: {
@@ -165,10 +146,7 @@ export class EventsRepository {
     });
   }
 
-  /**
-   * Events flagged for beneficiaries that have run their course — marked
-   * completed, or past their end time — latest first. Cancelled ones stay out.
-   */
+  /** Completed or past end, latest first; cancelled excluded. */
   async findCompletedForBeneficiaries(
     userId: string,
     audience: Prisma.EventWhereInput,
@@ -199,11 +177,7 @@ export class EventsRepository {
     });
   }
 
-  /**
-   * The beneficiary's applications (EVENT_JOIN requests) for the given
-   * events — pending, accepted or rejected, newest first so the latest filing
-   * wins; a removed request no longer counts.
-   */
+  /** Newest first so the latest filing wins; removed requests excluded. */
   async findBeneficiaryApplications(userId: string, eventIds: number[]) {
     if (eventIds.length === 0) return [];
     return this.prisma.userRequest.findMany({
@@ -218,11 +192,7 @@ export class EventsRepository {
     });
   }
 
-  /**
-   * Every event this volunteer holds an attendance row on, latest first —
-   * finished ones included, since the activity page is where they land once
-   * they leave the open pool. Cancelled events are left out.
-   */
+  /** Includes finished events; cancelled excluded. */
   async findRegisteredForVolunteer(userId: string) {
     return this.prisma.event.findMany({
       where: {
@@ -245,7 +215,6 @@ export class EventsRepository {
     });
   }
 
-  /** Everyone holding a slot on the event, earliest registration first. */
   async findParticipants(eventId: number) {
     return this.prisma.eventAttendance.findMany({
       where: { event_id: eventId },
@@ -261,17 +230,9 @@ export class EventsRepository {
   }
 
   /**
-   * Registers a volunteer: inserts their attendance row and rewrites the event's
-   * `participants` from the actual row count. Runs serializable so two volunteers
-   * racing for the last slot cannot both get it; the caller retries on a
-   * serialization failure. Returns null when the event is full (nothing is
-   * written) and the fresh counts otherwise. Already registered is a no-op that
-   * still returns the counts and the role already on the row.
-   *
-   * A role other than REGULAR is held PENDING and filed as an EVENT_ROLE user
-   * request in the same transaction, so the registration and its review either
-   * both land or neither does. No proof is attached — the reviewer decides on
-   * what they know of the volunteer.
+   * Serializable so racers can't both take the last slot; caller retries on serialization failure.
+   * Null when full; idempotent when already registered. Non-REGULAR roles are held PENDING with
+   * an EVENT_ROLE request in the same transaction.
    */
   async register(
     eventId: number,
@@ -308,8 +269,7 @@ export class EventsRepository {
             select: { max_participants: true, title: true },
           });
           if (!existing && participants > event.max_participants) {
-            // Roll the insert back: the transaction is discarded on a throw, so
-            // the sentinel is turned into a null return below.
+            // Throwing discards the transaction; mapped to null below.
             throw new EventFullError();
           }
 
@@ -347,7 +307,7 @@ export class EventsRepository {
             max_participants: event.max_participants,
             participation_role: attendance.participation_role,
             role_approval: attendance.role_approval,
-            /** False when the volunteer already held a slot (idempotent call). */
+            /** False when already registered. */
             created: !existing,
           };
         },
@@ -359,11 +319,7 @@ export class EventsRepository {
       });
   }
 
-  /**
-   * Drops the volunteer's attendance row and recounts `participants`. A role
-   * request still awaiting review is withdrawn with it — there is no longer a
-   * registration for the reviewer to approve.
-   */
+  /** Also withdraws a pending role request. */
   async unregister(eventId: number, userId: string) {
     return this.prisma.$transaction(
       async (tx) => {
@@ -452,11 +408,7 @@ export class EventsRepository {
     });
   }
 
-  /**
-   * Rolls every event's status forward on the clock: started ones become
-   * Ongoing, finished ones Completed. Cancelled rows are never touched. Returns
-   * how many rows moved in each direction so the sweep can log it.
-   */
+  /** Cancelled rows untouched; returns counts for the log. */
   async advanceStatuses(now: Date) {
     const [completed, ongoing] = await this.prisma.$transaction([
       this.prisma.event.updateMany({

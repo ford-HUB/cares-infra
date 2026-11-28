@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// "38 / 50 joined", optionally with a hairline capacity bar underneath —
-/// the server sends counts, not member photos, so the count is the honest
-/// version of the reference's avatar stack.
+/// The server sends counts, not member photos, so a count replaces an avatar
+/// stack.
 class EventJoinedCount extends StatelessWidget {
   const EventJoinedCount({
     super.key,

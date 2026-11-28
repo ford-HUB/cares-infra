@@ -6,14 +6,10 @@ import { FormHeaderCard } from './ui/form-header-card'
 import { QuestionCard } from './ui/question-card'
 import { QuestionnaireBuilderSkeleton } from './ui/questionnaire-builder-skeleton'
 
-/** Sentinel for "the header card is selected" so a new question lands first. */
+/** Sentinel for the selected header card, so a new question lands first. */
 const HEADER_ACTIVE = '__header__'
 
-/**
- * The Forms-style editor: header card, one card per question, and the add rail to
- * the right. Reads and writes the evaluation store directly — every edit is a store
- * action so the page stays a thin composition.
- */
+/** Every edit is a store action; the page stays a thin composition. */
 export function QuestionnaireBuilder() {
   const form = useEvaluationStore((s) => s.form)
   const initialized = useEvaluationStore((s) => s.formInitialized)

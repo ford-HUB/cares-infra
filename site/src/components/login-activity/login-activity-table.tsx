@@ -20,11 +20,9 @@ import { LoginOutcomeBadge } from './ui/login-outcome-badge'
 
 interface LoginActivityTableProps {
   entries: LoginActivityEntry[]
-  /** First page of a filter set — the grid is replaced by skeleton rows. */
+  /** First page of a filter set; later pages use `loadingMore`. */
   loading: boolean
-  /** A follow-up page — the loaded rows stay put and the footer shows progress. */
   loadingMore: boolean
-  /** False until the first fetch settles — see `login-activity-store`. */
   initialized: boolean
   errored: boolean
   hasMore: boolean
@@ -53,8 +51,7 @@ export function LoginActivityTable({
   const scrollRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLTableRowElement>(null)
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A refilter
-  // or refetch keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; refetches keep existing rows on screen.
   const showSkeleton = !initialized || (loading && entries.length === 0)
 
   useInfiniteScroll({
@@ -190,10 +187,7 @@ export function LoginActivityTable({
                 )
               })}
 
-            {/*
-              The sentinel is a real row so it sits inside the scroll container, below
-              the last entry. Crossing it is what asks the store for the next page.
-            */}
+            {/* Sentinel row inside the scroll container; crossing it loads the next page. */}
             {!showSkeleton && hasMore && (
               <tr ref={sentinelRef} aria-hidden>
                 <td colSpan={LOGIN_ACTIVITY_COLUMNS.length + 1} className="h-px p-0" />

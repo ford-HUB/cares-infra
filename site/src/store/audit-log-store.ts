@@ -5,24 +5,14 @@ import type { AuditLogEntry, AuditLogFilters } from '../types/audit-log'
 interface AuditLogState {
   logs: AuditLogEntry[]
   total: number
-  /** Filters the loaded pages belong to — `loadMore` repeats them for the next page. */
   filters: AuditLogFilters
-  /** Undefined once the trail is exhausted; the scroll stops asking for more. */
   nextCursor?: string
-  /** First page of a filter set — the grid shows skeleton rows. */
   loading: boolean
-  /** A follow-up page — the grid keeps its rows and shows a footer spinner. */
   loadingMore: boolean
-  /**
-   * False until the first fetch settles. Without it, the mount render — where
-   * `loading` is still false and `logs` is still empty — is indistinguishable from a
-   * finished fetch that returned nothing, and the table flashes its empty state.
-   */
+  /** Distinguishes the mount render from an empty result, so the empty state doesn't flash. */
   initialized: boolean
   error: string | null
-  /** Loads page one and replaces whatever was on screen. */
   fetchLogs: (filters?: AuditLogFilters) => Promise<void>
-  /** Appends the next page. A no-op while a page is in flight or the trail has ended. */
   loadMore: () => Promise<void>
 }
 
@@ -40,8 +30,7 @@ export const useAuditLogStore = create<AuditLogState>((set, get) => ({
     set({ loading: true, error: null, filters })
     const res = await listAuditLogs(filters)
 
-    // A filter change that lands while an older fetch is still in flight would
-    // otherwise overwrite the newer result set with stale rows.
+    // Drop stale results from an older filter set.
     if (get().filters !== filters) return
 
     if (res.success) {

@@ -4,12 +4,7 @@ import type { CaresEvent } from '../types/event'
 import type { ApiResponse } from '../types/portal-roles'
 import { listEvents } from './event-service'
 
-/**
- * An event is drawn in the all-day rail rather than the time grid when it covers
- * whole days — either it runs past midnight into another day, or it fills the
- * entire drawn span of a single one. Blocks like that would otherwise stretch
- * the full column height and bury every timed event behind them.
- */
+/** Spans midnight or fills the whole drawn span; would otherwise bury timed events. */
 function isAllDay(event: CaresEvent): boolean {
   const start = dayjs(event.event_started)
   const end = dayjs(event.event_ended)
@@ -34,11 +29,7 @@ function toCalendarEvent(event: CaresEvent): CalendarEvent {
   }
 }
 
-/**
- * Every scheduled event, reduced to what a calendar cell needs. Reads the same
- * `/events` endpoint Manage Event does — including its derived live status — so
- * the two screens can never disagree about what is ongoing.
- */
+/** Same `/events` endpoint as Manage Event so live status never disagrees. */
 export async function listCalendarEvents(): Promise<ApiResponse<CalendarEvent[]>> {
   const res = await listEvents()
 

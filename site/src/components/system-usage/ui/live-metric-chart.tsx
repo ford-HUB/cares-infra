@@ -12,23 +12,19 @@ import { UsageCard } from './usage-card'
 interface LiveMetricChartProps {
   title: string
   hint: string
-  /** The last 24 h from the performance snapshot, oldest first. */
+  /** Last 24 h from the performance snapshot, oldest first. */
   points: { at: string; value: number }[]
-  /** The 3 s tick's reading — the headline; falls back to the newest point. */
+  /** The 3 s tick's reading; falls back to the newest point. */
   now: number | null
   format: (value: number) => string
-  /** Unit shown after the headline and average only, so the axis ticks stay short. */
+  /** Shown after the headline and average only, so axis ticks stay short. */
   unit?: string
-  /** Pin the axis (e.g. 0–100 for a percentage); omitted, it scales from zero. */
+  /** E.g. 0–100 for a percentage; omitted, it scales from zero. */
   domain?: [number, number]
   source: LiveSourceState
 }
 
-/**
- * One live measure over the last 24 h as a small multiple — memory, traffic and
- * response time each get their own chart rather than a second y-axis beside CPU.
- * A single series, so the title names it and there is no legend.
- */
+/** A small multiple per measure instead of a second y-axis beside CPU. */
 export function LiveMetricChart({
   title,
   hint,

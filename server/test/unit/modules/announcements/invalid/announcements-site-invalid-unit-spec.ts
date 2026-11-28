@@ -11,17 +11,7 @@ import {
   AnnouncementState,
 } from '../../../../../src/infastructures/prisma/common/client';
 
-/**
- * Notices Module · Create Announcement — invalid inputs (field validation).
- *
- * Every case here is an intentionally wrong value for one field of the announcement
- * dialog (POST /api/v1/announcements). A case Passes when the request is refused with
- * "Validation failed" (400) on that field — and, where the schema defines one, the
- * exact message — without reaching the service. The valid cases live in ../valid/.
- *
- * Each fixture keeps every other field valid, so the named field is the only reason
- * it can fail.
- */
+/** Each fixture keeps every other field valid. */
 
 const ALL_AUDIENCES = Object.values(AnnouncementAudience);
 const ALL_CHANNELS = Object.values(AnnouncementChannel);
@@ -40,13 +30,12 @@ const MESSAGES = {
   windowId: 'A valid maintenance window id is required',
 };
 
-/** The valid announcement without `field` — every field is required, nullable ones included. */
+/** Every field is required, nullable ones included. */
 const without = (field: keyof typeof VALID) => {
   const { [field]: _omitted, ...rest } = VALID;
   return rest;
 };
 
-/* ── title ───────────────────────────────────────────────────────────────── */
 const titleFixtures: LayerFixture[] = [
   { name: 'Staff leaves the title out', input: without('title'), expected: 'FAIL', field: 'title' },
   { name: 'Staff leaves the title empty', input: { ...VALID, title: '' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleRequired },
@@ -65,7 +54,6 @@ const titleFixtures: LayerFixture[] = [
   { name: 'Staff sends the title as a number', input: { ...VALID, title: 2026 }, expected: 'FAIL', field: 'title' },
 ];
 
-/* ── body ────────────────────────────────────────────────────────────────── */
 const bodyFixtures: LayerFixture[] = [
   { name: 'Staff leaves the message out', input: without('body'), expected: 'FAIL', field: 'body' },
   { name: 'Staff leaves the message empty', input: { ...VALID, body: '' }, expected: 'FAIL', field: 'body', message: MESSAGES.bodyRequired },
@@ -78,7 +66,6 @@ const bodyFixtures: LayerFixture[] = [
   { name: 'Client sends the message as "message" instead of "body"', input: { ...without('body'), message: VALID.body }, expected: 'FAIL', field: 'body' },
 ];
 
-/* ── tone ────────────────────────────────────────────────────────────────── */
 const toneFixtures: LayerFixture[] = [
   { name: 'Staff leaves the tone out', input: without('tone'), expected: 'FAIL', field: 'tone' },
   { name: 'Staff picks a tone that does not exist (URGENT)', input: { ...VALID, tone: 'URGENT' }, expected: 'FAIL', field: 'tone' },
@@ -87,7 +74,6 @@ const toneFixtures: LayerFixture[] = [
   { name: 'Staff sends the tone as a list', input: { ...VALID, tone: ['INFO'] }, expected: 'FAIL', field: 'tone' },
 ];
 
-/* ── audiences ───────────────────────────────────────────────────────────── */
 const audienceFixtures: LayerFixture[] = [
   { name: 'Staff leaves the audiences out', input: without('audiences'), expected: 'FAIL', field: 'audiences' },
   { name: 'Staff picks no audience', input: { ...VALID, audiences: [] }, expected: 'FAIL', field: 'audiences', message: MESSAGES.audienceRequired },
@@ -110,7 +96,6 @@ const audienceFixtures: LayerFixture[] = [
   { name: 'Staff sends the audiences as null', input: { ...VALID, audiences: null }, expected: 'FAIL', field: 'audiences' },
 ];
 
-/* ── channels ────────────────────────────────────────────────────────────── */
 const channelFixtures: LayerFixture[] = [
   { name: 'Staff leaves the channels out', input: without('channels'), expected: 'FAIL', field: 'channels' },
   { name: 'Staff picks no channel', input: { ...VALID, channels: [] }, expected: 'FAIL', field: 'channels', message: MESSAGES.channelRequired },
@@ -132,10 +117,9 @@ const channelFixtures: LayerFixture[] = [
   { name: 'Staff sends the channels as null', input: { ...VALID, channels: null }, expected: 'FAIL', field: 'channels' },
 ];
 
-/* ── state ───────────────────────────────────────────────────────────────── */
 const stateFixtures: LayerFixture[] = [
   { name: 'Staff leaves the state out', input: without('state'), expected: 'FAIL', field: 'state' },
-  // The editor only offers draft or schedule; publishing and taking down go through the state endpoint.
+  // Editor offers only draft/schedule; publish and take-down use the state endpoint.
   { name: 'Staff saves the notice straight as PUBLISHED', input: { ...VALID, state: AnnouncementState.PUBLISHED }, expected: 'FAIL', field: 'state' },
   { name: 'Staff saves the notice straight as EXPIRED', input: { ...VALID, state: AnnouncementState.EXPIRED }, expected: 'FAIL', field: 'state' },
   { name: 'Staff sends the state in lower case (draft)', input: { ...VALID, state: 'draft' }, expected: 'FAIL', field: 'state' },
@@ -143,7 +127,6 @@ const stateFixtures: LayerFixture[] = [
   { name: 'Staff sends an empty state', input: { ...VALID, state: '' }, expected: 'FAIL', field: 'state' },
 ];
 
-/* ── publish_at ──────────────────────────────────────────────────────────── */
 const publishAtFixtures: LayerFixture[] = [
   { name: 'Staff leaves the publish time out', input: without('publish_at'), expected: 'FAIL', field: 'publish_at' },
   { name: 'Staff sends the publish time as null', input: { ...VALID, publish_at: null }, expected: 'FAIL', field: 'publish_at' },
@@ -158,7 +141,6 @@ const publishAtFixtures: LayerFixture[] = [
   { name: 'Staff sends the publish time as a timestamp number', input: { ...VALID, publish_at: 4070908800000 }, expected: 'FAIL', field: 'publish_at' },
 ];
 
-/* ── expires_at ──────────────────────────────────────────────────────────── */
 const expiresAtFixtures: LayerFixture[] = [
   { name: 'Staff leaves the expiry out (null is required for "no expiry")', input: without('expires_at'), expected: 'FAIL', field: 'expires_at' },
   { name: 'Staff sets the expiry equal to the publish time', input: { ...VALID, expires_at: VALID.publish_at }, expected: 'FAIL', field: 'expires_at', message: MESSAGES.expiryOrder },
@@ -172,7 +154,6 @@ const expiresAtFixtures: LayerFixture[] = [
   { name: 'Staff sends the expiry as a timestamp number', input: { ...VALID, expires_at: 4070995200000 }, expected: 'FAIL', field: 'expires_at' },
 ];
 
-/* ── pinned ──────────────────────────────────────────────────────────────── */
 const pinnedFixtures: LayerFixture[] = [
   { name: 'Staff leaves the pinned flag out', input: without('pinned'), expected: 'FAIL', field: 'pinned' },
   { name: 'Staff sends pinned as the text "true"', input: { ...VALID, pinned: 'true' }, expected: 'FAIL', field: 'pinned' },
@@ -181,7 +162,6 @@ const pinnedFixtures: LayerFixture[] = [
   { name: 'Staff sends pinned as null', input: { ...VALID, pinned: null }, expected: 'FAIL', field: 'pinned' },
 ];
 
-/* ── window_id ───────────────────────────────────────────────────────────── */
 const windowIdFixtures: LayerFixture[] = [
   { name: 'Staff leaves the window id out (null is required for "no window")', input: without('window_id'), expected: 'FAIL', field: 'window_id' },
   { name: 'Staff sends an empty window id', input: { ...VALID, window_id: '' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
@@ -196,7 +176,6 @@ const windowIdFixtures: LayerFixture[] = [
   { name: 'Staff sends the window id as a number', input: { ...VALID, window_id: 42 }, expected: 'FAIL', field: 'window_id' },
 ];
 
-/* ── whole form ──────────────────────────────────────────────────────────── */
 const formFixtures: LayerFixture[] = [
   { name: 'Staff submits an empty form', input: {}, expected: 'FAIL', field: 'title' },
   { name: 'Client sends a field the dialog does not have (subject)', input: { ...VALID, subject: 'Extra' }, expected: 'FAIL' },

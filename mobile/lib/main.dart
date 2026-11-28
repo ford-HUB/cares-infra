@@ -10,8 +10,8 @@ import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:mobile/features/dashboard/data/event_location_tracker.dart';
 import 'package:mobile/core/services/local_notifications.dart';
 
-/// Root navigator, reachable from outside the widget tree so a session that
-/// dies mid-request can still be bounced to the login screen.
+/// Reachable outside the tree so a session that dies mid-request can bounce to
+/// login.
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -25,17 +25,14 @@ Future<void> main() async {
     // Weather falls back gracefully when .env is missing.
   }
   AuthSession.onSessionEnded = _handleSessionEnded;
-  // Device notifications: scheduled event reminders and feed pops.
   await LocalNotifications.instance.initialize();
-  // Geofence recorder for joined events: idle until an event's window opens.
+  // Idle until an event's window opens.
   EventLocationTracker.instance.start();
   runApp(const ProviderScope(child: CaresApp()));
 }
 
-/// The server refused a token it previously accepted: clear every in-memory
-/// session, drop the whole navigation stack onto the login screen, and tell the
-/// person why — the message is the server's own, e.g. "Session ended — please
-/// sign in again".
+/// Clears the session, resets navigation to login and shows the server's
+/// message.
 void _handleSessionEnded(String? message) {
   // Also wipes the saved session, so a restart does not try the dead token.
   SignOutService.clearLocalSession();

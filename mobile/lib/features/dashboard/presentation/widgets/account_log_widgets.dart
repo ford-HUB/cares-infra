@@ -33,7 +33,7 @@ String accountLogTime(DateTime at) {
   return '$h:$m ${at.hour < 12 ? 'AM' : 'PM'}';
 }
 
-/// Horizontal category filter. `null` means "All".
+/// `null` means "All".
 class AccountLogFilterBar extends StatelessWidget {
   const AccountLogFilterBar({
     super.key,
@@ -109,8 +109,7 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/// One log line: category icon, title, detail, time. Flagged entries get an
-/// orange accent so unfamiliar activity stands out.
+/// Flagged entries get an orange accent.
 class AccountLogTile extends StatelessWidget {
   const AccountLogTile({super.key, required this.entry, required this.isLast});
 
@@ -127,7 +126,6 @@ class AccountLogTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Timeline rail
           SizedBox(
             width: 38,
             child: Column(
@@ -228,7 +226,6 @@ class AccountLogTile extends StatelessWidget {
   }
 }
 
-/// Day header between timeline groups.
 class AccountLogDayHeader extends StatelessWidget {
   const AccountLogDayHeader({
     super.key,

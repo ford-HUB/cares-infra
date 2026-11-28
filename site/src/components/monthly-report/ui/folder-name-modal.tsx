@@ -3,14 +3,13 @@ import { FolderPlus, PencilLine, X } from 'lucide-react'
 
 interface FolderNameModalProps {
   mode: 'create' | 'rename'
-  /** Current name when renaming; the field starts empty on a new folder. */
+  /** Empty on a new folder. */
   initialName?: string
   saving: boolean
   onClose: () => void
   onSubmit: (name: string) => void
 }
 
-/** The director names their own folders, so this asks for one thing and nothing else. */
 export function FolderNameModal({
   mode,
   initialName = '',

@@ -49,7 +49,6 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   heic: 'image/heic',
 };
 
-/** One checked photo, waiting for the upload that follows the checks. */
 interface PendingImage {
   questionId: string;
   file: Express.Multer.File;
@@ -68,13 +67,7 @@ export class EvaluationMobileService {
     private readonly s3Service: S3Service,
   ) {}
 
-  /**
-   * The feedback screen's one load: the questionnaire this event asks plus whether
-   * the caller can still answer it. The form is the one the director assigned to
-   * the event, or the default questionnaire when the event has none of its own.
-   * `can_submit` folds the same checks `submit` enforces, so the app can show the
-   * right state up front.
-   */
+  /** Assigned or default questionnaire; `can_submit` mirrors `submit`'s checks. */
   async getForEvent(
     userId: string,
     eventId: number,
@@ -101,10 +94,7 @@ export class EvaluationMobileService {
     };
   }
 
-  /**
-   * Records the volunteer's answers once per event. Only a volunteer who joined
-   * an event that has finished may answer, and only against the published form.
-   */
+  /** Once per event; only for joined, finished events and the published form. */
   async submit(
     userId: string,
     eventId: number,
@@ -153,8 +143,7 @@ export class EvaluationMobileService {
     const pending = this.checkImages(questions, files);
     const answers = this.pickKnownAnswers(questions, data.answers);
 
-    // Image answers are only ever the keys stored here: a client-sent value for
-    // one is dropped, so nobody can point an answer at someone else's file.
+    // Image answers use server-stored keys only, so no pointing at others' files.
     for (const question of questions) {
       if (question.type === 'image_upload') delete answers[question.id];
     }
@@ -175,7 +164,7 @@ export class EvaluationMobileService {
         status: this.statusOf(questions, answers),
       });
     } catch (error) {
-      // No row points at the photos now, so don't leave them in the bucket.
+      // Nothing references the photos now; remove them.
       await this.deleteImages(keys.map(({ key }) => key));
       throw error;
     }
@@ -183,11 +172,7 @@ export class EvaluationMobileService {
     return { event_id: eventId, submission: this.toSubmissionDto(response) };
   }
 
-  /**
-   * Every photo is checked before any is uploaded, so a bad third file doesn't
-   * leave the first two in S3. Each must belong to an image-upload question and
-   * stay inside that question's own cap.
-   */
+  /** All checked before any upload, so no orphans in S3. Each within its question's cap. */
   private checkImages(
     questions: EvaluationQuestionDto[],
     files: Express.Multer.File[],
@@ -238,10 +223,7 @@ export class EvaluationMobileService {
     });
   }
 
-  /**
-   * Stores keys, not URLs: the bucket is private and the portal proxies reads.
-   * If any upload fails, the ones that made it are removed again.
-   */
+  /** Keys, not URLs (private bucket). Partial uploads are rolled back. */
   private async uploadImages(
     eventId: number,
     userId: string,
@@ -284,10 +266,7 @@ export class EvaluationMobileService {
     };
   }
 
-  /**
-   * Marked Completed by the status sweep, or past its end time — the sweep runs
-   * on a timer, so the app may reach here a minute before the flag flips.
-   */
+  /** Completed, or past its end time (the sweep may lag). */
   private hasEnded(event: SubmissionEvent): boolean {
     return (
       event.status === EventStatus.Completed ||
@@ -296,11 +275,7 @@ export class EvaluationMobileService {
     );
   }
 
-  /**
-   * The geofence validator has not ruled on the registration yet. Feedback
-   * waits for that ruling rather than opening the moment the event ends, so
-   * a volunteer later marked absent never gets a submission in first.
-   */
+  /** Waits for the geofence ruling so a later-absent volunteer can't submit first. */
   private attendancePending(event: SubmissionEvent): boolean {
     return (
       event.attendances.length > 0 &&
@@ -308,14 +283,13 @@ export class EvaluationMobileService {
     );
   }
 
-  /** Holds a registration the validator confirmed. */
   private participated(event: SubmissionEvent): boolean {
     return event.attendances.some(
       (row) => row.status === AttendanceStatus.COMPLETED,
     );
   }
 
-  /** Drops answers to questions the form no longer has, so stale ids don't get stored. */
+  /** Drops answers to removed questions. */
   private pickKnownAnswers(
     questions: EvaluationQuestionDto[],
     answers: EvaluationAnswersDto,
@@ -326,7 +300,7 @@ export class EvaluationMobileService {
     );
   }
 
-  /** The first star-rating answer, surfaced on the response row for the portal. */
+  /** Shown on the portal's response row. */
   private ratingOf(
     questions: EvaluationQuestionDto[],
     answers: EvaluationAnswersDto,
@@ -363,7 +337,7 @@ export class EvaluationMobileService {
   }
 }
 
-/** Trusts the declared type when it is specific, else the file extension. */
+/** Declared type when specific, else the extension. */
 function resolveMime(file: Express.Multer.File): string {
   if (file.mimetype && file.mimetype !== 'application/octet-stream') {
     return file.mimetype === 'image/jpg' ? 'image/jpeg' : file.mimetype;

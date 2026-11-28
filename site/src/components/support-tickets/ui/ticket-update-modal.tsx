@@ -14,18 +14,13 @@ interface TicketUpdateModalProps {
   onSubmit: (status: SupportTicketStatus, note: string) => void
 }
 
-/**
- * Where a ticket's state actually changes: pick the new status — close it, hand it
- * back for client verification, or park it on client feedback — and optionally post
- * a note explaining the move to the requester.
- */
 export function TicketUpdateModal({
   ticket,
   saving,
   onClose,
   onSubmit,
 }: TicketUpdateModalProps) {
-  // The parent keys this component by ticket id, so the draft starts fresh per ticket.
+  // Keyed by ticket id upstream, so the draft starts fresh per ticket.
   const [status, setStatus] = useState<SupportTicketStatus>(ticket?.status ?? 'open')
   const [note, setNote] = useState('')
 

@@ -18,11 +18,9 @@ import { AuditLogsTableSkeleton } from './ui/audit-logs-table-skeleton'
 
 interface AuditLogsTableProps {
   logs: AuditLogEntry[]
-  /** First page of a filter set — the grid is replaced by skeleton rows. */
+  /** First page of a filter set; later pages use `loadingMore`. */
   loading: boolean
-  /** A follow-up page — the loaded rows stay put and the footer shows progress. */
   loadingMore: boolean
-  /** False until the first fetch settles — see `audit-log-store`. */
   initialized: boolean
   errored: boolean
   hasMore: boolean
@@ -36,7 +34,7 @@ const cellBorder = AUDIT_CELL_BORDER
 const cellBase = AUDIT_CELL_BASE
 const gutter = AUDIT_GUTTER_CELL
 
-/** `UserAvatar` takes two names; audit actors are stored as one denormalised string. */
+/** Audit actors are one denormalised string; `UserAvatar` takes two names. */
 function nameParts(name: string): { firstName: string; lastName: string } {
   const words = name.trim().split(/\s+/)
   return { firstName: words[0] ?? '', lastName: words.length > 1 ? words[words.length - 1] : '' }
@@ -57,8 +55,7 @@ export function AuditLogsTable({
   const scrollRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLTableRowElement>(null)
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A refilter
-  // or refetch keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; refetches keep existing rows on screen.
   const showSkeleton = !initialized || (loading && logs.length === 0)
 
   useInfiniteScroll({
@@ -197,10 +194,7 @@ export function AuditLogsTable({
                 )
               })}
 
-            {/*
-              The sentinel is a real row so it sits inside the scroll container, below
-              the last entry. Crossing it is what asks the store for the next page.
-            */}
+            {/* Sentinel row inside the scroll container; crossing it loads the next page. */}
             {!showSkeleton && hasMore && (
               <tr ref={sentinelRef} aria-hidden>
                 <td colSpan={AUDIT_COLUMNS.length + 1} className="h-px p-0" />

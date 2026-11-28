@@ -18,13 +18,8 @@ import tourism from '../assets/landing_page/org/chart-portraits/tourism.jpg'
 import montebon from '../assets/landing_page/org/montebon.jpg'
 import monton from '../assets/landing_page/org/monton.jpg'
 
-/** UCLM CARES organizational chart, following the office's chart updated as of
- *  August 1, 2025. Static content — nothing here is fetched.
- *
- *  `name` is left out wherever the chart gives no caption: the card then shows the
- *  position alone, rather than a guess at someone's name. */
+/** `name` omitted where the chart has no caption. */
 
-/** The office's full-size portraits, served from `public/`. */
 const profilePhoto = (file: number) => `/organization-profiles/${file}.png`
 
 export interface LandingOrgPerson {
@@ -36,7 +31,6 @@ export interface LandingOrgPerson {
 export interface LandingOrgMember {
   name?: string
   title: string
-  /** Left out where the chart itself only has a placeholder picture. */
   photo?: string
   assistant?: boolean
 }
@@ -64,7 +58,6 @@ export const LANDING_ORG_CARES_STAFF: LandingOrgPerson = {
   photo: monton,
 }
 
-/** Groups the chart draws as labelled boxes rather than named people. */
 export const LANDING_ORG_GROUPS = {
   faculty: 'Instructors & Professors',
   students: 'Students, Volunteers & the CARES Student Organization',

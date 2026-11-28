@@ -4,7 +4,6 @@ import { NeedsDataGate } from '../../components/residential-needs/ui/needs-data-
 import { ResidentialNeedsSkeleton } from '../../components/residential-needs/ui/residential-needs-skeleton'
 import { useResidentialNeeds } from '../../hooks/use-residential-needs'
 
-/** The director's Residential Needs module — survey overview, with Clusters as its child. */
 export function ResidentialNeedsPage() {
   const { households, loaded, error, reload } = useResidentialNeeds()
   return (

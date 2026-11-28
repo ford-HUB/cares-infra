@@ -21,9 +21,7 @@ import { PROGRAM_BULLETIN_PAGE_PATH } from '../../../constants/routes'
 
 const BADGE = 'rounded bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700'
 
-/** The whole card toggles its scanned bulletin page: the title's button stretches over
- *  the card with an ::after overlay, and the opened page sits above that overlay (z-10)
- *  so clicking the image or "Full display" doesn't fold it shut. */
+/** The title's ::after overlay makes the card the toggle; the open page sits above it (z-10) so clicks inside don't fold it. */
 function ActivityItem({ activity, order }: { activity: LandingProgramActivity; order: number }) {
   const [pageOpen, setPageOpen] = useState(false)
   const pageId = useId()
@@ -95,8 +93,6 @@ interface LandingProgramDialogProps {
   onClose: () => void
 }
 
-/** A department's official components and documented activities, with the scanned
- *  bulletin page behind each one. Full screen on phones. */
 export function LandingProgramDialog({ program, onClose }: LandingProgramDialogProps) {
   // There's no DialogTrigger to hand focus back to, so remember the card that opened it.
   const openerRef = useRef<HTMLElement | null>(null)

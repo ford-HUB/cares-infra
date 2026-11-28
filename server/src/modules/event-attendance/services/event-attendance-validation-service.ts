@@ -22,12 +22,10 @@ import {
   type ValidationPingRow,
 } from '../repositories/event-attendance-repository';
 
-/** Readings are one per second; the validator credits gaps up to two minutes, so
- *  thinning to one every few seconds loses nothing and keeps the payload small. */
+/** The validator credits gaps up to two minutes, so thinning loses nothing. */
 const FINAL_SAMPLE_SECONDS = 2;
 const LIVE_SAMPLE_SECONDS = 5;
 
-/** `EventAttendance.remarks` is free text; keep the validator's reasons readable. */
 const REMARKS_MAX = 500;
 
 export interface ValidationSummary {
@@ -35,16 +33,11 @@ export interface ValidationSummary {
   completed: number;
   absent: number;
   awaitingSync: number;
-  /** Rows skipped because the event has no fence to judge against. */
+  /** No fence to judge against. */
   skipped: number;
 }
 
-/**
- * The post-event ruling. Gathers each PENDING volunteer's readings, sends them to
- * gps-validator-service and writes back COMPLETED / ABSENT plus the credited hours.
- * Volunteers with nothing recorded are left PENDING as "awaiting sync" — their
- * device may still be offline, and it will upload once it reconnects.
- */
+/** Volunteers with no readings stay PENDING ("awaiting sync") until their device uploads. */
 @Injectable()
 export class EventAttendanceValidationService {
   private readonly logger = new Logger(EventAttendanceValidationService.name);
@@ -56,10 +49,7 @@ export class EventAttendanceValidationService {
     private readonly rankingsBoardService: RankingsBoardService,
   ) {}
 
-  /**
-   * Called after a device pushes coordinates. Nothing happens while the event is
-   * still running — only a finished window can be ruled on.
-   */
+  /** No-op while the event runs. */
   async validateIfEnded(eventId: number, userId: string): Promise<void> {
     const event =
       await this.eventAttendanceRepository.findEventForValidation(eventId);
@@ -67,7 +57,6 @@ export class EventAttendanceValidationService {
     await this.validateEvent(event, [userId]);
   }
 
-  /** Every event that is over and still has un-ruled volunteers. */
   async sweepEndedEvents(now = new Date()): Promise<ValidationSummary[]> {
     const eventIds =
       await this.eventAttendanceRepository.findEndedEventIdsWithPending(now);
@@ -167,15 +156,8 @@ export class EventAttendanceValidationService {
   }
 
   /**
-   * Tells the volunteer how the event was ruled and what it did to their
-   * standing. Present: the points earned (attendance plus any approved role
-   * bonus) and a nudge to rate the event. Absent:
-   * the penalty just applied and what the next straight miss would cost. Written
-   * through the scheduler so a slow queue never holds up the ruling; a failed
-   * notice is logged, not thrown, because the ruling itself already stuck.
-   *
-   * A manual ruling passes its own `dedupeKey`: the volunteer may already hold the
-   * absent notice under the default key, and the correction must still reach them.
+   * Queued via the scheduler; failures are logged, not thrown, since the ruling stuck.
+   * Manual rulings pass their own `dedupeKey` so a correction reaches a volunteer holding the absent notice.
    */
   async notifyRuling(
     event: Pick<EventZoneRow, 'event_id' | 'title'>,
@@ -244,12 +226,7 @@ export class EventAttendanceValidationService {
     }
   }
 
-  /**
-   * A mid-event snapshot for the live monitor: the same analysis with the window
-   * cut at `now`, so coverage reads as "of the event so far". Volunteers with no
-   * readings are simply absent from the result — the caller treats them as
-   * awaiting sync.
-   */
+  /** Window cut at `now`; volunteers without readings are omitted (awaiting sync). */
   async snapshotEvent(
     event: EventZoneRow,
     userIds: string[],
@@ -284,7 +261,7 @@ export class EventAttendanceValidationService {
   }
 }
 
-/** Buckets readings per volunteer, thinned to one every `sampleSeconds`. */
+/** Thinned to one every `sampleSeconds`. */
 function groupPings(
   pings: ValidationPingRow[],
   sampleSeconds: number,
@@ -328,7 +305,7 @@ function formatRemarks(result: GpsParticipantResult): string | null {
     : text;
 }
 
-/** `SPEAKER` → `Speaker`, for the ruling notice. */
+/** e.g. `SPEAKER` → `Speaker`. */
 function roleLabel(role: EventParticipationRole): string {
   return role.charAt(0) + role.slice(1).toLowerCase();
 }

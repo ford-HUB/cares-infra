@@ -1,17 +1,13 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Field counts of the sections the loaded panel renders first, so it fills the same height. */
+/** Field counts of the loaded panel's first sections, so heights match. */
 const SECTIONS = [
   { title: 'Personal', fields: 5 },
   { title: 'Address', fields: 5 },
   { title: 'Account', fields: 8 },
 ]
 
-/**
- * Mirrors `UserDetailsPanel`'s section/field rhythm while the detail request is in
- * flight. Section headings are real text — they're known before the data arrives, so
- * greying them out would hide information the reader already has.
- */
+/** Section headings stay real text; they're known before the data arrives. */
 export function UserDetailsPanelSkeleton() {
   return (
     <div aria-busy>

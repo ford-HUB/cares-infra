@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react'
 import { useAssistanceRequestStore } from '../store/assistance-request-store'
 import type { AssistanceRequest } from '../types/assistance-request'
 
-/** A beneficiary's assistance pin, as the event map draws it. */
 export interface BeneficiaryPin {
   id: string
   lng: number
@@ -10,10 +9,7 @@ export interface BeneficiaryPin {
   label: string
 }
 
-/**
- * Approved assistance requests an event can be aimed at. Only approved ones qualify:
- * the desk has vetted the need, but nothing has been released for it yet.
- */
+/** Approved only: vetted, but nothing released yet. */
 export function useTargetBeneficiaries(selectedIds: string[], enabled: boolean) {
   const requests = useAssistanceRequestStore((s) => s.requests)
   const loading = useAssistanceRequestStore((s) => s.loading)

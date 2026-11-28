@@ -4,10 +4,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 import 'package:mobile/shared/widgets/gradient_button.dart';
 
-/// The floating white sign-in card: welcome heading, soft email / password
-/// fields, gradient Sign In, and the donor-only Google / Facebook row.
-///
-/// Presentation only — the screen owns the controllers and sign-in work.
+/// Presentation only; the screen owns the controllers and sign-in.
 class LoginFormCard extends StatelessWidget {
   const LoginFormCard({
     super.key,
@@ -29,7 +26,6 @@ class LoginFormCard extends StatelessWidget {
   final VoidCallback onToggleObscure;
   final bool isSigningIn;
 
-  /// Any sign-in (password or provider) in flight.
   final bool isBusy;
   final SocialAuthProvider? pendingProvider;
   final VoidCallback onSignIn;
@@ -119,8 +115,8 @@ class LoginFormCard extends StatelessWidget {
             onPressed: isBusy ? null : onSignIn,
           ),
           const SizedBox(height: 24),
-          // Donors who signed up through Google / Facebook have no password to
-          // type, so the same providers sign them in here.
+          // Provider-registered donors have no password, so the same providers
+          // sign them in.
           SocialAuthButtons(
             compact: true,
             dividerLabel: AppCopy.loginDonorDivider,
@@ -134,7 +130,6 @@ class LoginFormCard extends StatelessWidget {
   }
 }
 
-/// "Don't have an account? Register" under the card.
 class LoginRegisterPrompt extends StatelessWidget {
   const LoginRegisterPrompt({super.key, required this.onRegister});
 

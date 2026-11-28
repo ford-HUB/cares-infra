@@ -2,9 +2,7 @@ import 'package:mobile/core/constants/goods_types.dart';
 import 'package:mobile/features/dashboard/data/donation_format.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 
-/// A director event with "Accepted Donations" enabled, as the donor sees it —
-/// `GET /events/donations` row. Every figure comes off the event itself;
-/// nothing here is authored on the app side.
+/// `GET /events/donations` row; every figure comes from the event.
 class DonationCampaign {
   const DonationCampaign(this.event);
 
@@ -19,18 +17,17 @@ class DonationCampaign {
   String get location => event.location;
   DateTime get eventDate => event.startsAt;
 
-  /// Which donation types the director enabled. A donor can only give in the
-  /// ways the event accepts — never join it as a volunteer.
+  /// A donor can only give in the ways the event accepts, never join as a
+  /// volunteer.
   bool get acceptsMonetary => event.fundsDonation;
   bool get acceptsGoods => event.goodsDonation;
 
-  /// Goods the event asks for, in catalog order.
+  /// Catalog order.
   List<GoodsType> get neededGoods => GoodsTypes.forEvent(event.goodsTypes);
 
   int get raisedAmount => event.fundsRaised;
   int get donationsCount => event.donationsCount;
 
-  /// What the event will take, for cards and detail headers.
   String get acceptedDonationsLabel {
     if (acceptsMonetary && acceptsGoods) return 'Money & goods';
     if (acceptsMonetary) return 'Money';
@@ -46,7 +43,7 @@ class DonationCampaign {
   String get compactFundingLabel =>
       acceptsMonetary ? '$raisedLabel raised' : 'Goods';
 
-  /// `3 donors` / `1 donor` — a second line under the raised figure.
+  /// `3 donations` / `1 donation`.
   String get donorsLabel =>
       '$donationsCount ${donationsCount == 1 ? 'donation' : 'donations'}';
 

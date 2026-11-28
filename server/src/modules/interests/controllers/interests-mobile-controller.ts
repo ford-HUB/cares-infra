@@ -43,11 +43,7 @@ export class InterestsMobileController {
     return this.interestsMobileService.listInterests();
   }
 
-  /**
-   * Open to every mobile role: the role switcher is local to the app, so a
-   * beneficiary- or donor-registered account on its volunteer dashboard still
-   * carries the registered role in its token.
-   */
+  /** Any mobile role: the role switcher is local, so the token keeps the registered role. */
   @Put()
   @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Interests saved')

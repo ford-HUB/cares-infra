@@ -3,13 +3,10 @@ import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 
 enum IdFieldFlagReason {
-  /// Neither the server nor the on-device scan found it.
   missing,
 
-  /// The server missed it; the on-device scan's reading was filled in.
   filledFromDevice,
 
-  /// The server and the on-device scan read different values.
   mismatch,
 }
 
@@ -35,9 +32,8 @@ class IdFieldFlag {
   int get hashCode => Object.hash(label, reason);
 }
 
-/// Cross-checks the server's ID extraction against the text read on-device
-/// during pre-validation, so blanks get filled and doubtful values are
-/// pointed out on the review form instead of being submitted silently.
+/// Fills blanks from on-device OCR and flags doubtful values on the review
+/// form.
 class IdExtractionReview {
   const IdExtractionReview({required this.data, required this.flags});
 
@@ -62,8 +58,8 @@ class IdExtractionReview {
     final flags = <IdFieldFlag>[];
     var data = server;
 
-    // First name and gender are only filled, never cross-checked: engines
-    // split given / middle names differently, so a mismatch there is noise.
+    // First name and gender are only filled: engines split given/middle names
+    // differently.
     String text(
       String label,
       String serverValue,
@@ -106,8 +102,8 @@ class IdExtractionReview {
       gender: text('Gender', data.gender, device?.gender ?? ''),
     );
 
-    // Values only filled from the device scan; a mismatch here is too noisy
-    // (addresses wrap, phones get reformatted) to be worth flagging.
+    // Fill-only: addresses wrap and phones get reformatted, so mismatches are
+    // noise.
     if (data.age <= 0) {
       final deviceAge = device?.age ?? 0;
       if (deviceAge > 0) {

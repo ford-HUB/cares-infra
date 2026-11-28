@@ -26,7 +26,6 @@ export function useChangePasswordForm() {
       return
     }
 
-    // A wrong current password belongs on that field, where the user will retype it.
     if (/current password/i.test(res.message)) {
       form.setError('current_password', { type: 'server', message: res.message }, { shouldFocus: true })
       return

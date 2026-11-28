@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// The screen's single primary action: a green gradient pill-cornered button
-/// with an optional leading icon, lifted by a soft green shadow.
-///
-/// Pass `onPressed: null` to disable it; [loading] swaps the label for a
-/// spinner and keeps full colour so the press still reads as in progress.
+/// `onPressed: null` disables it; [loading] keeps full colour so the press
+/// reads as in progress.
 class GradientButton extends StatelessWidget {
   const GradientButton({
     super.key,

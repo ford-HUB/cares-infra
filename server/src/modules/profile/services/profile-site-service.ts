@@ -97,8 +97,7 @@ export class ProfileSiteService {
 
     await this.profileRepository.updatePortalProfile(userId, payload);
 
-    // Invalidate before re-reading: the cached row is stale the moment the write lands,
-    // and a replaced S3 object must not keep serving the old bytes.
+    // Invalidate before re-reading.
     await this.profileCacheService.invalidateProfile(userId);
     if (avatarUrl !== undefined) {
       await this.profileCacheService.invalidateAsset(userId, 'avatar');
@@ -141,11 +140,7 @@ export class ProfileSiteService {
     return this.profileCacheService.setAsset(userId, kind, asset);
   }
 
-  /**
-   * Read-through for the profile row. The portal shell reads it on every refresh —
-   * once for `/profile/me` and again behind the navbar avatar — so the cache also
-   * collapses those two into one query.
-   */
+  /** Also collapses the shell's two reads per refresh into one query. */
   private async loadProfile(userId: string): Promise<PortalProfileRow> {
     const cached = await this.profileCacheService.getProfile(userId);
     if (cached) {

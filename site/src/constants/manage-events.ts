@@ -1,4 +1,3 @@
-/** Fixed row metrics — the grid measures its container against these to fill the viewport. */
 export const EVENT_ROW_HEIGHT_PX = 48
 export const EVENT_HEADER_HEIGHT_PX = 36
 
@@ -28,11 +27,7 @@ export const EVENT_COLUMNS = [
   sortKey: EventSortKey | null
 }[]
 
-/**
- * Cell classes shared by the events table and its loading skeleton. They live here so
- * the skeleton cannot drift from the real row — a height mismatch is exactly the
- * layout jump the skeleton exists to prevent.
- */
+/** Shared with the loading skeleton so row heights can't drift. */
 export const EVENT_CELL_BORDER = 'border-r border-gray-100 last:border-r-0'
 export const EVENT_CELL_BASE =
   'h-12 truncate border-b border-gray-100 px-3 py-0 text-[13px]'

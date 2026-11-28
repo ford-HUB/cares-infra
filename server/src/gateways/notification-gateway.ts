@@ -11,21 +11,16 @@ import type { NotificationDto } from '../modules/notifications/dto/notifications
 import { isPortalRole } from '../shared/constants/portal-role-types';
 import { allowedOrigins } from '../shared/utils/environment-utils';
 
-/** Server → client event names; the portal listens for exactly these. */
+/** Must match the portal's listeners. */
 export const NOTIFICATION_NEW_EVENT = 'notification:new';
 export const NOTIFICATION_UNREAD_EVENT = 'notification:unread';
 
-/** One room per user, so a person's open tabs all get the same notice. */
+/** Per-user room so every open tab receives notices. */
 function roomFor(userId: string): string {
   return `user:${userId}`;
 }
 
-/**
- * Pushes notifications to signed-in portal users the moment they are written. The
- * REST endpoints remain the source of truth — this only saves the tab a poll, so a
- * client that missed an event (reconnect, closed laptop) reloads the list and is
- * whole again.
- */
+/** Best-effort push; REST stays the source of truth. */
 @WebSocketGateway({
   namespace: '/notifications',
   cors: { origin: allowedOrigins(), credentials: true },
@@ -38,15 +33,12 @@ export class NotificationGateway
   @WebSocketServer()
   private server!: Server;
 
-  /** `socket.data` is untyped, so the verified identity is kept here instead. */
+  /** `socket.data` is untyped. */
   private readonly socketUsers = new WeakMap<Socket, string>();
 
   constructor(private readonly jwtService: JwtService) {}
 
-  /**
-   * The HTTP guards never run for websockets, so the handshake token is verified
-   * here — an unauthenticated or non-portal socket is dropped immediately.
-   */
+  /** HTTP guards don't run for websockets: verify the handshake token here. */
   handleConnection(client: Socket): void {
     const raw =
       (client.handshake.auth?.token as string | undefined) ??
@@ -79,12 +71,12 @@ export class NotificationGateway
     this.logger.debug(`notification socket disconnected for user ${userId}`);
   }
 
-  /** A freshly written row, in the same shape the list endpoint returns. */
+  /** Same shape as the list endpoint. */
   emitNew(userId: string, notification: NotificationDto): void {
     this.server?.to(roomFor(userId)).emit(NOTIFICATION_NEW_EVENT, notification);
   }
 
-  /** The badge count after a read/dismiss from another tab, so every tab agrees. */
+  /** Keeps the badge in sync across tabs. */
   emitUnread(userId: string, unread: number): void {
     this.server
       ?.to(roomFor(userId))

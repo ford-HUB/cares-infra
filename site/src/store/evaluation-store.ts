@@ -29,26 +29,21 @@ import type {
   EvaluationTypography,
 } from '../types/evaluation'
 
-/** What a mutating call hands back to the page, which turns it into a toast. */
 export interface EvaluationResult {
   ok: boolean
   message?: string
 }
 
 interface EvaluationState {
-  /** Every questionnaire — the Forms page's list and the builder's switcher. */
   forms: EvaluationForm[]
   formsLoading: boolean
   formsInitialized: boolean
 
-  /** The questionnaire open in the builder; one of `forms`, loaded in full. */
   form: EvaluationForm | null
   formLoading: boolean
   formInitialized: boolean
-  /** True once anything changed since the last load or save. */
   dirty: boolean
   saving: boolean
-  /** The card the builder's floating rail attaches to — new questions insert after it. */
   activeQuestionId: string | null
 
   assignments: EvaluationAssignment[]
@@ -61,7 +56,6 @@ interface EvaluationState {
   responsesInitialized: boolean
 
   fetchForms: () => Promise<void>
-  /** Opens one questionnaire in the builder; without an id, the first of the list. */
   openForm: (formId?: string) => Promise<void>
   createForm: (title: string) => Promise<EvaluationResult & { id?: string }>
   deleteForm: (formId: string) => Promise<EvaluationResult>
@@ -71,7 +65,6 @@ interface EvaluationState {
   assignForm: (formId: string, eventId: number) => Promise<EvaluationResult>
   unassignForm: (assignmentId: string) => Promise<EvaluationResult>
 
-  /** Saves as-is; pass a status to move between draft and published in the same call. */
   saveForm: (status?: EvaluationForm['status']) => Promise<EvaluationResult>
   updateForm: (patch: Partial<Pick<EvaluationForm, 'title' | 'description'>>) => void
   updateHeaderTypography: (patch: Partial<EvaluationTypography>) => void
@@ -109,7 +102,7 @@ function blankQuestion(type: EvaluationQuestionType): EvaluationQuestion {
 }
 
 export const useEvaluationStore = create<EvaluationState>((set, get) => {
-  /** Every edit goes through here so `dirty` cannot be forgotten. */
+  /** All edits go through here so `dirty` can't be forgotten. */
   const patchForm = (mutate: (form: EvaluationForm) => EvaluationForm) => {
     const { form } = get()
     if (!form) return
@@ -155,10 +148,6 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
       })
     },
 
-    /**
-     * The list is the source of truth for which questionnaires exist, so opening
-     * one loads the list first when it has not been read yet.
-     */
     openForm: async (formId) => {
       if (!get().formsInitialized) await get().fetchForms()
       const target = formId ?? get().forms[0]?.id
@@ -166,8 +155,7 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
         set({ form: null, formInitialized: true, dirty: false })
         return
       }
-      // Re-opening the questionnaire already in the builder would throw away
-      // unsaved edits, so it is left alone.
+      // Re-opening the current form would discard unsaved edits.
       if (get().form?.id === target && get().dirty) return
 
       set({ formLoading: true })
@@ -203,7 +191,6 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
       if (!result.success) return { ok: false, message: result.message }
       set((state) => ({
         forms: state.forms.filter((one) => one.id !== formId),
-        // The builder cannot stay on a questionnaire that is gone.
         form: state.form?.id === formId ? null : state.form,
         dirty: state.form?.id === formId ? false : state.dirty,
       }))
@@ -216,7 +203,7 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
         return { ok: false, message: result.message }
       }
       const updated = result.data
-      // Exactly one row holds the flag, so the rest are cleared here too.
+      // Exactly one form holds the default flag.
       set((state) => ({
         forms: state.forms.map((one) =>
           one.id === formId ? updated : { ...one, isDefault: false },
@@ -227,7 +214,6 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
       return { ok: true, message: result.message }
     },
 
-    /** The Forms page needs both halves at once: what is assigned and what could be. */
     fetchAssignments: async () => {
       set({ assignmentsLoading: true })
       const [assignments, events] = await Promise.all([
@@ -249,7 +235,6 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
       }
       const assignment = result.data
       set((state) => {
-        // An event holds one assignment, so this replaces rather than appends.
         const rest = state.assignments.filter((one) => one.eventId !== eventId)
         const replaced = state.assignments.find((one) => one.eventId === eventId)
         return {
@@ -303,7 +288,6 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
         set((state) => ({
           form: saved,
           dirty: false,
-          // The Forms page reads titles, statuses and counts off this list.
           forms: state.forms.some((one) => one.id === saved.id)
             ? state.forms.map((one) => (one.id === saved.id ? saved : one))
             : [saved, ...state.forms],
@@ -341,7 +325,6 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
         return {
           ...q,
           type,
-          // Keep choices when moving between choice types; seed one otherwise.
           options: meta.hasOptions ? (q.options.length ? q.options : ['Option 1']) : [],
         }
       }),

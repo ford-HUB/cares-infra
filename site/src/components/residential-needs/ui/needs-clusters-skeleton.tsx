@@ -4,7 +4,6 @@ import { NEEDS_CHART_HEIGHT } from '../../../constants/residential-needs'
 
 const rows = (count: number) => Array.from({ length: count }, (_, index) => index)
 
-/** Mirrors `ClusterCard`: swatch + title, the size line, then five need bars. */
 function ClusterCardSkeleton() {
   return (
     <Card aria-hidden size="sm" className="shadow-sm">
@@ -24,10 +23,6 @@ function ClusterCardSkeleton() {
   )
 }
 
-/**
- * The Clusters screen while the first grouping is on its way back from
- * decision-service: the cards, the scatter, and the table's header rows.
- */
 export function NeedsClustersSkeleton({ k }: { k: number }) {
   return (
     <>

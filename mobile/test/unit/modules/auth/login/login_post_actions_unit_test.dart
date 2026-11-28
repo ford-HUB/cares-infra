@@ -1,14 +1,11 @@
-// Unit tests for every POST the sign-in screen sends:
+// Unit tests for every POST the sign-in screen sends (MockClient, no real
+// server):
 //
 //   POST /v1/auth/login              AuthLoginService.login
 //   POST /v1/auth/send-verification  AuthRegistrationService.sendVerificationCode (purpose: login)
 //   POST /v1/auth/donor/oauth        DonorAuthService.exchangeProviderToken
 //   POST /v1/auth/forgot-password    PasswordResetService.requestCode
 //   POST /v1/auth/verify-reset-otp   PasswordResetService.verifyCode
-//
-// The network is replaced with package:http's MockClient, so nothing here
-// reaches a real server. Each test records the request it captured and
-// replies with a mock `{ ok, message, data }` envelope.
 
 import 'dart:convert';
 import 'dart:io';

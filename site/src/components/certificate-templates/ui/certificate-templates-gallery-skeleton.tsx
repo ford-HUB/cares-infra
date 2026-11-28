@@ -1,7 +1,6 @@
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors a gallery card: preview block, title row, meta row, footer buttons. */
 export function CertificateTemplatesGallerySkeleton({ cards }: { cards: number }) {
   return (
     <div

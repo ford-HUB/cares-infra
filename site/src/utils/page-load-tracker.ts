@@ -3,34 +3,26 @@ import { apiClient } from '../services/api-client'
 import { reportPageTiming } from '../services/system-performance-service'
 import type { PortalNavConfig } from '../types/nav'
 
-/**
- * Times what a person feels when a screen opens, in the terms the Performance page
- * draws: the wait for the first byte from the API, the moment the screen has painted,
- * and the moment its data reads have all settled and it answers clicks. The browser's
- * navigation timing covers the first load only; every route change after that is a
- * client-side transition, so the same three marks are taken here by hand.
- */
+/** Route changes are client-side, so navigation timing only covers the first load; marks are taken by hand. */
 
-/** Requests that start later than this after the route change belong to polling. */
+/** Later requests belong to polling. */
 const REQUEST_WINDOW_MS = 5_000
 
-/** How long the screen must stay quiet, with nothing in flight, to count as loaded. */
 const SETTLE_QUIET_MS = 300
 
-/** A screen still loading after this is reported as it stands. */
 const MAX_WAIT_MS = 15_000
 
-/** The telemetry post itself must never count towards the screen it describes. */
+/** Telemetry must not count toward the screen it describes. */
 const EXCLUDED_URL = '/system-performance/page-timings'
 
-/** A uuid, a bare number, or a long opaque token — collapsed so one screen is one row. */
+/** Collapsed so one screen is one row. */
 const ID_SEGMENT =
   /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+|[A-Za-z0-9_-]{24,})$/i
 
 interface Tracking {
   route: string
   label: string
-  /** `performance.now()` at the route change; zero for the tab's first load. */
+  /** Zero for the tab's first load. */
   start: number
   firstResponseAt: number | null
   lastResponseAt: number | null
@@ -46,7 +38,7 @@ let current: Tracking | null = null
 let interceptorsInstalled = false
 let firstNavigationDone = false
 
-/** Starts timing the screen at `pathname`; any screen still being timed is dropped. */
+/** Any screen still being timed is dropped. */
 export function trackPageLoad(pathname: string, nav: PortalNavConfig): void {
   installInterceptors()
   if (current) cancel(current)
@@ -69,8 +61,7 @@ export function trackPageLoad(pathname: string, nav: PortalNavConfig): void {
 
   if (isFirst) seedFromNavigationTiming(tracking)
 
-  // Two frames: the first is the frame the route change was scheduled in, the second
-  // is the one the new screen is actually visible in.
+  // Two frames: the second is the one the new screen is visible in.
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
       if (current !== tracking) return
@@ -134,7 +125,6 @@ function installInterceptors(): void {
   )
 }
 
-/** Loaded once the screen has painted and nothing has been in flight for a moment. */
 function maybeSettle(tracking: Tracking): void {
   if (tracking.pending > 0 || tracking.paintedAt === null) return
   if (tracking.quietTimer) window.clearTimeout(tracking.quietTimer)
@@ -174,7 +164,7 @@ export function normaliseRoute(pathname: string): string {
     .join('/')
 }
 
-/** The sidebar's name for the screen, by the longest nav path the route sits under. */
+/** Longest nav path the route sits under. */
 export function labelFor(pathname: string, nav: PortalNavConfig): string {
   let bestLabel = ''
   let bestLength = -1

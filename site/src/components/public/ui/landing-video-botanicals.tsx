@@ -1,8 +1,6 @@
 const DOTS =
   'absolute bg-[radial-gradient(var(--cares-primary-hover)_1.5px,transparent_1.5px)] [background-size:14px_14px] opacity-30'
 
-/** Decoration around the home-page video: soft glow and dot grids behind the
- *  frame's corners. Purely visual. */
 export function LandingVideoBotanicals() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">

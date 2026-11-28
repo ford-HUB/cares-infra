@@ -152,11 +152,7 @@ export class AuthMobileController {
     return await this.authMobileService.uploadID(front, back);
   }
 
-  /**
-   * An alumni ID (front and back). Not checked by the student-ID classifier or
-   * read by OCR, but the alumnus's face is matched against it (`verify-face`);
-   * the director then reviews it with the registration.
-   */
+  /** Skips classifier and OCR but is face matched; reviewed by a director. */
   @Post('upload-alumni-id')
   @Public()
   @ResponseMessage('Alumni ID uploaded')
@@ -189,11 +185,7 @@ export class AuthMobileController {
     return await this.authMobileService.uploadAlumniID(front, back);
   }
 
-  /**
-   * The valid ID (front and back) of a partner-barangay volunteer. It is not
-   * checked by the student-ID classifier, face matched or read by OCR — the
-   * director reviews it with the registration.
-   */
+  /** Skips classifier, face match and OCR; reviewed by a director. */
   @Post('upload-partner-barangay-id')
   @Public()
   @ResponseMessage('Partner barangay ID uploaded')
@@ -224,12 +216,7 @@ export class AuthMobileController {
     return await this.authMobileService.uploadPartnerBarangayID(front, back);
   }
 
-  /**
-   * The ID (front and back) of a staff or alumni volunteer who chose manual
-   * registration after the app could not recognize their ID photo. It is exempt
-   * from the automatic ID validation and the face scan — the director verifies
-   * it by hand when reviewing the MANUAL_REGISTRATION request.
-   */
+  /** Fallback when the ID photo wasn't recognised; skips all automatic checks, verified by a director. */
   @Post('upload-manual-id')
   @Public()
   @ResponseMessage('ID uploaded for manual registration')
@@ -299,12 +286,7 @@ export class AuthMobileController {
     );
   }
 
-  /**
-   * The document on a sign-up a director reviews — a beneficiary's supporting
-   * document or an alumnus's Certificate of Graduation. Multipart: `registrationId`
-   * beside a `document` file of any type; it rides on the registration session until
-   * `register-from-session` files it with the director's review request.
-   */
+  /** Multipart: `registrationId` + `document` (any type); filed with the review request by `register-from-session`. */
   @Post('registration-document')
   @Public()
   @ResponseMessage('Document attached')

@@ -38,9 +38,7 @@ export function PortalHeader({
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // The header is mounted for the whole portal session, so it owns the feed: one
-  // fetch for the backlog, then the socket for anything that arrives while signed in.
-  // A desktop alert's click lands on the screen the notice is about.
+  // Mounted for the whole session, so the header owns the feed: one backlog fetch, then the socket.
   const userId = user?.id ?? null
   useEffect(() => {
     if (!userId) return
@@ -65,7 +63,7 @@ export function PortalHeader({
   }, [logout, navigate])
 
   const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`
-  /** Header shows the given name only — a full "first middle last" overflows the bar. */
+  /** Given name only; a full name overflows the bar. */
   const displayName = user?.firstName?.trim().split(/\s+/)[0] ?? ''
   const handleOpenSettings = () => {
     setMenuOpen(false)
@@ -101,8 +99,7 @@ export function PortalHeader({
             <Bell
               className={`h-5 w-5 ${unreadCount > 0 ? 'text-gray-700' : 'text-gray-500'}`}
             />
-            {/* How many notices have not been opened yet — the same number the page's
-                "Unread only" filter shows. Capped so a long absence stays legible. */}
+            {/* Same count as the page's "Unread only" filter; capped to stay legible. */}
             {unreadCount > 0 && (
               <span
                 aria-hidden

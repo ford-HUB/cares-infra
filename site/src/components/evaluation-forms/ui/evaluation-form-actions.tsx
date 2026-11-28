@@ -14,10 +14,8 @@ interface EvaluationFormActionsProps {
   onAction: (action: string, form: EvaluationForm) => void
 }
 
-/** Secondary actions live behind one menu so the card footer stays two buttons wide. */
 export function EvaluationFormActions({ form, onAction }: EvaluationFormActionsProps) {
-  // A questionnaire that has been answered keeps its responses; retiring it means
-  // unassigning it, not deleting it, and the default has to be handed over first.
+  // Answered forms keep their responses (unassign instead); the default must be handed over first.
   const deletable = form.responseCount === 0 && !form.isDefault
 
   return (

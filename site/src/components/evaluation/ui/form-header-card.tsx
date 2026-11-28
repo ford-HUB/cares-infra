@@ -10,7 +10,6 @@ interface FormHeaderCardProps {
   onTypographyChange: (patch: Partial<EvaluationTypography>) => void
 }
 
-/** The form's title block — the purple-topped card in Forms, here in the CARES accent. */
 export function FormHeaderCard({
   form,
   active,

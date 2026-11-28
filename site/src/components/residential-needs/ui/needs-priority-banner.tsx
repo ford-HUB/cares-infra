@@ -16,7 +16,7 @@ import type { NeedPriority } from '../../../types/residential-needs'
 
 export type PriorityFilter = NeedPriority | typeof NEEDS_FILTER_ALL
 
-/** The Q2 answers that land in a band, quoted the way the survey words them. */
+/** Quoted the way the survey words them. */
 function bandAnswers(band: NeedPriority): string {
   const from = NEED_PRIORITY_THRESHOLDS[band]
   const above = NEED_PRIORITY_ORDER[NEED_PRIORITY_ORDER.indexOf(band) - 1]
@@ -33,11 +33,7 @@ interface NeedsPriorityBannerProps {
   onFilterChange: (value: PriorityFilter) => void
 }
 
-/**
- * The survey at a glance: how many households need urgent help, of how many surveyed.
- * The four bands are parts of one whole, so they share one bar; each legend entry is
- * the household table's filter for that band.
- */
+/** Each legend entry is the household table's filter for that band. */
 export function NeedsPriorityBanner({
   total,
   counts,

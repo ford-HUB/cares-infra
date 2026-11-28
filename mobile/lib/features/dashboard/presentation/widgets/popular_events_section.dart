@@ -8,13 +8,8 @@ import 'package:mobile/features/dashboard/presentation/providers/recommended_eve
 import 'package:mobile/features/dashboard/presentation/widgets/home_section_header.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 
-/// "Popular Events" on the volunteer home tab: a horizontal deck of dark
-/// poster-style cards with a "Book your slot" call to action.
-///
-/// Shares the recommended-events fetch with the section below it and ranks
-/// by how full each event already is — the closest thing to "popular" the
-/// server exposes today. Errors and empty states are left to the
-/// recommended section so the home tab shows them once.
+/// Shares the recommended fetch with the section below and ranks by fill;
+/// errors and empty states are left to that section so they show once.
 class PopularEventsSection extends ConsumerWidget {
   const PopularEventsSection({
     super.key,
@@ -23,8 +18,7 @@ class PopularEventsSection extends ConsumerWidget {
     this.maxItems = 5,
   });
 
-  /// Horizontal inset the header and the first card line up with; the deck
-  /// itself bleeds to the screen edge.
+  /// The deck bleeds to the screen edge.
   final double gutter;
   final VoidCallback? onSeeAll;
   final int maxItems;
@@ -88,8 +82,6 @@ class PopularEventsSection extends ConsumerWidget {
   }
 }
 
-/// Dark poster card: a category-tinted backdrop stands in for a hero image,
-/// with title, organizer and schedule stacked above the booking button.
 class PopularEventCard extends StatelessWidget {
   const PopularEventCard({
     super.key,
@@ -192,8 +184,6 @@ class PopularEventCard extends StatelessWidget {
   }
 }
 
-/// Category colour pooled in the lower half of the card, fading up into the
-/// dark ground so the white type stays readable at the top.
 class _Backdrop extends StatelessWidget {
   const _Backdrop({required this.tint});
 

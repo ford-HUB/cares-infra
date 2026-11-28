@@ -2,14 +2,9 @@ import { useEffect, useState, type RefObject } from 'react'
 
 interface RowsPerPageLayout {
   rowsPerPage: number
-  /** Leftover pixels a trailing spacer row needs so the ruled grid reaches the bottom edge. */
   remainder: number
 }
 
-/**
- * Derives how many fixed-height rows fit the measured scroll container, so a table
- * fills its viewport slot exactly instead of spilling into a page scroll.
- */
 export function useRowsPerPage(
   ref: RefObject<HTMLElement | null>,
   rowHeight: number,

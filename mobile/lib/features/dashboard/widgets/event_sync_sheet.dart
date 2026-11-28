@@ -10,9 +10,6 @@ import '../data/location_sync_service.dart';
 import '../domain/cares_event.dart';
 import '../utils/geo_utils.dart';
 
-/// Bottom sheet for a joined event: what the geofence is doing right now,
-/// how many fixes sit on the device, and a button to push the pending ones
-/// to the server as CSV.
 Future<void> showEventSyncSheet(
   BuildContext context, {
   required CaresEvent event,
@@ -84,8 +81,7 @@ class _EventSyncSheetState extends State<_EventSyncSheet> {
     }
   }
 
-  /// Metres from the latest fresh fix to this event's venue, or null when
-  /// there is no recent fix to judge by.
+  /// Null without a recent fix.
   double? get _distanceToVenue {
     final fix = _latestFix;
     if (fix == null) return null;
@@ -380,7 +376,6 @@ class _StatusRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
 
-  /// Prefixes the value with a dot in [valueColor] — a status at a glance.
   final bool leadingDot;
 
   @override

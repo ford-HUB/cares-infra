@@ -8,8 +8,8 @@ import '../data/help_center_data.dart';
 import '../presentation/providers/support_requests_provider.dart';
 import '../widgets/help_support_widgets.dart';
 
-/// Help & Support center. The FAQ is static content; support requests go
-/// through [supportRequestsProvider] to `v1/support-tickets/me`.
+/// The FAQ is static; support requests go through [supportRequestsProvider] to
+/// `v1/support-tickets/me`.
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
 
@@ -43,7 +43,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   HelpTopic? _focusedTopic;
   bool _searchFocused = false;
 
-  /// Anchors the suggestion dropdown to the search field.
   final _searchLink = LayerLink();
   final _suggestionsController = OverlayPortalController();
 
@@ -68,7 +67,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     }
   }
 
-  /// Dropdown shows only while the field is focused and still empty.
+  /// Only while focused and still empty.
   void _syncSuggestions() {
     final show = _searchFocused && !_isSearching;
     if (show && !_suggestionsController.isShowing) {
@@ -157,7 +156,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
-  // -------------------------------------------------------------- Search
   Widget _buildSearchSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -266,9 +264,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
-  // -------------------------------------------------------- Quick Actions
-  /// Two things people open Help for most: filing a bug and checking on a
-  /// request they already filed. Both sit above the fold on purpose.
+  /// The two most common Help tasks; both sit above the fold on purpose.
   Widget _buildQuickActions() {
     return Consumer(
       builder: (context, ref, _) {
@@ -321,7 +317,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
-  // ----------------------------------------------------------- Quick Help
   Widget _buildQuickHelp() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -353,7 +348,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
-  // ------------------------------------------------------------------ FAQ
   Widget _buildFaqSection() {
     final topics = _focusedTopic == null ? HelpTopic.values : [_focusedTopic!];
 
@@ -383,7 +377,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
-  // -------------------------------------------------------- Need More Help
   Widget _buildNeedMoreHelp() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -441,8 +434,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   }
 }
 
-/// Floating "Try searching for" list anchored under the search field. Lives
-/// in the overlay so it covers the content below instead of pushing it down.
+/// In the overlay so it covers the content instead of pushing it down.
 class _SearchSuggestionsDropdown extends StatelessWidget {
   const _SearchSuggestionsDropdown({
     required this.link,
@@ -557,7 +549,6 @@ class _QuickActionCard extends StatelessWidget {
   final VoidCallback onTap;
   final Color accent;
 
-  /// Count shown in the corner when something is waiting on the user.
   final int badge;
 
   @override
@@ -646,8 +637,8 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
-/// Surfaces tickets the portal has bounced back to the requester —
-/// "Needs Your Reply" and "Confirm Fix" — so they are not missed.
+/// Tickets the portal bounced back ("Needs Your Reply", "Confirm Fix"), so they
+/// aren't missed.
 class _NeedsActionStrip extends StatelessWidget {
   const _NeedsActionStrip({required this.count, required this.onTap});
 
@@ -822,10 +813,6 @@ class _StillStuckCard extends StatelessWidget {
     );
   }
 }
-
-// ===========================================================================
-// Contact Support
-// ===========================================================================
 
 class ContactSupportScreen extends StatelessWidget {
   const ContactSupportScreen({super.key});
@@ -1037,10 +1024,6 @@ class _ContactRow extends StatelessWidget {
     );
   }
 }
-
-// ===========================================================================
-// Send Us a Message (support request form)
-// ===========================================================================
 
 class SupportMessageFormScreen extends ConsumerStatefulWidget {
   const SupportMessageFormScreen({super.key, this.initialType});
@@ -1388,12 +1371,7 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-// ===========================================================================
-// My Support Requests
-// ===========================================================================
-
-/// Chips on the list — mirrors the portal's status filter, collapsed to what
-/// matters to the requester.
+/// The portal's status filter, collapsed to what matters to the requester.
 enum SupportRequestFilter { all, needsAction, active, closed }
 
 extension SupportRequestFilterMeta on SupportRequestFilter {
@@ -1672,8 +1650,7 @@ class _MySupportRequestsScreenState
   }
 }
 
-/// The portal's summary row (total / open / in progress / resolved), read
-/// from the requester's side.
+/// The portal's summary row, from the requester's side.
 class _SummaryStrip extends StatelessWidget {
   const _SummaryStrip({required this.summary});
 
@@ -1761,7 +1738,7 @@ class _SummaryDivider extends StatelessWidget {
 class SupportRequestDetailScreen extends ConsumerStatefulWidget {
   const SupportRequestDetailScreen({super.key, required this.request});
 
-  /// Snapshot used until the provider has a fresher copy of the same ticket.
+  /// Used until the provider has a fresher copy.
   final SupportRequest request;
 
   static void open(BuildContext context, SupportRequest request) {
@@ -1924,7 +1901,6 @@ class _SupportRequestDetailScreenState
     );
   }
 
-  /// What the requester can do next depends on where the portal left it.
   List<Widget> _buildActions(BuildContext context, SupportRequest request) {
     final id = request.id;
     switch (request.status) {
@@ -2001,7 +1977,6 @@ class _SupportRequestDetailScreenState
     }
   }
 
-  /// Collects a message in a bottom sheet, then runs [action] with it.
   Future<void> _compose({
     required String title,
     required String hint,
@@ -2032,7 +2007,6 @@ class _SupportRequestDetailScreenState
   }
 }
 
-/// Message composer shared by reply, reopen, and "still not working".
 class _ReplyComposerSheet extends StatefulWidget {
   const _ReplyComposerSheet({required this.title, required this.hint});
 
@@ -2186,14 +2160,8 @@ class _ReplyHint extends StatelessWidget {
   }
 }
 
-// ===========================================================================
-// Report a Bug
-// ===========================================================================
-
-/// Bug-specific intake. Files a `bug` ticket (the portal's high-priority
-/// Issue bucket) and gathers the details triage always asks for — where it
-/// happened, steps to reproduce, how often, and the device — so the first
-/// reply is not "could you tell us more?".
+/// Files a `bug` ticket (the portal's high-priority Issue bucket) with the
+/// details triage always asks for.
 class ReportBugScreen extends ConsumerStatefulWidget {
   const ReportBugScreen({super.key});
 
@@ -2248,9 +2216,8 @@ class _ReportBugScreenState extends ConsumerState<ReportBugScreen> {
     setState(() => _submitting = true);
     final SupportRequest created;
     try {
-      // The portal ticket has one subject and one description; the area is
-      // folded into the subject so it is readable in the queue at a glance,
-      // and the reproduction details are laid out as sections in the body.
+      // The portal ticket has one subject and one description: the area goes in
+      // the subject, the reproduction details in body sections.
       created = await ref
           .read(supportRequestsProvider.notifier)
           .create(
@@ -2475,8 +2442,7 @@ class _ReportBugScreenState extends ConsumerState<ReportBugScreen> {
   }
 }
 
-/// The device details a real report would attach; the toggle lets the user
-/// opt out, since some would rather not share the model.
+/// The toggle lets the user opt out of sharing device details.
 class _DeviceInfoCard extends StatelessWidget {
   const _DeviceInfoCard({required this.included, required this.onChanged});
 
@@ -2533,10 +2499,6 @@ class _DeviceInfoCard extends StatelessWidget {
     );
   }
 }
-
-// ===========================================================================
-// Report a Problem
-// ===========================================================================
 
 class ReportProblemScreen extends StatelessWidget {
   const ReportProblemScreen({super.key});
@@ -2659,8 +2621,8 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
     setState(() => _submitting = true);
     final SupportRequest created;
     try {
-      // Filed as a `report` ticket so the portal can triage it apart from
-      // help requests; the reason becomes the subject.
+      // A `report` ticket, so the portal triages it apart from help requests;
+      // the reason becomes the subject.
       created = await ref
           .read(supportRequestsProvider.notifier)
           .create(

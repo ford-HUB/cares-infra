@@ -21,11 +21,7 @@ import {
   SnapshotQuerySchema,
 } from '../validators/system-performance-site-validator';
 
-/**
- * Host and request metrics for the Performance screen. Reading needs the
- * "View performance" right; reporting a page load does not — every portal tab
- * contributes to the page-load medians, whoever is signed in.
- */
+/** Reading needs "View performance"; reporting a page load doesn't. */
 @Controller('v1/system-performance')
 @Roles(...PORTAL_ROLE_TYPES)
 export class SystemPerformanceSiteController {

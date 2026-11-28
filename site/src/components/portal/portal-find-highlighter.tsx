@@ -3,15 +3,11 @@ import type { RefObject } from 'react'
 import { usePortalFindHighlight } from '../../hooks/use-portal-find-highlight'
 
 interface PortalFindHighlighterProps {
-  /** The scrolling content area to search — the chip itself must sit outside it. */
+  /** The scrolling area to search; the chip must sit outside it. */
   containerRef: RefObject<HTMLElement | null>
 }
 
-/**
- * Paints the header search's text across the opened module and says what it found.
- * A miss is spelled out (and only after the module has had time to load) so the
- * viewer knows to check the module's other filters rather than wonder.
- */
+/** Reports a miss only after the module has had time to load. */
 export function PortalFindHighlighter({ containerRef }: PortalFindHighlighterProps) {
   const { term, active, count, status, dismiss } = usePortalFindHighlight(containerRef)
   if (!active) return null

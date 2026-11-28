@@ -24,7 +24,7 @@ interface DonorRankingTableProps {
   emptyMessage?: string
 }
 
-/** Donors are scored on amount given — hours never enter this board. */
+/** Scored on amount given; hours never enter this board. */
 export function DonorRankingTable({
   entries,
   tiers,

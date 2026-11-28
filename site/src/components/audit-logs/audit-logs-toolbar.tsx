@@ -17,13 +17,11 @@ interface AuditLogsToolbarProps {
   severity: AuditSeverityFilter
   outcome: AuditOutcomeFilter
   range: AuditLogRange
-  /** Entries scrolled in so far — the grid loads the trail a page at a time. */
   loaded: number
   total: number
-  /** Counts describe what is loaded, not the whole trail, so they grow while scrolling. */
+  /** Counts cover loaded rows only, so they grow while scrolling. */
   critical: number
   failed: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0 entries". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onCategoryChange: (value: AuditCategoryFilter) => void

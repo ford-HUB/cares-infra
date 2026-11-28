@@ -6,9 +6,6 @@ import 'package:mobile/features/dashboard/widgets/assistance_request_widgets.dar
 import 'package:mobile/shared/widgets/header_back_control.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// Dedicated Needs Assessment page, opened from the Request tab's action
-/// dialog. Shows where the beneficiary stands with the survey and offers
-/// Take / View / Update — the card that used to sit on the Request tab.
 class NeedsAssessmentOverviewScreen extends StatefulWidget {
   const NeedsAssessmentOverviewScreen({super.key});
 

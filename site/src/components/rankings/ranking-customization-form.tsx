@@ -29,7 +29,7 @@ const inputClass =
 
 const cardClass = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm'
 
-/** Example figures, so a rate change reads as points before it is saved. */
+/** Example figures, so a rate change reads as points before saving. */
 const SAMPLE_EVENTS = 5
 const SAMPLE_STREAK = 3
 const SAMPLE_AMOUNT = 5000

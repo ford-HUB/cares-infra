@@ -5,11 +5,7 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 
-/**
- * The page splits "this week" from history client-side and folds history by month,
- * so the feed is fetched whole rather than paged — capped so a noisy month cannot
- * ship unbounded rows.
- */
+/** Grouped client-side, so fetched whole but capped. */
 export const NOTIFICATIONS_DEFAULT_LIMIT = 200;
 export const NOTIFICATIONS_MAX_LIMIT = 500;
 
@@ -31,7 +27,7 @@ export const NotificationSchema = z.object({
   category: z.enum(NotificationCategory),
   tone: z.enum(NotificationTone),
   href: z.string().nullable(),
-  /** The side of a mobile account the row belongs to; null is account-wide. */
+  /** Null is account-wide. */
   audience_role: z.enum(RoleType).nullable(),
   read: z.boolean(),
   created_at: z.iso.datetime(),

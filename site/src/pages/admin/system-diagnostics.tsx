@@ -18,8 +18,7 @@ export function SystemDiagnosticsPage() {
     void fetchDiagnostics()
   }, [fetchDiagnostics])
 
-  // The sweep runs every minute on the server; silent polls carry each fresh report
-  // to the screen without blinking the board back to its skeleton.
+  // Silent polls pick up each server sweep without blinking to the skeleton.
   useEffect(() => {
     const timer = window.setInterval(
       () => void fetchDiagnostics({ silent: true }),
@@ -41,10 +40,7 @@ export function SystemDiagnosticsPage() {
         </p>
       </header>
 
-      {/*
-        A failed read would otherwise leave the last report on screen, which reads as
-        "all clear" exactly when nothing is being checked.
-      */}
+      {/* Otherwise the stale report reads as "all clear". */}
       {error ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

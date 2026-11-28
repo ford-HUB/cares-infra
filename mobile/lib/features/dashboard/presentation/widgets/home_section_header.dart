@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Bold section title with an optional "See all" link, shared by the home
-/// tab's event sections so they read as one system.
 class HomeSectionHeader extends StatelessWidget {
   const HomeSectionHeader({super.key, required this.title, this.onSeeAll});
 

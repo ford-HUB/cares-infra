@@ -3,8 +3,7 @@ import 'package:mobile/features/dashboard/domain/cares_event.dart';
 import 'package:mobile/features/dashboard/domain/event_participation_role.dart';
 import 'package:mobile/features/dashboard/utils/geo_utils.dart';
 
-/// One interest the volunteer picked that the server's NLP tagging found in
-/// an event. [score] is the blended 0–1 confidence; the UI shows the label.
+/// Found by the server's NLP tagging; [score] is the blended 0–1 confidence.
 class MatchedInterest {
   const MatchedInterest({
     required this.code,
@@ -109,49 +108,44 @@ class RecommendedEvent {
   final String location;
   final int maxParticipants;
 
-  /// Volunteers holding a slot right now — counted from attendance rows.
+  /// Counted from attendance rows.
   final int participants;
 
-  /// Whether the signed-in volunteer is one of [participants].
   final bool isRegistered;
 
-  /// The geofence ruling on the volunteer's attendance (`PENDING`,
-  /// `COMPLETED`, `ABSENT`); null when not registered.
+  /// Geofence ruling (`PENDING`, `COMPLETED`, `ABSENT`); null when not
+  /// registered.
   final String? attendanceStatus;
 
-  /// The role the volunteer registered for; null when not registered.
   final EventParticipationRole? participationRole;
 
-  /// Where that role stands; null when not registered.
   final EventRoleApproval? roleApproval;
   final String organizerName;
   final String category;
   final String status;
   final bool beneficiaryApplicable;
 
-  /// The director's "Accepted Donations" panel — what a donor may give.
+  /// The director's "Accepted Donations" panel.
   final bool fundsDonation;
   final bool goodsDonation;
 
   /// Goods-type ids the director ticked when [goodsDonation] is on.
   final List<String> goodsTypes;
 
-  /// Money paid towards this event so far, whole pesos.
+  /// Whole pesos.
   final int fundsRaised;
 
-  /// Money and goods donations opened on this event.
   final int donationsCount;
 
-  /// Beneficiary rows only: `PENDING` / `ACCEPTED` / `REJECTED` for the
-  /// caller's own latest application, null otherwise.
+  /// Beneficiary rows only: the caller's latest application status; null
+  /// otherwise.
   final String? applicationStatus;
 
-  /// The director's reason when [applicationStatus] is `REJECTED`.
   final String? applicationRejectionReason;
   final double? markerLat;
   final double? markerLng;
 
-  /// The attendance area drawn on the portal map, null when none was drawn.
+  /// Drawn on the portal map; null when none.
   final List<GeofenceRing>? geofence;
 
   /// Images sit in a private bucket; the server streams them by index.
@@ -167,7 +161,7 @@ class RecommendedEvent {
   /// Mirrors [CaresEvent.serverId]: the id form the registration store keys on.
   String get caresEventId => 'event-$id';
 
-  /// Authenticated image stream per index, in upload order.
+  /// In upload order.
   List<String> get imageUrls {
     if (imageCount == 0) return const [];
     final api = ApiClient();
@@ -177,9 +171,8 @@ class RecommendedEvent {
     );
   }
 
-  /// The event details screen is still built on the prototype event model;
-  /// this projects a server row onto it so a recommended card opens the same
-  /// screen as every other card until the details screen moves to live data.
+  /// Projects a server row onto the prototype [CaresEvent] the details screen
+  /// still uses.
   CaresEvent toCaresEvent() {
     final now = DateTime.now();
     final startDay = DateTime(startsAt.year, startsAt.month, startsAt.day);
@@ -250,7 +243,7 @@ class RecommendedEventsPage {
     );
   }
 
-  /// False until the volunteer has chosen interests — nothing to match on.
+  /// False until interests are chosen.
   final bool hasInterests;
   final List<RecommendedEvent> events;
 }

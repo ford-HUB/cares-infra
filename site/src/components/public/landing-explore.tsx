@@ -5,7 +5,6 @@ import { LANDING_EXPLORE_LINKS } from '../../constants/landing-home'
 import { LandingReveal } from './ui/landing-reveal'
 import { LandingSectionHeading } from './ui/landing-section-heading'
 
-/** Home-page signposts to the inner pages of the public site. */
 export function LandingExplore() {
   return (
     <section className="border-t border-[var(--cares-border)] bg-white">

@@ -6,45 +6,37 @@ import {
   UserRequestStatus,
 } from '../../../infastructures/prisma/common/client';
 
-/** Every mobile side can file; the app's role switcher is local to the device. */
+/** Every mobile side can file; the role switcher is device-local. */
 export const MOBILE_USER_REQUEST_ROLE_TYPES = [
   RoleType.VOLUNTEER,
   RoleType.DONOR,
   RoleType.BENEFICIARY,
 ] as const;
 
-/**
- * The volunteer side is the only one gated by an ID check, so it is the only
- * role that can be asked for this way.
- */
+/** Only the volunteer side is ID-gated. */
 export const REQUESTABLE_ROLE_TYPES = [RoleType.VOLUNTEER] as const;
 
 export const CreateRoleAccessRequestSchema = z
   .object({
-    /** The registration session that holds the validated ID and matched selfie. */
+    /** Holds the validated ID and matched selfie. */
     registrationId: z.uuid('A valid registration id is required'),
     roleType: z.enum(REQUESTABLE_ROLE_TYPES),
   })
   .strict();
 
-/** Multipart body: `eventId` as a text field beside the `proof` file. */
+/** Multipart: `eventId` + `proof`. */
 export const CreateEventJoinRequestSchema = z
   .object({
     eventId: z.coerce.number().int().positive(),
   })
   .strict();
 
-/**
- * `?role=` names the side the app has open. The role switcher is local to the
- * app, so a donor- or volunteer-registered account applies from its
- * beneficiary dashboard with `role=BENEFICIARY`. Defaults to the registered
- * role.
- */
+/** The role switcher is local, so the app names the side (e.g. `role=BENEFICIARY`). Default: registered role. */
 export const EventJoinRoleQuerySchema = z.object({
   role: z.enum(MOBILE_USER_REQUEST_ROLE_TYPES).optional(),
 });
 
-/** The proof of residency attached to an event application — a PDF only. */
+/** PDF only. */
 export const EVENT_JOIN_PROOF_MAX_BYTES = 10 * 1024 * 1024;
 export const EVENT_JOIN_PROOF_ALLOWED_MIMES = ['application/pdf'] as const;
 
@@ -54,12 +46,12 @@ export const MobileUserRequestSchema = z.object({
   kind: z.enum(UserRequestKind),
   status: z.enum(UserRequestStatus),
   requested_role: z.enum(RoleType).nullable(),
-  /** EVENT_ROLE only — the event role the volunteer asked to take. */
+  /** EVENT_ROLE only. */
   participation_role: z.enum(EventParticipationRole).nullable(),
   event_id: z.number().nullable(),
   summary: z.string(),
   decided_at: z.iso.datetime().nullable(),
-  /** REJECTED only — the director's reason, shown to the requester. */
+  /** REJECTED only; shown to the requester. */
   rejection_reason: z.string().nullable(),
   created_at: z.iso.datetime(),
 });

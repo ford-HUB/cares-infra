@@ -15,14 +15,13 @@ import {
 } from '../../../constants/certificate-typography'
 
 interface CertificateFontSizeFieldProps {
-  /** Points the selected block prints at. */
+  /** Points. */
   value: number
   onChange: (size: number) => void
-  /** No block selected — there is nothing to size. */
   disabled?: boolean
 }
 
-/** The next size up or down the ladder, so the steppers move in usable jumps. */
+/** Next size on the ladder, so steppers move in usable jumps. */
 function step(value: number, direction: 1 | -1): number {
   const next =
     direction === 1
@@ -31,17 +30,12 @@ function step(value: number, direction: 1 | -1): number {
   return clampFontSize(next ?? value + direction)
 }
 
-/**
- * Text size in points, the Google Docs way: a ladder of common sizes to pick from,
- * steppers either side, and any number in between typed straight in.
- */
 export function CertificateFontSizeField({
   value,
   onChange,
   disabled = false,
 }: CertificateFontSizeFieldProps) {
-  // The box is uncontrolled and keyed on the size, so picking another block or
-  // stepping the value reloads it without a draft state to keep in sync.
+  // Uncontrolled and keyed on the size, so selection/steps reload it without draft state.
   const commit = (input: HTMLInputElement) => {
     const parsed = Number(input.value)
     if (!Number.isFinite(parsed) || input.value.trim() === '') {
@@ -67,7 +61,6 @@ export function CertificateFontSizeField({
         <Minus className="h-3.5 w-3.5" />
       </Button>
 
-      {/* The ladder is a menu, but the box itself takes any size in points. */}
       <div className="relative">
         <input
           type="number"

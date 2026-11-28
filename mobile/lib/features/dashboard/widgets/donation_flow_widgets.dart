@@ -4,9 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/models/donation_models.dart';
 
-/// Shared presentational widgets for the multi-step donation flow.
-
-/// The channel's brand mark, sized to sit where an option tile's icon goes.
 class PaymentMethodBadge extends StatelessWidget {
   const PaymentMethodBadge(this.method, {super.key, this.size = 42});
 
@@ -27,7 +24,6 @@ class PaymentMethodBadge extends StatelessWidget {
   }
 }
 
-/// Title + supporting copy shown at the top of each step.
 class DonationStepHeader extends StatelessWidget {
   const DonationStepHeader({super.key, required this.title, this.subtitle});
 
@@ -64,7 +60,6 @@ class DonationStepHeader extends StatelessWidget {
   }
 }
 
-/// Large selectable tile (donation type, payment method, handover option).
 class DonationOptionTile extends StatelessWidget {
   const DonationOptionTile({
     super.key,
@@ -84,9 +79,8 @@ class DonationOptionTile extends StatelessWidget {
   final IconData? icon;
   final Widget? leading;
 
-  /// False for an option that is shown but cannot be picked — a payment method
-  /// whose limits rule out the amount the donor typed. It is rendered muted and
-  /// unselectable rather than hidden, so the reason stays on screen.
+  /// Muted and unselectable rather than hidden (e.g. a method whose limits rule
+  /// out the amount), so the reason stays visible.
   final bool enabled;
 
   @override
@@ -170,7 +164,6 @@ class DonationOptionTile extends StatelessWidget {
   }
 }
 
-/// Preset amount chip for the money step.
 class DonationPresetChip extends StatelessWidget {
   const DonationPresetChip({
     super.key,
@@ -216,7 +209,6 @@ class DonationPresetChip extends StatelessWidget {
   }
 }
 
-/// One label/value line in a review or receipt card.
 class DonationSummaryRow {
   const DonationSummaryRow(this.label, this.value, {this.emphasize = false});
 
@@ -225,7 +217,6 @@ class DonationSummaryRow {
   final bool emphasize;
 }
 
-/// Card that renders a list of [DonationSummaryRow]s with dividers.
 class DonationSummaryCard extends StatelessWidget {
   const DonationSummaryCard({super.key, required this.rows});
 
@@ -284,7 +275,6 @@ class DonationSummaryCard extends StatelessWidget {
   }
 }
 
-/// Small status pill (e.g. "Completed", "Awaiting Drop-off").
 class DonationStatusPill extends StatelessWidget {
   const DonationStatusPill({
     super.key,
@@ -295,10 +285,9 @@ class DonationStatusPill extends StatelessWidget {
 
   final String label;
 
-  /// When false the pill reads as "in progress" (amber clock) rather than done.
+  /// False reads as in progress (amber clock).
   final bool done;
 
-  /// Overrides styling to a red "cancelled" look.
   final bool cancelled;
 
   @override
@@ -338,9 +327,8 @@ class DonationStatusPill extends StatelessWidget {
   }
 }
 
-/// Vertical tracker for a donation's lifecycle: the forward rungs for its
-/// kind (goods pass through a drop-off leg, money does not), or a
-/// Pledged → Cancelled / Declined path when it left the ladder.
+/// Goods pass through a drop-off leg, money doesn't; donations that left the
+/// ladder show Pledged → Cancelled/Declined.
 class DonationStatusTracker extends StatelessWidget {
   const DonationStatusTracker({
     super.key,
@@ -487,7 +475,6 @@ class _StatusStep extends StatelessWidget {
   }
 }
 
-/// Compact progress indicator "Step 2 of 4" with a track.
 class DonationStepProgress extends StatelessWidget {
   const DonationStepProgress({
     super.key,

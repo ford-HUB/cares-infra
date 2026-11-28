@@ -3,10 +3,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_category_icons.dart';
 
-/// Bottom sheet behind the hero's filter button: one row per event category
-/// ("All" first), the active one ticked. Resolves with the picked category,
-/// or null when dismissed — same values the "Choose By Category" chips use,
-/// so the two stay in sync.
+/// Null when dismissed; same values as the category chips so both stay in sync.
 Future<String?> showHomeCategoryFilterSheet(
   BuildContext context, {
   required List<String> categories,

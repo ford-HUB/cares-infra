@@ -7,7 +7,6 @@ import type { AssistanceRequest } from '../../../types/assistance-request'
 interface AssistanceDecisionModalProps {
   request: AssistanceRequest
   decision: AssistanceNoteDecision
-  /** True while the call is in flight. */
   busy: boolean
   onConfirm: (note: string) => void
   onClose: () => void

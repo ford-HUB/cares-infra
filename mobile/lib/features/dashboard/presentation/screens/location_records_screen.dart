@@ -9,12 +9,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/account_security_
 import 'package:mobile/features/dashboard/presentation/widgets/location_record_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Geolocation Records landing, opened from the Profile tab. One entry per day of
-/// coordinate captures made during event attendance, with its upload state.
-///
-/// Reads the day summaries through [LocationRecordsRepository] and
-/// refreshes live while the tracker is recording; "Upload now" pushes every
-/// event that still has pending rows.
+/// Refreshes live while the tracker records; "Upload now" pushes every event
+/// with pending rows.
 class LocationRecordsScreen extends StatefulWidget {
   const LocationRecordsScreen({super.key});
 
@@ -58,8 +54,7 @@ class _LocationRecordsScreenState extends State<LocationRecordsScreen> {
     super.dispose();
   }
 
-  /// The tracker notifies once a second while recording; coalesce so at most
-  /// one reload is in flight.
+  /// The tracker notifies each second; coalesced to one reload in flight.
   void _onTrackerChanged() {
     if (_reloadQueued) return;
     _reloadQueued = true;
@@ -243,8 +238,8 @@ class _EmptyRecords extends StatelessWidget {
   }
 }
 
-/// Live line under the summary: whether the tracker is writing right now,
-/// and why (event window open vs. offline fallback).
+/// Whether the tracker is writing now, and why (event window vs. offline
+/// fallback).
 class _RecordingStatusStrip extends StatelessWidget {
   const _RecordingStatusStrip({required this.tracker});
 

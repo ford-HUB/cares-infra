@@ -2,11 +2,6 @@ import { Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { CERTIFICATE_TOKENS } from '../../../constants/certificate-design'
 
-/**
- * Inserts a placeholder into the award text — typing `{{recipient}}` by hand invites
- * typos, and the required ones are called out so a director knows what the wording
- * must carry.
- */
 export function CertificateTokenChips({
   onInsert,
 }: {

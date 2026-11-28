@@ -17,13 +17,7 @@ const regularUserTypes = REGULAR_USER_TYPES.map((option) => option.value) as [
   ...(typeof REGULAR_USER_TYPES)[number]['value'][],
 ]
 
-/**
- * `generate` has the server mint the sign-in name; `manual` carries the address the
- * requester asked from. The password is generated either way — an administrator
- * choosing someone else's password is what this flow exists to avoid. The person's
- * name and phone are not asked for: they fill those in themselves once signed in.
- * `recipientEmail` is the inbox the credentials are mailed to.
- */
+/** Password is always generated; name and phone are filled in by the person later. */
 export const provisionUserSchema = z
   .object({
     mode: z.enum(['manual', 'generate']),
@@ -35,15 +29,13 @@ export const provisionUserSchema = z
       .max(160)
       .email('Enter a valid email address'),
     role: z.enum(['ADMIN', 'DIRECTOR', 'COORDINATOR', REGULAR_USER_ROLE]),
-    // Only read when `role` is Regular User — it decides the app role (and, for a
-    // volunteer, whether they are a student or staff).
+    // Read only for Regular User.
     regularUserType: z.enum(regularUserTypes),
-    // '' is the "no department" option — an admin or director usually has none.
+    // '' is "no department".
     department: z.enum(['', ...departmentNames]),
-    // Only read for a partner-barangay volunteer, where it replaces the department.
+    // Partner-barangay volunteers only; replaces the department.
     partnerBarangay: z.enum(['', ...partnerBarangayNames]),
-    // The select stores a number (`valueAsNumber` on the field), so no coercion here —
-    // `z.coerce` would widen the form's input type to `unknown`.
+    // `valueAsNumber` field; `z.coerce` would widen the input type to `unknown`.
     expiresInHours: z
       .number()
       .int()
@@ -81,7 +73,6 @@ export const provisionUserSchema = z
 
 export type ProvisionUserFormValues = z.infer<typeof provisionUserSchema>
 
-/** A Regular User provisioned as a volunteer from one of the partner barangays. */
 export function isPartnerBarangayVolunteer(values: {
   role: string
   regularUserType: string
@@ -92,10 +83,7 @@ export function isPartnerBarangayVolunteer(values: {
   )
 }
 
-/**
- * The role type the server should create, plus the volunteer sub-type when there is one.
- * Portal roles pass straight through; a Regular User resolves through its type.
- */
+/** Portal roles pass through; Regular User resolves through its type. */
 export function resolveProvisionRole(
   values: Pick<ProvisionUserFormValues, 'role' | 'regularUserType'>,
 ): { roleType: string; volunteerType: string | null; isPortalRole: boolean } {

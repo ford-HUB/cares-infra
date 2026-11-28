@@ -39,7 +39,7 @@ function toFormValues(template: CertificateTemplate): CertificateTemplateFormVal
     elementAligns: template.design.elementAligns ?? {},
     elementWeights: template.design.elementWeights ?? {},
     elementUnderlines: template.design.elementUnderlines ?? {},
-    // A template saved before the award name had its own field printed its name.
+    // Templates saved before the award-name field printed their name.
     title: certificateTitle(template.design, template.name),
     headline: template.design.headline,
     body: template.design.body,
@@ -54,11 +54,6 @@ function toFormValues(template: CertificateTemplate): CertificateTemplateFormVal
   }
 }
 
-/**
- * Owns the template customizer: the form, its signatory rows, and the save that folds
- * the flat form back into the template's `design`. The form is the single source for
- * the live preview, so every keystroke is what the certificate will look like.
- */
 export function useCertificateTemplateForm(
   template: CertificateTemplate,
   onSaved: () => void,
@@ -74,14 +69,11 @@ export function useCertificateTemplateForm(
 
   const signatories = useFieldArray({ control: form.control, name: 'signatories' })
 
-  // Opening the customizer on a different template reloads the form rather than
-  // leaving the previous template's wording in the fields.
   const { reset } = form
   useEffect(() => {
     reset(toFormValues(template))
   }, [template, reset])
 
-  // The picker offers the whole directory; the same account is never added twice.
   const addSignatory = (coordinator: SignatoryCoordinator) => {
     if (signatories.fields.length >= MAX_SIGNATORIES) return
     if (signatories.fields.some((one) => one.coordinatorId === coordinator.id)) return

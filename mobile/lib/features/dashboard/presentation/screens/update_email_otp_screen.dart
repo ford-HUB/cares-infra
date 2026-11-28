@@ -10,14 +10,9 @@ import 'package:mobile/features/dashboard/presentation/screens/update_email_scre
 import 'package:mobile/features/dashboard/presentation/widgets/account_security_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Step 1 of the email update: a one-time code goes to the *current* address
-/// and must be entered before the replacement can be typed. Proves the person
-/// still controls the mailbox they signed up with. Nothing is sent until the
-/// person taps "Send code" — opening the screen by mistake costs nothing.
-///
-/// `POST /account/mobile/email/send-code` mails the code; `verify-code`
-/// trades it for a change token that step 2 spends. Resolves to the new
-/// email once step 2 saves, or null on back-out.
+/// Step 1: a code to the current address proves mailbox control; nothing is
+/// sent until "Send code". `send-code` mails it, `verify-code` trades it for
+/// the change token step 2 spends. Resolves to the new email, or null.
 class UpdateEmailOtpScreen extends StatefulWidget {
   const UpdateEmailOtpScreen({super.key, required this.currentEmail});
 
@@ -48,7 +43,7 @@ class _UpdateEmailOtpScreenState extends State<UpdateEmailOtpScreen> {
 
   String _code = '';
 
-  /// False until the first "Send code" tap; the code input stays hidden.
+  /// The code input stays hidden until the first send.
   bool _sent = false;
   bool _sending = false;
   bool _verifying = false;

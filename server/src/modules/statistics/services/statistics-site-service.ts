@@ -43,13 +43,13 @@ const MONTH_LABELS = [
   'Dec',
 ];
 
-/** Events with no college on the row, in the per-department breakdown. */
+/** Label for events with no college. */
 const UNASSIGNED_DEPARTMENT = 'All Departments';
 
-/** Volunteers whose school record carries no year level. */
+/** For volunteers with no year level. */
 const UNKNOWN_YEAR_LEVEL = 'Unspecified';
 
-/** First day of the month `offset` months after `date`'s month, at midnight. */
+/** Midnight on the 1st, `offset` months from `date`'s month. */
 function startOfMonth(date: Date, offset = 0): Date {
   return new Date(date.getFullYear(), date.getMonth() + offset, 1);
 }
@@ -58,7 +58,7 @@ function periodKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
-/** Whole-window sum plus the per-month trend, against the previous window. */
+/** Window sum plus monthly trend, vs the previous window. */
 function summarise(current: number[], previous: number[]): StatisticSummaryDto {
   const sum = (values: number[]) => values.reduce((total, v) => total + v, 0);
   return {
@@ -92,21 +92,12 @@ interface MonthBucket {
   events: StatisticsEvent[];
 }
 
-/**
- * The Statistics page in numbers. Everything is bucketed by the month an event
- * starts in; "held" additionally requires the event to have ended, so a month in
- * progress never claims events still to come. The previous window of the same
- * length gives every headline its movement.
- */
+/** Bucketed by start month; "held" also requires the event to have ended. Compared to the previous equal window. */
 @Injectable()
 export class StatisticsSiteService {
   constructor(private readonly repository: StatisticsRepository) {}
 
-  /**
-   * Admin and director read the whole system, narrowed by the query's department.
-   * A coordinator is always scoped to the college on their profile; with none set
-   * they get an empty page rather than the whole system.
-   */
+  /** Coordinators are always scoped to their college; none set yields an empty page. */
   async getStatistics(
     userId: string,
     role: RoleType,
@@ -146,8 +137,7 @@ export class StatisticsSiteService {
     const volunteerScope: Prisma.UserWhereInput = scope
       ? this.repository.volunteersInDepartment(scope.aliases)
       : {};
-    // Reports carry the college as an enum; a coordinator whose profile text is not
-    // one of those colleges falls back to the reports they filed themselves.
+    // Reports store the college as an enum; unmatched coordinators fall back to their own reports.
     const reportScope: Prisma.MonthlyReportWhereInput = !scope
       ? {}
       : scope.code
@@ -191,8 +181,7 @@ export class StatisticsSiteService {
           previousMonthly.map((row) => row.events_held),
         ),
         active_volunteers: {
-          // Distinct across the whole window, not the sum of the monthly points — a
-          // volunteer active in two months is still one volunteer.
+          // Distinct across the window, not a sum of monthly points.
           value: this.activeVolunteers(currentEvents).size,
           previous: this.activeVolunteers(
             previous.flatMap((bucket) => bucket.events),
@@ -223,7 +212,7 @@ export class StatisticsSiteService {
     };
   }
 
-  /** The page with nothing in it — a coordinator with no college on their profile. */
+  /** For a coordinator with no college. */
   private empty(query: StatisticsQueryDto): StatisticsResponseDto {
     const now = new Date();
     const months = STATISTICS_RANGE_MONTHS[query.range];
@@ -252,7 +241,6 @@ export class StatisticsSiteService {
     };
   }
 
-  /** One bucket per month from `start`, holding the events that start in it. */
   private bucket(
     events: StatisticsEvent[],
     start: Date,
@@ -289,7 +277,7 @@ export class StatisticsSiteService {
     };
   }
 
-  /** Volunteers with at least one completed attendance across the given events. */
+  /** At least one completed attendance. */
   private activeVolunteers(events: StatisticsEvent[]): Set<string> {
     const ids = new Set<string>();
     for (const event of events) {
@@ -344,11 +332,7 @@ export class StatisticsSiteService {
     });
   }
 
-  /**
-   * Every year level the school holds, with how many of the scope's volunteers sit
-   * in it and how many of those attended something this period. A level nobody is
-   * in still lists at zero, so the chart keeps its shape between colleges.
-   */
+  /** Empty levels list at zero so the chart keeps its shape. */
   private yearLevels(
     levels: string[],
     volunteers: { user_id: string; year_level: { name: string } }[],
@@ -390,7 +374,7 @@ export class StatisticsSiteService {
       .slice(0, STATISTICS_TOP_EVENTS);
   }
 
-  /** How the whole splits by college — the event's own department, as written. */
+  /** By the event's department as written. */
   private departments(events: StatisticsEvent[]): DepartmentActivityDto[] {
     const groups = new Map<string, DepartmentActivityDto>();
     for (const event of events) {

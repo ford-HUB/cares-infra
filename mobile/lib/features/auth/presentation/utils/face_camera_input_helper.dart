@@ -4,7 +4,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-/// Camera frame packaged for ML Kit with correct analysis dimensions.
 class CameraFrameInput {
   const CameraFrameInput({
     required this.inputImage,
@@ -19,7 +18,6 @@ class CameraFrameInput {
   final InputImageRotation rotation;
 }
 
-/// Converts [CameraImage] frames to ML Kit [InputImage].
 class FaceCameraInputHelper {
   const FaceCameraInputHelper._();
 

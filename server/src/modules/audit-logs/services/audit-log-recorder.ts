@@ -9,18 +9,17 @@ import type { JwtPayload } from '../../../shared/types/jwt-payload';
 import type { AuditLogChangeDto } from '../dto/audit-logs-site-dto';
 import { AuditLogRepository } from '../repositories/audit-log-repository';
 
-/** Stored when Express could not resolve a client address, so the column stays non-null. */
+/** Keeps the column non-null when Express can't resolve the IP. */
 const UNKNOWN_IP = 'unknown';
 
 export interface AuditEntry {
-  /** Machine key, e.g. `security-policy.updated` — stable across wording changes. */
+  /** e.g. `security-policy.updated`; stable across wording changes. */
   action: string;
-  /** The sentence the portal renders in the grid. */
   description: string;
   category: AuditCategory;
   severity?: AuditSeverity;
   outcome?: AuditOutcome;
-  /** Null for background jobs; the caller's token otherwise. */
+  /** Null for background jobs. */
   actor: JwtPayload | null;
   targetType: string;
   targetLabel: string;
@@ -34,12 +33,7 @@ export interface AuditEntry {
   metadata?: Record<string, string>;
 }
 
-/**
- * Writes the audit trail on behalf of the features that perform privileged actions.
- * Best-effort, like the sign-in trail: losing a row is bad, but failing the action the
- * operator actually asked for — after it already succeeded — is worse and leaves the
- * portal showing an error for work that was done.
- */
+/** Best-effort: never fails an action that already succeeded. */
 @Injectable()
 export class AuditLogRecorder {
   private readonly logger = new Logger(AuditLogRecorder.name);
@@ -81,11 +75,7 @@ export class AuditLogRecorder {
     }
   }
 
-  /**
-   * The token carries the email and role but not the name, so it is read once here.
-   * A missing user is not an error: the token proves who acted, and the email stands
-   * in for the name.
-   */
+  /** The token has no name; a missing user falls back to the email. */
   private async resolveActor(actor: JwtPayload) {
     const user = await this.auditLogRepository.findActor(actor.sub);
     const name = user ? `${user.firstname} ${user.lastname}`.trim() : '';

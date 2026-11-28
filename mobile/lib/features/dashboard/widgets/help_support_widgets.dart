@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/help_center_data.dart';
 
-/// Shared building blocks for the Help & Support center. All widgets are
-/// presentational — they take static data and callbacks only.
-
-/// Section heading with a leading icon (or legacy emoji), e.g. "Quick Help".
 class HelpSectionHeader extends StatelessWidget {
   const HelpSectionHeader({
     super.key,
@@ -68,7 +64,6 @@ class HelpSectionHeader extends StatelessWidget {
   }
 }
 
-/// Rounded search input used at the top of the Help & Support page.
 class HelpSearchField extends StatelessWidget {
   const HelpSearchField({
     super.key,
@@ -118,7 +113,6 @@ class HelpSearchField extends StatelessWidget {
   }
 }
 
-/// Tappable example-search pill.
 class HelpExampleChip extends StatelessWidget {
   const HelpExampleChip({super.key, required this.label, required this.onTap});
 
@@ -164,7 +158,6 @@ class HelpExampleChip extends StatelessWidget {
   }
 }
 
-/// Prominent Quick Help category card (Donations / Events / Account).
 class QuickHelpCard extends StatelessWidget {
   const QuickHelpCard({
     super.key,
@@ -243,7 +236,6 @@ class QuickHelpCard extends StatelessWidget {
   }
 }
 
-/// Expandable FAQ row. Collapsed by default; animates open on tap.
 class FaqExpansionTile extends StatefulWidget {
   const FaqExpansionTile({
     super.key,
@@ -255,7 +247,6 @@ class FaqExpansionTile extends StatefulWidget {
   final HelpArticle article;
   final bool initiallyExpanded;
 
-  /// Draws a subtle accent border, used for search-result matches.
   final bool highlight;
 
   @override
@@ -344,7 +335,6 @@ class _FaqExpansionTileState extends State<FaqExpansionTile> {
   }
 }
 
-/// Generic navigation card used for "Need More Help?" and report options.
 class HelpNavCard extends StatelessWidget {
   const HelpNavCard({
     super.key,
@@ -429,7 +419,6 @@ class HelpNavCard extends StatelessWidget {
   }
 }
 
-/// Small status pill for support requests.
 class SupportStatusChip extends StatelessWidget {
   const SupportStatusChip({super.key, required this.status});
 
@@ -470,7 +459,6 @@ class SupportStatusChip extends StatelessWidget {
   }
 }
 
-/// Small outlined label for the ticket's type, e.g. "Bug" or "Login Issue".
 class SupportTypeBadge extends StatelessWidget {
   const SupportTypeBadge({super.key, required this.type});
 
@@ -504,8 +492,7 @@ class SupportTypeBadge extends StatelessWidget {
   }
 }
 
-/// Priority bucket the portal filed the ticket under (Issue / Support /
-/// Feature). Shown as a coloured dot + label so it reads beside the type.
+/// The portal's priority bucket (Issue / Support / Feature).
 class SupportPriorityBadge extends StatelessWidget {
   const SupportPriorityBadge({super.key, required this.priority});
 
@@ -538,7 +525,6 @@ class SupportPriorityBadge extends StatelessWidget {
   }
 }
 
-/// Row in the "My Support Requests" list.
 class SupportRequestTile extends StatelessWidget {
   const SupportRequestTile({
     super.key,
@@ -680,7 +666,6 @@ class SupportRequestTile extends StatelessWidget {
   }
 }
 
-/// Chat-style bubble for a support conversation.
 class SupportMessageBubble extends StatelessWidget {
   const SupportMessageBubble({super.key, required this.message});
 
@@ -745,7 +730,6 @@ class SupportMessageBubble extends StatelessWidget {
   }
 }
 
-/// Standard labelled form field wrapper.
 class HelpFormField extends StatelessWidget {
   const HelpFormField({
     super.key,
@@ -795,8 +779,7 @@ class HelpFormField extends StatelessWidget {
   }
 }
 
-/// Centered, width-limited page body so the layout also reads well on tablets
-/// and desktop/web builds.
+/// Width-limited so it reads well on tablets and web.
 class HelpPageBody extends StatelessWidget {
   const HelpPageBody({
     super.key,
@@ -827,7 +810,6 @@ class HelpPageBody extends StatelessWidget {
   }
 }
 
-/// Selectable pill used for single-choice pickers (bug area, frequency).
 class SupportChoiceChip extends StatelessWidget {
   const SupportChoiceChip({
     super.key,
@@ -882,8 +864,8 @@ class SupportChoiceChip extends StatelessWidget {
   }
 }
 
-/// Tappable field that opens [showSupportTypePicker]; reads like a dropdown
-/// but shows the chosen type's icon and the priority it will be filed under.
+/// Reads like a dropdown but shows the type's icon and the priority it files
+/// under.
 class SupportTypeField extends StatelessWidget {
   const SupportTypeField({
     super.key,
@@ -969,7 +951,6 @@ class SupportTypeField extends StatelessWidget {
   }
 }
 
-/// Bottom-sheet picker listing every ticket type with its hint.
 Future<SupportTicketType?> showSupportTypePicker(
   BuildContext context, {
   SupportTicketType? selected,
@@ -1086,7 +1067,6 @@ Future<SupportTicketType?> showSupportTypePicker(
   );
 }
 
-/// Tinted banner explaining a status, or any short callout with an icon.
 class SupportInfoBanner extends StatelessWidget {
   const SupportInfoBanner({
     super.key,

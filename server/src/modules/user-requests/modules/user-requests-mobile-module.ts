@@ -4,7 +4,7 @@ import { UserRequestsMobileController } from '../controllers/user-requests-mobil
 import { UserRequestsRepository } from '../repositories/user-requests-repository';
 import { UserRequestsMobileService } from '../services/user-requests-mobile-service';
 
-/** Needs the auth service to read the registration session a role request is backed by. */
+/** Auth service reads the registration session backing a role request. */
 @Module({
   imports: [AuthMobileModule],
   controllers: [UserRequestsMobileController],

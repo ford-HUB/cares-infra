@@ -26,10 +26,7 @@ import {
   SyncCoordinatesResponseSchema,
 } from '../validators/event-attendance-mobile-validator';
 
-/**
- * Where the volunteer app's geofence recorder sends its coordinates: one JSON reading
- * per second while online, or one CSV per event for what it buffered offline.
- */
+/** JSON reading per second online, or one CSV per event for offline buffers. */
 @Controller('v1/attendance/geofence/mobile')
 @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
 export class EventAttendanceMobileController {
