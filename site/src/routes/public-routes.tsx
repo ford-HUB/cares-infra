@@ -5,6 +5,7 @@ import { LandingSectionRedirect } from "../components/public/landing-section-red
 import { LANDING_SECTION_IDS } from "../constants/landing-bulletin";
 import {
     ABOUT_PATH,
+    DATA_DELETION_PATH,
     HIGHLIGHTS_PATH,
     HOME_PATH,
     PROGRAM_BULLETIN_PAGE_PATH,
@@ -13,6 +14,7 @@ import {
     REGISTRATION_STATUS_PATH,
     TERMS_OF_SERVICE_PATH,
 } from "../constants/routes";
+import DataDeletionPage from "../pages/public/data-deletion-page";
 import Home from "../pages/public/Home";
 import PrivacyPolicyPage from "../pages/public/privacy-policy-page";
 import ProgramBulletinPage from "../pages/public/program-bulletin-page";
@@ -40,6 +42,7 @@ export const publicRoutes: RouteObject[] = [
                     },
                     { path: PRIVACY_POLICY_PATH, element: <PrivacyPolicyPage /> },
                     { path: TERMS_OF_SERVICE_PATH, element: <TermsOfServicePage /> },
+                    { path: DATA_DELETION_PATH, element: <DataDeletionPage /> },
                 ],
             },
         ],

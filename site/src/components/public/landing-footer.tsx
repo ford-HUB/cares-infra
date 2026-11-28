@@ -1,6 +1,6 @@
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
-import { PRIVACY_POLICY_PATH, TERMS_OF_SERVICE_PATH } from "../../constants/routes";
+import { DATA_DELETION_PATH, PRIVACY_POLICY_PATH, TERMS_OF_SERVICE_PATH } from "../../constants/routes";
 import {
   LANDING_BANNER_SERIF,
   LANDING_CONTAINER,
@@ -12,6 +12,7 @@ import {
 const LEGAL_LINKS = [
   { label: "Privacy Policy", to: PRIVACY_POLICY_PATH },
   { label: "Terms of Service", to: TERMS_OF_SERVICE_PATH },
+  { label: "Data Deletion", to: DATA_DELETION_PATH },
 ] as const;
 
 export function LandingFooter() {
@@ -81,7 +82,7 @@ export function LandingFooter() {
           className={`${LANDING_CONTAINER} flex flex-col gap-3 py-4 text-[12px] text-white/60 sm:flex-row sm:items-center sm:justify-between`}
         >
           <p>© {new Date().getFullYear()} University of Cebu — Lapu-Lapu and Mandaue. All rights reserved.</p>
-          <nav aria-label="Legal" className="flex gap-5">
+          <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
             {LEGAL_LINKS.map((link) => (
               <Link
                 key={link.to}

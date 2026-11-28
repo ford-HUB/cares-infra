@@ -1,6 +1,7 @@
 import {
   ABOUT_PATH,
   ADMIN_BASE_PATH,
+  DATA_DELETION_PATH,
   HIGHLIGHTS_PATH,
   HOME_PATH,
   LOGIN_PATH,
@@ -64,6 +65,13 @@ const PUBLIC_SEO: Record<string, RouteSeo> = {
     description:
       'The terms for using the UCLM CARES website, staff portal and mobile app as a volunteer, donor, beneficiary or staff member.',
     canonicalPath: TERMS_OF_SERVICE_PATH,
+    index: true,
+  },
+  [DATA_DELETION_PATH]: {
+    title: `Data Deletion | ${SITE_NAME}`,
+    description:
+      'How to request deletion of your UCLM CARES account and personal data, what is removed, and which records the law requires us to keep.',
+    canonicalPath: DATA_DELETION_PATH,
     index: true,
   },
 }
